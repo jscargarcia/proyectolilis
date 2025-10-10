@@ -13,15 +13,15 @@ Sistema de gestión desarrollado en Django para administración de productos, in
    git clone
    cd
    
-3. Crear y activar entorno virtual:
+2. Crear y activar entorno virtual:
    Windows (PowerShell)
    python -m venv env
    .\env\Scripts\Activate.ps1
    
-4. Instalar dependencias:
+3. Instalar dependencias:
    pip install -r requirements.txt
-   
-5. Congigurar Base de datos MYSQL:
+
+4. Congigurar Base de datos MYSQL:
 
    - Crear la Base de Datos
    Abrir MySQL desde terminal o MySQL Workbench
@@ -36,7 +36,7 @@ FLUSH PRIVILEGES;
    - Salir
    EXIT;
 
-6. Configurar Credenciales en Django
+  5.Configurar Credenciales en Django
 
    Editar el archivo config/settings.py:
    
@@ -51,10 +51,10 @@ FLUSH PRIVILEGES;
   }
 }
 
-   7. Inicializar migraciones
+   6. Inicializar migraciones
    python manage.py migrate
 
-   8. Ejecutar Scripts de Corrección
+   7. Ejecutar Scripts de Corrección
       
 python convert_to_innodb.py
 
