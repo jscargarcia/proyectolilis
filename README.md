@@ -9,19 +9,19 @@ Sistema de gestión desarrollado en Django para administración de productos, in
 - Git 
 
 ## Levantar el proyecto (desarrollo)
-1. Clonar el repo:
-   git clone
-   cd
+1. Clonar el repo: 
+   - git clone https://github.com/jscargarcia/proyectolilis.git
+   - cd proyectolilis
    
 2. Crear y activar entorno virtual:
-   Windows (PowerShell)
-   python -m venv env
-   .\env\Scripts\Activate.ps1
+   - Windows (PowerShell)
+     python -m venv env
+     .\env\Scripts\Activate.ps1
    
 3. Instalar dependencias:
    pip install -r requirements.txt
 
-4. Congigurar Base de datos MYSQL:
+5. Congigurar Base de datos MYSQL:
 
    - Crear la Base de Datos
    Abrir MySQL desde terminal o MySQL Workbench
