@@ -1,0 +1,21 @@
+Django==5.2.7
+mysqlclient==2.2.7
+asgiref==3.10.0
+sqlparse==0.5.3
+tzdata==2025.2
+
+#Para desarrollo
+django-extensions>=3.2.0
+pillow>=10.0.0
+
+#Para testing
+pytest-django>=4.5.0
+factory-boy>=3.3.0
+
+#Para API REST (opcional)
+djangorestframework>=3.14.0
+django-cors-headers>=4.3.0
+
+#Para documentación de API
+drf-spectacular>=0.26.0
+

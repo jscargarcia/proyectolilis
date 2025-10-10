@@ -1,0 +1,38 @@
+================================================================================
+ RESUMEN DE INSTALACIÓN - DULCERÍA LILIS
+================================================================================
+
+Generado: 2025-10-10 03:47:59
+
+PASOS RÁPIDOS:
+--------------------------------------------------------------------------------
+1. Copiar proyecto a nueva máquina
+2. Instalar Python 3.13+ y MySQL 8.0+
+3. Crear BD: CREATE DATABASE empresa_lilis;
+4. Editar config/settings.py con credenciales
+5. Ejecutar: .\instalar.ps1 (Windows) o ./instalar.sh (Linux)
+6. Verificar: python verify_setup.py
+7. Iniciar: python manage.py runserver
+
+CREDENCIALES POR DEFECTO:
+--------------------------------------------------------------------------------
+Admin: admin / admin123
+Vendedor: vendedor1 / vendedor123
+Bodeguero: bodeguero1 / bodeguero123
+Gerente: gerente / gerente123
+
+DOCUMENTACIÓN:
+--------------------------------------------------------------------------------
+README.md                           - Descripción general del proyecto
+INSTRUCTIVO_INSTALACION.md          - Guía paso a paso de instalación
+CHECKLIST_INSTALACION.md            - Lista de verificación de instalación
+SISTEMA_VENTAS.md                   - Documentación del módulo de ventas
+SOLUCION_MAESTROS.md                - Soluciones a problemas comunes
+SEED_README.md                      - Información sobre datos de prueba
+RESUMEN_EJECUTIVO.md                - Resumen ejecutivo del sistema
+requirements.txt                    - Dependencias de Python
+instalar.ps1                        - Script de instalación para Windows
+instalar.sh                         - Script de instalación para Linux/Mac
+.gitignore                          - Archivos a ignorar en Git
+
+Ver INSTRUCTIVO_INSTALACION.md para detalles completos.
