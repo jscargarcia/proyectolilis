@@ -37,8 +37,7 @@ FLUSH PRIVILEGES;
    EXIT;
 
   5.Configurar Credenciales en Django
-
-   Editar el archivo config/settings.py:
+  Editar el archivo config/settings.py:
    
    DATABASES = {
   'default': {
@@ -52,27 +51,21 @@ FLUSH PRIVILEGES;
 }
 
    6. Inicializar migraciones
-   python manage.py migrate
+      python manage.py migrate
 
-   7. Ejecutar Scripts de Corrección
-      
-python convert_to_innodb.py
+   8. Ejecutar Scripts de Corrección
+      python convert_to_innodb.py
+      python fix_permissions_tables.py
+      python add_permission_fks.py
+      python fix_productos_table.py
+      python fix_productos_proveedores.py
 
-python fix_permissions_tables.py
+   9. Semillas
+      python seed_simple.py
+      python configurar_permisos_vendedor.py
+      python crear_clientes_ejemplo.py
 
-python add_permission_fks.py
-
-python fix_productos_table.py
-
-python fix_productos_proveedores.py
-
-   8. Semillas
-      
-python seed_simple.py
-python configurar_permisos_vendedor.py
-python crear_clientes_ejemplo.py
-
-  9. Iniciar Servidor:
-python manage.py runserver
-Admin:
-http://127.0.0.1:8000/admin/
+  10. Iniciar Servidor:
+      python manage.py runserver
+      Admin:
+      http://127.0.0.1:8000/admin/
