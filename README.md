@@ -15,18 +15,18 @@ Sistema de gestión desarrollado en Django para administración de productos, in
    
 2. Crear y activar entorno virtual:
    - Windows (PowerShell)
-     python -m venv env
-     .\env\Scripts\Activate.ps1
+   -  python -m venv env
+   - .\env\Scripts\Activate.ps1
    
 3. Instalar dependencias:
-   pip install -r requirements.txt
+   - pip install -r requirements.txt
 
 5. Congigurar Base de datos MYSQL:
 
    - Crear la Base de Datos
-   Abrir MySQL desde terminal o MySQL Workbench
-   Conectarse a MySQL
-   mysql -u root -p
+   - Abrir MySQL desde terminal o MySQL Workbench
+   - Conectarse a MySQL
+   - mysql -u root -p
 
 CREATE DATABASE empresa_lilis CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER 'dulceria_user'@'localhost' IDENTIFIED BY 'dulceria_password_2025';
@@ -37,7 +37,7 @@ FLUSH PRIVILEGES;
    EXIT;
 
   5.Configurar Credenciales en Django
-  Editar el archivo config/settings.py:
+  - Editar el archivo config/settings.py:
    
    DATABASES = {
   'default': {
@@ -51,21 +51,21 @@ FLUSH PRIVILEGES;
 }
 
    6. Inicializar migraciones
-      python manage.py migrate
+      - python manage.py migrate
 
    8. Ejecutar Scripts de Corrección
-      python convert_to_innodb.py
-      python fix_permissions_tables.py
-      python add_permission_fks.py
-      python fix_productos_table.py
-      python fix_productos_proveedores.py
+      - python convert_to_innodb.py
+      - python fix_permissions_tables.py
+      - python add_permission_fks.py
+      - python fix_productos_table.py
+      - python fix_productos_proveedores.py
 
    9. Semillas
-      python seed_simple.py
-      python configurar_permisos_vendedor.py
-      python crear_clientes_ejemplo.py
+      - python seed_simple.py
+      - python configurar_permisos_vendedor.py
+      - python crear_clientes_ejemplo.py
 
   10. Iniciar Servidor:
-      python manage.py runserver
-      Admin:
-      http://127.0.0.1:8000/admin/
+      - python manage.py runserver
+      - Admin:
+      - http://127.0.0.1:8000/admin/
