@@ -2,7 +2,7 @@
 
 Sistema de gestión desarrollado en Django para administración de productos, inventario, compras y ventas.
 
-### Requisitos 
+## Requisitos 
 
 - Python 3.13+ 
 - MySQL 8.0+
