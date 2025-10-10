@@ -110,7 +110,16 @@ Acceder a: **http://127.0.0.1:8000/admin/**
 
 ## 📚 Documentación
 
-- **[INSTRUCTIVO_INSTALACION.md](INSTRUCTIVO_INSTALACION.md)** - Guía completa de instalación
+### 📖 Instalación y Uso
+- **[GUIA_RAPIDA.md](GUIA_RAPIDA.md)** - Instalación en 10 minutos ⚡
+- **[INSTRUCTIVO_INSTALACION.md](INSTRUCTIVO_INSTALACION.md)** - Guía completa paso a paso
+- **[CHECKLIST_INSTALACION.md](CHECKLIST_INSTALACION.md)** - Lista de verificación
+
+### 🏗️ Arquitectura y Diseño
+- **[ARQUITECTURA_TECNICA.md](ARQUITECTURA_TECNICA.md)** - Documentación técnica completa 🔧
+- **[RESUMEN_TECNICO.md](RESUMEN_TECNICO.md)** - Resumen ejecutivo de decisiones técnicas 📊
+
+### 📦 Módulos Específicos
 - **[SISTEMA_VENTAS.md](SISTEMA_VENTAS.md)** - Documentación del módulo de ventas
 - **[SOLUCION_MAESTROS.md](SOLUCION_MAESTROS.md)** - Solución de problemas comunes
 - **[SEED_README.md](SEED_README.md)** - Información sobre datos de prueba
