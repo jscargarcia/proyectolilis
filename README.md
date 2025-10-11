@@ -49,24 +49,40 @@ Ver documentación completa en: **[INSTRUCTIVO_INSTALACION.md](INSTRUCTIVO_INSTA
 
 ```sql
 CREATE DATABASE empresa_lilis CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'dulceria_user'@'localhost' IDENTIFIED BY 'tu_password';
-GRANT ALL PRIVILEGES ON empresa_lilis.* TO 'dulceria_user'@'localhost';
+CREATE USER 'lily_user'@'localhost' IDENTIFIED BY 'lily_password123';
+GRANT ALL PRIVILEGES ON empresa_lilis.* TO 'lily_user'@'localhost';
 FLUSH PRIVILEGES;
 ```
 
-### 2. Configurar `config/settings.py`
+### 2. Configurar Variables de Entorno
 
-```python
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'empresa_lilis',
-        'USER': 'dulceria_user',
-        'PASSWORD': 'tu_password',
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
-}
+Crear archivo `.env` en la raíz del proyecto basado en `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Editar el archivo `.env` con tus configuraciones:
+
+```properties
+# Django
+SECRET_KEY=tu-clave-secreta-muy-larga-y-segura-para-produccion
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+
+# Base de Datos MySQL
+DB_ENGINE=django.db.backends.mysql
+DB_NAME=empresa_lilis
+DB_USER=lily_user
+DB_PASSWORD=lily_password123
+DB_HOST=localhost
+DB_PORT=3306
+
+# Configuración de negocio
+COMPANY_NAME=Dulcería Lilis
+DEFAULT_CURRENCY=CLP
+TIME_ZONE=America/Santiago
+LANGUAGE_CODE=es-cl
 ```
 
 ### 3. Instalar Dependencias

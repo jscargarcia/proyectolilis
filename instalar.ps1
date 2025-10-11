@@ -73,8 +73,25 @@ if ($LASTEXITCODE -eq 0) {
 }
 Write-Host ""
 
+# Configurar variables de entorno
+Write-Host "[7/10] Configurando variables de entorno..." -ForegroundColor Green
+if (Test-Path ".env") {
+    Write-Host "  • Archivo .env ya existe" -ForegroundColor Yellow
+} else {
+    if (Test-Path ".env.example") {
+        Copy-Item ".env.example" ".env"
+        Write-Host "  ✓ Archivo .env creado desde .env.example" -ForegroundColor Green
+        Write-Host "  ⚠ IMPORTANTE: Edita el archivo .env con tus configuraciones" -ForegroundColor Yellow
+        Write-Host "    - Cambia las credenciales de la base de datos" -ForegroundColor Yellow
+        Write-Host "    - Actualiza SECRET_KEY para producción" -ForegroundColor Yellow
+    } else {
+        Write-Host "  ⚠ No se encontró .env.example" -ForegroundColor Yellow
+    }
+}
+Write-Host ""
+
 # Configurar base de datos
-Write-Host "[7/10] Configuración de Base de Datos" -ForegroundColor Green
+Write-Host "[8/10] Configuración de Base de Datos" -ForegroundColor Green
 Write-Host "  IMPORTANTE: Antes de continuar, asegúrate de:" -ForegroundColor Yellow
 Write-Host "    1. Tener MySQL corriendo" -ForegroundColor Yellow
 Write-Host "    2. Haber creado la base de datos 'empresa_lilis'" -ForegroundColor Yellow
@@ -86,8 +103,8 @@ if ($continuar -ne "S" -and $continuar -ne "s") {
     Write-Host "  Instrucciones rápidas:" -ForegroundColor Cyan
     Write-Host "  1. Abrir MySQL: mysql -u root -p" -ForegroundColor White
     Write-Host "  2. Crear BD: CREATE DATABASE empresa_lilis CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" -ForegroundColor White
-    Write-Host "  3. Crear usuario: CREATE USER 'dulceria_user'@'localhost' IDENTIFIED BY 'tu_password';" -ForegroundColor White
-    Write-Host "  4. Dar permisos: GRANT ALL PRIVILEGES ON empresa_lilis.* TO 'dulceria_user'@'localhost';" -ForegroundColor White
+    Write-Host "  3. Crear usuario: CREATE USER 'lily_user'@'localhost' IDENTIFIED BY 'lily_password123';" -ForegroundColor White
+    Write-Host "  4. Dar permisos: GRANT ALL PRIVILEGES ON empresa_lilis.* TO 'lily_user'@'localhost';" -ForegroundColor White
     Write-Host "  5. Aplicar: FLUSH PRIVILEGES;" -ForegroundColor White
     Write-Host ""
     Write-Host "  Ejecuta este script nuevamente después de configurar la BD" -ForegroundColor Yellow
@@ -96,7 +113,7 @@ if ($continuar -ne "S" -and $continuar -ne "s") {
 Write-Host ""
 
 # Aplicar migraciones
-Write-Host "[8/10] Aplicando migraciones..." -ForegroundColor Green
+Write-Host "[9/10] Aplicando migraciones..." -ForegroundColor Green
 python manage.py migrate --noinput
 if ($LASTEXITCODE -eq 0) {
     Write-Host "  ✓ Migraciones aplicadas" -ForegroundColor Green
@@ -108,7 +125,7 @@ if ($LASTEXITCODE -eq 0) {
 Write-Host ""
 
 # Ejecutar scripts de corrección
-Write-Host "[9/10] Ejecutando scripts de corrección..." -ForegroundColor Green
+Write-Host "[10/11] Ejecutando scripts de corrección..." -ForegroundColor Green
 
 Write-Host "  • Convirtiendo tablas a InnoDB..." -ForegroundColor Cyan
 python convert_to_innodb.py

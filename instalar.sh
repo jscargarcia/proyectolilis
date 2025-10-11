@@ -82,8 +82,25 @@ else
 fi
 echo ""
 
+# Configurar variables de entorno
+echo -e "${GREEN}[7/10] Configurando variables de entorno...${NC}"
+if [ -f ".env" ]; then
+    echo -e "${YELLOW}  • Archivo .env ya existe${NC}"
+else
+    if [ -f ".env.example" ]; then
+        cp .env.example .env
+        echo -e "  ✓ Archivo .env creado desde .env.example"
+        echo -e "${YELLOW}  ⚠ IMPORTANTE: Edita el archivo .env con tus configuraciones${NC}"
+        echo -e "${YELLOW}    - Cambia las credenciales de la base de datos${NC}"
+        echo -e "${YELLOW}    - Actualiza SECRET_KEY para producción${NC}"
+    else
+        echo -e "${YELLOW}  ⚠ No se encontró .env.example${NC}"
+    fi
+fi
+echo ""
+
 # Configurar base de datos
-echo -e "${GREEN}[7/10] Configuración de Base de Datos${NC}"
+echo -e "${GREEN}[8/10] Configuración de Base de Datos${NC}"
 echo -e "${YELLOW}  IMPORTANTE: Antes de continuar, asegúrate de:${NC}"
 echo -e "${YELLOW}    1. Tener MySQL corriendo${NC}"
 echo -e "${YELLOW}    2. Haber creado la base de datos 'empresa_lilis'${NC}"
@@ -95,8 +112,8 @@ if [ "$continuar" != "s" ] && [ "$continuar" != "S" ]; then
     echo -e "${CYAN}  Instrucciones rápidas:${NC}"
     echo "  1. Abrir MySQL: mysql -u root -p"
     echo "  2. Crear BD: CREATE DATABASE empresa_lilis CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
-    echo "  3. Crear usuario: CREATE USER 'dulceria_user'@'localhost' IDENTIFIED BY 'tu_password';"
-    echo "  4. Dar permisos: GRANT ALL PRIVILEGES ON empresa_lilis.* TO 'dulceria_user'@'localhost';"
+    echo "  3. Crear usuario: CREATE USER 'lily_user'@'localhost' IDENTIFIED BY 'lily_password123';"
+    echo "  4. Dar permisos: GRANT ALL PRIVILEGES ON empresa_lilis.* TO 'lily_user'@'localhost';"
     echo "  5. Aplicar: FLUSH PRIVILEGES;"
     echo ""
     echo -e "${YELLOW}  Ejecuta este script nuevamente después de configurar la BD${NC}"
@@ -105,7 +122,7 @@ fi
 echo ""
 
 # Aplicar migraciones
-echo -e "${GREEN}[8/10] Aplicando migraciones...${NC}"
+echo -e "${GREEN}[9/10] Aplicando migraciones...${NC}"
 python manage.py migrate --noinput
 if [ $? -eq 0 ]; then
     echo -e "  ✓ Migraciones aplicadas"
@@ -117,7 +134,7 @@ fi
 echo ""
 
 # Ejecutar scripts de corrección
-echo -e "${GREEN}[9/10] Ejecutando scripts de corrección...${NC}"
+echo -e "${GREEN}[10/11] Ejecutando scripts de corrección...${NC}"
 
 echo -e "${CYAN}  • Convirtiendo tablas a InnoDB...${NC}"
 python convert_to_innodb.py > /dev/null 2>&1
