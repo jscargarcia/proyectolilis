@@ -28,7 +28,7 @@ Sistema de gestión desarrollado en Django para administración de productos, in
    - Conectarse a MySQL
    - mysql -u root -p
 
-CREATE DATABASE empresa_lilis CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE empresa_lilis CHARACTER SET utf8 COLLATE utf8_general_ci;
 CREATE USER 'lily_user'@'localhost' IDENTIFIED BY 'lily_password123';
 GRANT ALL PRIVILEGES ON empresa_lilis.* TO 'lily_user'@'localhost';
 FLUSH PRIVILEGES;

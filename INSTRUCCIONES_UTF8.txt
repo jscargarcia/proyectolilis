@@ -1,0 +1,23 @@
+INSTRUCCIONES PARA RECREAR BASE DE DATOS CON UTF8
+================================================
+
+1. Abrir MySQL Workbench o conectarte via terminal MySQL
+
+2. Ejecutar los siguientes comandos como usuario root:
+
+DROP DATABASE IF EXISTS empresa_lilis;
+
+CREATE DATABASE empresa_lilis 
+CHARACTER SET utf8 
+COLLATE utf8_general_ci;
+
+GRANT ALL PRIVILEGES ON empresa_lilis.* TO 'lily_user'@'localhost';
+
+FLUSH PRIVILEGES;
+
+3. Una vez ejecutado, continúa con:
+python manage.py migrate
+
+NOTA: UTF8 en lugar de UTF8MB4 resuelve el problema de claves largas
+porque UTF8 usa máximo 3 bytes por carácter vs 4 bytes de UTF8MB4.
+Esto reduce significativamente el tamaño de los índices.

@@ -102,7 +102,7 @@ if ($continuar -ne "S" -and $continuar -ne "s") {
     Write-Host ""
     Write-Host "  Instrucciones rápidas:" -ForegroundColor Cyan
     Write-Host "  1. Abrir MySQL: mysql -u root -p" -ForegroundColor White
-    Write-Host "  2. Crear BD: CREATE DATABASE empresa_lilis CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" -ForegroundColor White
+    Write-Host "  2. Crear BD: CREATE DATABASE empresa_lilis CHARACTER SET utf8 COLLATE utf8_general_ci;" -ForegroundColor White
     Write-Host "  3. Crear usuario: CREATE USER 'lily_user'@'localhost' IDENTIFIED BY 'lily_password123';" -ForegroundColor White
     Write-Host "  4. Dar permisos: GRANT ALL PRIVILEGES ON empresa_lilis.* TO 'lily_user'@'localhost';" -ForegroundColor White
     Write-Host "  5. Aplicar: FLUSH PRIVILEGES;" -ForegroundColor White

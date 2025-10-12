@@ -31,6 +31,10 @@ class Usuario(AbstractUser):
         ('INACTIVO', 'Inactivo'),
     ]
 
+    # Redefinir campos con longitudes más manejables
+    username = models.CharField(max_length=100, unique=True)
+    email = models.EmailField(max_length=150, blank=True)
+    
     nombres = models.CharField(max_length=120)
     apellidos = models.CharField(max_length=120)
     telefono = models.CharField(max_length=30, null=True, blank=True)
@@ -44,11 +48,6 @@ class Usuario(AbstractUser):
 
     class Meta:
         db_table = 'usuarios'
-        indexes = [
-            models.Index(fields=['username']),
-            models.Index(fields=['email']),
-            models.Index(fields=['estado']),
-        ]
 
     def get_full_name(self):
         return f"{self.nombres} {self.apellidos}"
@@ -69,10 +68,6 @@ class PasswordResetToken(models.Model):
 
     class Meta:
         db_table = 'password_reset_tokens'
-        indexes = [
-            models.Index(fields=['token']),
-            models.Index(fields=['usuario']),
-        ]
 
     def __str__(self):
         return f"Token para {self.usuario.username}"
@@ -92,10 +87,6 @@ class Sesion(models.Model):
 
     class Meta:
         db_table = 'sesiones'
-        indexes = [
-            models.Index(fields=['token_sesion']),
-            models.Index(fields=['usuario']),
-        ]
 
     def __str__(self):
         return f"Sesión de {self.usuario.username}"

@@ -111,7 +111,7 @@ if [ "$continuar" != "s" ] && [ "$continuar" != "S" ]; then
     echo ""
     echo -e "${CYAN}  Instrucciones rápidas:${NC}"
     echo "  1. Abrir MySQL: mysql -u root -p"
-    echo "  2. Crear BD: CREATE DATABASE empresa_lilis CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+    echo "  2. Crear BD: CREATE DATABASE empresa_lilis CHARACTER SET utf8 COLLATE utf8_general_ci;"
     echo "  3. Crear usuario: CREATE USER 'lily_user'@'localhost' IDENTIFIED BY 'lily_password123';"
     echo "  4. Dar permisos: GRANT ALL PRIVILEGES ON empresa_lilis.* TO 'lily_user'@'localhost';"
     echo "  5. Aplicar: FLUSH PRIVILEGES;"
