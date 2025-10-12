@@ -141,7 +141,6 @@ class Producto(models.Model):
         verbose_name_plural = 'Productos'
         indexes = [
             models.Index(fields=['sku']),
-            models.Index(fields=['nombre']),
             models.Index(fields=['categoria']),
             models.Index(fields=['estado']),
         ]
@@ -198,7 +197,6 @@ class Proveedor(models.Model):
         verbose_name_plural = 'Proveedores'
         indexes = [
             models.Index(fields=['rut_nif']),
-            models.Index(fields=['razon_social']),
             models.Index(fields=['estado']),
         ]
 

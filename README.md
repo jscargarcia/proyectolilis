@@ -84,3 +84,26 @@ python seed_simple.py
 python configurar_permisos_vendedor.py
 python crear_clientes_ejemplo.py
 ```
+
+## Usuarios del Sistema
+
+El script de semillas crea automáticamente los siguientes usuarios:
+
+### 🔑 Administradores
+- **admin** / **admin123** - Acceso completo al sistema
+- **gerente** / **gerente123** - Funciones gerenciales y reportes
+
+### 👥 Usuarios Operativos  
+- **vendedor1** / **vendedor123** - Gestión de ventas y clientes
+- **bodeguero1** / **bodeguero123** - Gestión de inventario y productos
+
+### 🏷️ Roles del Sistema
+- **Administrador**: Acceso completo al sistema
+- **Gerente**: Gestión general del negocio y reportes
+- **Vendedor**: Gestión de ventas y atención a clientes  
+- **Bodeguero**: Gestión de inventario y almacén
+
+## Acceso al Sistema
+
+- **Servidor**: http://127.0.0.1:8000/
+- **Panel Admin**: http://127.0.0.1:8000/admin/

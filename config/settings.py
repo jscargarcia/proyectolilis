@@ -91,7 +91,7 @@ DATABASES = {
         'PORT': config('DB_PORT', default='3306'),
         'OPTIONS': {
             'charset': 'utf8mb4',
-            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'; SET innodb_large_prefix=1; SET innodb_file_format=Barracuda;",
             # Configuraciones específicas para evitar el error de clave larga
             'isolation_level': None,
         },

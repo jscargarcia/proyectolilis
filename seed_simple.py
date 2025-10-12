@@ -31,17 +31,50 @@ print()
 print("📋 1. Verificando Roles y Creando Usuarios Adicionales...")
 print("-" * 80)
 
-# Crear roles adicionales
+# Crear todos los roles del sistema
 roles_data = [
     {
+        'nombre': 'Administrador',
+        'descripcion': 'Acceso completo al sistema - Superusuario',
+        'permisos': {
+            'admin': True,
+            'all_permissions': True,
+            'descripcion': 'Acceso total a todas las funciones del sistema'
+        }
+    },
+    {
+        'nombre': 'Gerente',
+        'descripcion': 'Gestión general del negocio y reportes',
+        'permisos': {
+            'ventas': True,
+            'compras': True,
+            'inventario': True,
+            'reportes': True,
+            'usuarios': True,
+            'descripcion': 'Gestión completa del negocio'
+        }
+    },
+    {
         'nombre': 'Vendedor',
-        'descripcion': 'Personal de ventas',
-        'permisos': {'ventas': True, 'consultar_inventario': True}
+        'descripcion': 'Gestión de ventas y atención a clientes',
+        'permisos': {
+            'ventas': True,
+            'clientes': True,
+            'productos_view': True,
+            'inventario_view': True,
+            'descripcion': 'Gestión de ventas y clientes'
+        }
     },
     {
         'nombre': 'Bodeguero',
-        'descripcion': 'Personal de bodega',
-        'permisos': {'inventario': True, 'movimientos': True}
+        'descripcion': 'Gestión de inventario y almacén',
+        'permisos': {
+            'inventario': True,
+            'productos': True,
+            'compras_view': True,
+            'movimientos_stock': True,
+            'descripcion': 'Gestión de inventario y productos'
+        }
     },
 ]
 
@@ -55,13 +88,34 @@ for rol_data in roles_data:
     )
     print(f"  {'✓ Creado' if created else '✓ Existente'}: Rol '{rol.nombre}'")
 
-# Crear usuarios adicionales
+# Crear usuarios del sistema
 try:
     rol_admin = Rol.objects.get(nombre='Administrador')
+    rol_gerente = Rol.objects.get(nombre='Gerente')
     rol_vendedor = Rol.objects.get(nombre='Vendedor')
     rol_bodeguero = Rol.objects.get(nombre='Bodeguero')
     
     usuarios_data = [
+        {
+            'username': 'admin',
+            'email': 'admin@gmail.com',
+            'nombres': 'admin1',
+            'apellidos': 'cortes',
+            'password': 'admin123',
+            'rol': rol_admin,
+            'is_staff': True,
+            'is_superuser': True
+        },
+        {
+            'username': 'gerente',
+            'email': 'gerente@dulcerialilis.cl',
+            'nombres': 'Ana',
+            'apellidos': 'Martínez',
+            'password': 'gerente123',
+            'rol': rol_gerente,
+            'is_staff': True,
+            'is_superuser': True
+        },
         {
             'username': 'vendedor1',
             'email': 'vendedor1@dulcerialilis.cl',
@@ -557,9 +611,14 @@ print("✅ ¡BASE DE DATOS POBLADA EXITOSAMENTE!")
 print("="*80)
 print()
 print("🔐 Credenciales de acceso:")
-print("  Admin:      admin / (tu contraseña)")
-print("  Vendedor:   vendedor1 / vendedor123")
-print("  Bodeguero:  bodeguero1 / bodeguero123")
+print("  Administradores:")
+print("    admin / admin123 - Acceso completo")
+print("    gerente / gerente123 - Funciones gerenciales")
+print("  Usuarios operativos:")
+print("    vendedor1 / vendedor123 - Gestión de ventas")
+print("    bodeguero1 / bodeguero123 - Gestión de inventario")
 print()
-print("🌐 Servidor: http://127.0.0.1:8000/admin/")
+print("🌐 Acceso al sistema:")
+print("  Servidor: http://127.0.0.1:8000/")
+print("  Panel Admin: http://127.0.0.1:8000/admin/")
 print()
