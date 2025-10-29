@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block title %}Catálogo - Listar{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h2><i class="fas fa-book"></i> Catálogo de Productos</h2>
+        </div>
+        <div class="col-md-6 text-end">
+            {% if user.rol.permisos.catalogo.crear %}
+                <a href="{% url 'catalogo_crear' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nuevo Producto
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="q" class="form-control" placeholder="Buscar..." value="{{ query }}">
+                </div>
+                <div class="col-md-3">
+                    <select name="estado" class="form-select">
+                        <option value="">Todos los estados</option>
+                        {% for valor, etiqueta in estados %}
+                            <option value="{{ valor }}" {% if valor == estado_filter %}selected{% endif %}>{{ etiqueta }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="tipo" class="form-select">
+                        <option value="">Todos los tipos</option>
+                        {% for valor, etiqueta in tipos %}
+                            <option value="{{ valor }}" {% if valor == tipo_filter %}selected{% endif %}>{{ etiqueta }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Lista de productos -->
+    <div class="row">
+        {% for catalogo in page_obj %}
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    {% if catalogo.imagen_url %}
+                        <img src="{{ catalogo.imagen_url }}" class="card-img-top" alt="{{ catalogo.nombre }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                        <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                            <i class="fas fa-image fa-3x text-white"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h5 class="card-title">{{ catalogo.nombre }}</h5>
+                        <p class="text-muted small">{{ catalogo.codigo }}</p>
+                        
+                        {% if catalogo.descripcion %}
+                            <p class="card-text">{{ catalogo.descripcion|truncatewords:15 }}</p>
+                        {% endif %}
+                        
+                        <div class="mb-2">
+                            <span class="badge {% if catalogo.estado == 'PUBLICADO' %}bg-success{% elif catalogo.estado == 'BORRADOR' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                {{ catalogo.get_estado_display }}
+                            </span>
+                            <span class="badge bg-info">{{ catalogo.get_tipo_display }}</span>
+                            {% if catalogo.destacado %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-star"></i> Destacado
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-2">
+                            {% if catalogo.descuento > 0 %}
+                                <h5>
+                                    <span class="text-decoration-line-through text-muted">${{ catalogo.precio_base }}</span>
+                                    <span class="text-success">${{ catalogo.calcular_precio_final }}</span>
+                                </h5>
+                                <span class="badge bg-danger">-{{ catalogo.descuento }}%</span>
+                            {% else %}
+                                <h5>${{ catalogo.precio_base }}</h5>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="fas fa-box"></i> Stock: {{ catalogo.stock_disponible }}
+                                {% if catalogo.tiene_stock_bajo %}
+                                    <span class="badge bg-danger">Bajo</span>
+                                {% endif %}
+                            </small>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'catalogo_detalle' catalogo.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i> Ver Detalle
+                            </a>
+                            
+                            <button onclick="agregarAlCarrito('{{ catalogo.pk }}', '{{ catalogo.nombre }}', {{ catalogo.calcular_precio_final }})" class="btn btn-sm btn-success">
+                                <i class="fas fa-cart-plus"></i> Agregar al Carrito
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer text-muted small">
+                        <i class="fas fa-calendar"></i> {{ catalogo.created_at|date:"d/m/Y" }}
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> No se encontraron productos.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Paginación -->
+    {% if page_obj.has_other_pages %}
+        <nav aria-label="Paginación">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if query %}&q={{ query }}{% endif %}{% if estado_filter %}&estado={{ estado_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}">
+                            Primera
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if estado_filter %}&estado={{ estado_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}">
+                            Anterior
+                        </a>
+                    </li>
+                {% endif %}
+                
+                <li class="page-item active">
+                    <span class="page-link">
+                        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+                
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if estado_filter %}&estado={{ estado_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}">
+                            Siguiente
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}{% if estado_filter %}&estado={{ estado_filter }}{% endif %}{% if tipo_filter %}&tipo={{ tipo_filter }}{% endif %}">
+                            Última
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function agregarAlCarrito(id, nombre, precio) {
+        fetch('/api/carrito/agregar/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                item_id: id,
+                nombre: nombre,
+                precio: precio,
+                cantidad: 1
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Agregado!',
+                    text: data.message,
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                actualizarContadores();
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo agregar al carrito',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+        });
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

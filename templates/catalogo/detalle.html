@@ -1,0 +1,181 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ catalogo.nombre }} - Detalle{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6">
+            {% if catalogo.imagen_url %}
+                <img src="{{ catalogo.imagen_url }}" class="img-fluid rounded" alt="{{ catalogo.nombre }}">
+            {% else %}
+                <div class="bg-secondary text-white d-flex align-items-center justify-content-center rounded" style="height: 400px;">
+                    <i class="fas fa-image fa-5x"></i>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-6">
+            <h2>{{ catalogo.nombre }}</h2>
+            <p class="text-muted">Código: {{ catalogo.codigo }}</p>
+            
+            <div class="mb-3">
+                <span class="badge {% if catalogo.estado == 'PUBLICADO' %}bg-success{% elif catalogo.estado == 'BORRADOR' %}bg-warning{% else %}bg-secondary{% endif %}">
+                    {{ catalogo.get_estado_display }}
+                </span>
+                <span class="badge bg-info">{{ catalogo.get_tipo_display }}</span>
+                {% if catalogo.destacado %}
+                    <span class="badge bg-warning"><i class="fas fa-star"></i> Destacado</span>
+                {% endif %}
+            </div>
+            
+            {% if catalogo.descripcion %}
+                <p>{{ catalogo.descripcion }}</p>
+            {% endif %}
+            
+            <hr>
+            
+            <h3>
+                {% if catalogo.descuento > 0 %}
+                    <span class="text-decoration-line-through text-muted">${{ catalogo.precio_base }}</span>
+                    <span class="text-success">${{ precio_final }}</span>
+                    <span class="badge bg-danger">-{{ catalogo.descuento }}%</span>
+                    <br>
+                    <small class="text-muted">Ahorras: ${{ ahorro }}</small>
+                {% else %}
+                    ${{ catalogo.precio_base }}
+                {% endif %}
+            </h3>
+            
+            <div class="alert {% if catalogo.tiene_stock_bajo %}alert-warning{% else %}alert-success{% endif %}">
+                <i class="fas fa-box"></i> Stock disponible: <strong>{{ catalogo.stock_disponible }}</strong>
+                {% if catalogo.tiene_stock_bajo %}
+                    <br><small>Stock bajo (mínimo: {{ catalogo.stock_minimo }})</small>
+                {% endif %}
+            </div>
+            
+            <div class="d-grid gap-2">
+                <button onclick="agregarAlCarrito()" class="btn btn-lg btn-success">
+                    <i class="fas fa-cart-plus"></i> Agregar al Carrito
+                </button>
+                
+                {% if user.rol.permisos.catalogo.editar %}
+                    <a href="{% url 'catalogo_editar' catalogo.pk %}" class="btn btn-warning">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                {% endif %}
+                
+                {% if catalogo.puede_publicarse and catalogo.estado != 'PUBLICADO' and user.rol.permisos.catalogo.publicar %}
+                    <form method="POST" action="{% url 'catalogo_publicar' catalogo.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-check"></i> Publicar
+                        </button>
+                    </form>
+                {% endif %}
+                
+                {% if user.rol.permisos.catalogo.eliminar %}
+                    <a href="{% url 'catalogo_eliminar' catalogo.pk %}" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </a>
+                {% endif %}
+                
+                <a href="{% url 'catalogo_listar' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver al Catálogo
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle"></i> Información Adicional</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <tr>
+                            <th>Calificación</th>
+                            <td>{{ catalogo.calificacion }} / 5.0</td>
+                        </tr>
+                        {% if catalogo.contacto %}
+                        <tr>
+                            <th>Contacto</th>
+                            <td>{{ catalogo.contacto }}</td>
+                        </tr>
+                        {% endif %}
+                        <tr>
+                            <th>Fecha de creación</th>
+                            <td>{{ catalogo.created_at|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Última actualización</th>
+                            <td>{{ catalogo.updated_at|date:"d/m/Y H:i" }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function agregarAlCarrito() {
+        fetch('/api/carrito/agregar/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                item_id: '{{ catalogo.pk }}',
+                nombre: '{{ catalogo.nombre|escapejs }}',
+                precio: {{ precio_final }},
+                cantidad: 1
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Agregado!',
+                    text: data.message,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Ver Carrito'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        mostrarCarrito();
+                    }
+                });
+                actualizarContadores();
+            }
+        })
+        .catch(error => {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo agregar al carrito'
+            });
+        });
+    }
+    
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

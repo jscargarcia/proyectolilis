@@ -1,0 +1,343 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Producto - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+.delete-card {
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.confirmation-container {
+    background: white;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.product-info {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 25px;
+    margin: 25px 0;
+    border-left: 4px solid #dc3545;
+}
+
+.warning-icon {
+    font-size: 4rem;
+    color: #dc3545;
+    margin-bottom: 20px;
+}
+
+.product-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+    border: none;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #c82333 0%, #9d2132 100%);
+    transform: translateY(-2px);
+}
+
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+}
+
+.loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="delete-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-exclamation-triangle me-2"></i>Eliminar Producto</h2>
+                <p class="mb-0">Esta acción no se puede deshacer</p>
+            </div>
+            <a href="{% url 'producto_listar' %}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+            </a>
+        </div>
+    </div>
+
+    <div class="confirmation-container">
+        <div class="warning-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        
+        <h3 class="mb-4">¿Estás seguro de eliminar este producto?</h3>
+        
+        <div class="product-info">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center">
+                    {% if producto.imagen_url %}
+                    <img src="{{ producto.imagen_url }}" 
+                         alt="{{ producto.nombre }}" 
+                         class="product-image">
+                    {% else %}
+                    <img src="{% static 'img/placeholder.svg' %}" 
+                         alt="Sin imagen" 
+                         class="product-image">
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-9">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <strong>SKU:</strong><br>
+                            <code class="text-primary fs-5">{{ producto.sku }}</code>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <strong>Código EAN/UPC:</strong><br>
+                            {% if producto.ean_upc %}
+                            <code>{{ producto.ean_upc }}</code>
+                            {% else %}
+                            <span class="text-muted">No definido</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-12">
+                            <strong>Nombre:</strong><br>
+                            <span class="fs-4 fw-bold">{{ producto.nombre }}</span>
+                        </div>
+                        
+                        {% if producto.descripcion %}
+                        <div class="col-12">
+                            <strong>Descripción:</strong><br>
+                            <span class="text-muted">{{ producto.descripcion }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="col-md-4">
+                            <strong>Categoría:</strong><br>
+                            <span class="badge bg-secondary fs-6">{{ producto.categoria.nombre }}</span>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <strong>Marca:</strong><br>
+                            {% if producto.marca %}
+                            {{ producto.marca.nombre }}
+                            {% else %}
+                            <span class="text-muted">Sin marca</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <strong>Estado:</strong><br>
+                            {% if producto.estado == 'ACTIVO' %}
+                            <span class="badge bg-success fs-6">Activo</span>
+                            {% elif producto.estado == 'INACTIVO' %}
+                            <span class="badge bg-warning fs-6">Inactivo</span>
+                            {% else %}
+                            <span class="badge bg-danger fs-6">Descontinuado</span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if producto.precio_venta %}
+                        <div class="col-md-6">
+                            <strong>Precio de Venta:</strong><br>
+                            <span class="text-success fs-5 fw-bold">${{ producto.precio_venta|floatformat:0 }}</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="col-md-6">
+                            <strong>Stock Mínimo:</strong><br>
+                            <span class="badge bg-info fs-6">{{ producto.stock_minimo|floatformat:0 }}</span>
+                        </div>
+                        
+                        <div class="col-12">
+                            <strong>Fecha de Creación:</strong><br>
+                            <span class="text-muted">{{ producto.created_at|date:"d/m/Y H:i" }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <strong>¡Atención!</strong> Esta acción eliminará permanentemente el producto y no se podrá recuperar.
+            Asegúrate de que no existan movimientos de inventario, compras o ventas asociados a este producto.
+        </div>
+
+        <form id="delete-form" method="POST">
+            {% csrf_token %}
+            
+            <div class="d-flex justify-content-center gap-3 mt-4">
+                <a href="{% url 'producto_detalle' producto.pk %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-eye me-2"></i>Ver Detalle
+                </a>
+                
+                <a href="{% url 'producto_listar' %}" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+                
+                <button type="button" onclick="confirmarEliminacion()" class="btn btn-danger btn-lg">
+                    <i class="fas fa-trash me-2"></i>Eliminar Producto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner">
+        <div class="spinner-border text-danger" role="status">
+            <span class="visually-hidden">Eliminando...</span>
+        </div>
+        <p class="text-white mt-2">Eliminando producto...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmarEliminacion() {
+    Swal.fire({
+        title: '¡CONFIRMACIÓN FINAL!',
+        html: `
+            ¿Estás <strong>completamente seguro</strong> de que deseas eliminar el producto:<br><br>
+            <strong class="text-danger">${'{{ producto.nombre|escapejs }}'}</strong><br>
+            <code>${'{{ producto.sku|escapejs }}'}</code><br><br>
+            <span class="text-muted">Esta acción es <strong>irreversible</strong></span>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar definitivamente',
+        cancelButtonText: 'No, conservar producto',
+        reverseButtons: true,
+        focusCancel: true,
+        customClass: {
+            confirmButton: 'btn btn-danger btn-lg',
+            cancelButton: 'btn btn-secondary btn-lg'
+        },
+        buttonsStyling: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            eliminarProducto();
+        }
+    });
+}
+
+function eliminarProducto() {
+    // Mostrar loading
+    $('#loading-overlay').show();
+    
+    const formData = new FormData($('#delete-form')[0]);
+    
+    // Obtener token CSRF
+    const csrfToken = $('[name=csrfmiddlewaretoken]').val();
+    
+    $.ajax({
+        url: '{% url "producto_eliminar" producto.pk %}',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        success: function(response) {
+            $('#loading-overlay').hide();
+            
+            console.log('Response received:', response);
+            
+            if (response.success) {
+                Swal.fire({
+                    title: '¡Producto Eliminado!',
+                    text: response.message,
+                    icon: 'success',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'animated bounce'
+                    }
+                }).then(() => {
+                    window.location.href = response.redirect_url;
+                });
+            } else {
+                console.error('Error en response:', response);
+                Swal.fire({
+                    title: 'No se pudo eliminar',
+                    text: response.message || 'Error desconocido',
+                    icon: 'error',
+                    confirmButtonColor: '#dc3545'
+                });
+            }
+        },
+        error: function(xhr) {
+            $('#loading-overlay').hide();
+            
+            console.error('AJAX Error:', xhr.status, xhr.statusText);
+            console.error('Response text:', xhr.responseText);
+            
+            let errorMessage = 'Error de conexión. Inténtalo de nuevo.';
+            
+            if (xhr.status === 400) {
+                const response = xhr.responseJSON;
+                if (response && response.message) {
+                    errorMessage = response.message;
+                }
+            } else if (xhr.status === 403) {
+                errorMessage = 'No tienes permisos para eliminar este producto.';
+            } else if (xhr.status === 404) {
+                errorMessage = 'El producto no fue encontrado.';
+            } else if (xhr.status === 500) {
+                errorMessage = 'Error interno del servidor.';
+            }
+            
+            Swal.fire({
+                title: 'Error al eliminar',
+                html: `<strong>Status:</strong> ${xhr.status}<br><strong>Error:</strong> ${errorMessage}`,
+                icon: 'error',
+                confirmButtonColor: '#dc3545'
+            });
+        }
+    });
+}
+
+// Prevenir envío accidental del formulario
+$('#delete-form').on('submit', function(e) {
+    e.preventDefault();
+    confirmarEliminacion();
+});
+
+// Confirmación al salir de la página
+window.addEventListener('beforeunload', function(e) {
+    e.preventDefault();
+    e.returnValue = '';
+});
+</script>
+{% endblock %}

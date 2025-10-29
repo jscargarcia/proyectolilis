@@ -1,0 +1,476 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Productos - Dulcería Lilis{% endblock %}
+
+<!-- Token CSRF oculto para AJAX -->
+<form style="display: none;">
+    {% csrf_token %}
+</form>
+
+{% block extra_css %}
+<style>
+.search-filters {
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 25px;
+    color: white;
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
+}
+
+.product-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.product-image {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.badge-estado {
+    font-size: 0.8em;
+    padding: 4px 8px;
+}
+
+.table-responsive {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.btn-floating {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    z-index: 1000;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-boxes me-2"></i>Gestión de Productos</h2>
+            <p class="text-muted mb-0">Total: {{ total_productos }} productos</p>
+        </div>
+        <a href="{% url 'producto_crear' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Nuevo Producto
+        </a>
+    </div>
+
+    <!-- Filtros y Búsqueda -->
+    <div class="search-filters">
+        <form method="GET" id="filtros-form">
+            <div class="row g-3">
+                <!-- Búsqueda -->
+                <div class="col-md-4">
+                    <label class="form-label">
+                        <i class="fas fa-search me-1"></i>Buscar
+                    </label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="query" 
+                           value="{{ query }}" 
+                           placeholder="SKU, nombre, descripción..."
+                           id="search-input">
+                </div>
+
+                <!-- Categoría -->
+                <div class="col-md-2">
+                    <label class="form-label">
+                        <i class="fas fa-tags me-1"></i>Categoría
+                    </label>
+                    <select class="form-select" name="categoria" id="categoria-select">
+                        <option value="">Todas</option>
+                        {% for categoria in categorias %}
+                        <option value="{{ categoria.id }}" {% if categoria.id|stringformat:"s" == categoria_id %}selected{% endif %}>
+                            {{ categoria.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Marca -->
+                <div class="col-md-2">
+                    <label class="form-label">
+                        <i class="fas fa-trademark me-1"></i>Marca
+                    </label>
+                    <select class="form-select" name="marca" id="marca-select">
+                        <option value="">Todas</option>
+                        {% for marca in marcas %}
+                        <option value="{{ marca.id }}" {% if marca.id|stringformat:"s" == marca_id %}selected{% endif %}>
+                            {{ marca.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Estado -->
+                <div class="col-md-2">
+                    <label class="form-label">
+                        <i class="fas fa-toggle-on me-1"></i>Estado
+                    </label>
+                    <select class="form-select" name="estado" id="estado-select">
+                        <option value="">Todos</option>
+                        <option value="ACTIVO" {% if estado == 'ACTIVO' %}selected{% endif %}>Activo</option>
+                        <option value="INACTIVO" {% if estado == 'INACTIVO' %}selected{% endif %}>Inactivo</option>
+                        <option value="DESCONTINUADO" {% if estado == 'DESCONTINUADO' %}selected{% endif %}>Descontinuado</option>
+                    </select>
+                </div>
+
+                <!-- Botones -->
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-light me-2">
+                        <i class="fas fa-filter me-1"></i>Filtrar
+                    </button>
+                    <a href="{% url 'producto_listar' %}" class="btn btn-outline-light">
+                        <i class="fas fa-times me-1"></i>Limpiar
+                    </a>
+                </div>
+            </div>
+
+            <!-- Controles adicionales -->
+            <div class="row g-3 mt-2 pt-3 border-top border-light border-opacity-25">
+                <div class="col-md-3">
+                    <label class="form-label">
+                        <i class="fas fa-sort me-1"></i>Ordenar por
+                    </label>
+                    <select class="form-select" name="orden" id="orden-select">
+                        {% for valor, texto in orden_options %}
+                        <option value="{{ valor }}" {% if orden == valor %}selected{% endif %}>
+                            {{ texto }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <label class="form-label">
+                        <i class="fas fa-list me-1"></i>Mostrar
+                    </label>
+                    <select class="form-select" name="items_per_page" id="items-select">
+                        {% for option in items_per_page_options %}
+                        <option value="{{ option }}" {% if items_per_page == option %}selected{% endif %}>
+                            {{ option }} items
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-7 d-flex align-items-end">
+                    <div class="text-light">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                            ({{ page_obj.start_index }}-{{ page_obj.end_index }} de {{ page_obj.paginator.count }} productos)
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Productos -->
+    <div class="card product-card">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th width="80">Imagen</th>
+                            <th>SKU</th>
+                            <th>Producto</th>
+                            <th>Categoría</th>
+                            <th>Marca</th>
+                            <th>Precio Venta</th>
+                            <th>Stock Mín.</th>
+                            <th>Estado</th>
+                            <th width="150">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for producto in page_obj %}
+                        <tr>
+                            <td>
+                                {% if producto.imagen_url %}
+                                <img src="{{ producto.imagen_url }}" 
+                                     alt="{{ producto.nombre }}" 
+                                     class="product-image">
+                                {% else %}
+                                <img src="{% static 'img/placeholder.svg' %}" 
+                                     alt="Sin imagen" 
+                                     class="product-image">
+                                {% endif %}
+                            </td>
+                            <td>
+                                <code class="text-primary">{{ producto.sku }}</code>
+                                {% if producto.ean_upc %}
+                                <br><small class="text-muted">{{ producto.ean_upc }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="fw-bold">{{ producto.nombre }}</div>
+                                {% if producto.descripcion %}
+                                <small class="text-muted">{{ producto.descripcion|truncatechars:50 }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ producto.categoria.nombre }}</span>
+                            </td>
+                            <td>
+                                {% if producto.marca %}
+                                {{ producto.marca.nombre }}
+                                {% else %}
+                                <span class="text-muted">Sin marca</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if producto.precio_venta %}
+                                <span class="fw-bold text-success">
+                                    ${{ producto.precio_venta|floatformat:0 }}
+                                </span>
+                                {% else %}
+                                <span class="text-muted">No definido</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ producto.stock_minimo|floatformat:0 }}</span>
+                            </td>
+                            <td>
+                                {% if producto.estado == 'ACTIVO' %}
+                                <span class="badge bg-success badge-estado">Activo</span>
+                                {% elif producto.estado == 'INACTIVO' %}
+                                <span class="badge bg-warning badge-estado">Inactivo</span>
+                                {% else %}
+                                <span class="badge bg-danger badge-estado">Descontinuado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{% url 'producto_detalle' producto.pk %}" 
+                                       class="btn btn-outline-primary" 
+                                       title="Ver detalle">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'producto_editar' producto.pk %}" 
+                                       class="btn btn-outline-warning" 
+                                       title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button onclick="confirmarEliminar({{ producto.pk }}, '{{ producto.nombre|escapejs }}')" 
+                                            class="btn btn-outline-danger" 
+                                            title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="9" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="fas fa-box-open fa-3x mb-3"></i>
+                                    <h5>No se encontraron productos</h5>
+                                    <p>No hay productos que coincidan con los filtros seleccionados.</p>
+                                    <a href="{% url 'producto_crear' %}" class="btn btn-primary">
+                                        <i class="fas fa-plus me-2"></i>Crear primer producto
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Paginación -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Paginación de productos" class="mt-4">
+        <ul class="pagination">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?{% if query %}query={{ query }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if marca_id %}marca={{ marca_id }}&{% endif %}{% if estado %}estado={{ estado }}&{% endif %}orden={{ orden }}&items_per_page={{ items_per_page }}&page=1">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?{% if query %}query={{ query }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if marca_id %}marca={{ marca_id }}&{% endif %}{% if estado %}estado={{ estado }}&{% endif %}orden={{ orden }}&items_per_page={{ items_per_page }}&page={{ page_obj.previous_page_number }}">
+                    <i class="fas fa-angle-left"></i>
+                </a>
+            </li>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <li class="page-item active">
+                    <span class="page-link">{{ num }}</span>
+                </li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% if query %}query={{ query }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if marca_id %}marca={{ marca_id }}&{% endif %}{% if estado %}estado={{ estado }}&{% endif %}orden={{ orden }}&items_per_page={{ items_per_page }}&page={{ num }}">{{ num }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?{% if query %}query={{ query }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if marca_id %}marca={{ marca_id }}&{% endif %}{% if estado %}estado={{ estado }}&{% endif %}orden={{ orden }}&items_per_page={{ items_per_page }}&page={{ page_obj.next_page_number }}">
+                    <i class="fas fa-angle-right"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?{% if query %}query={{ query }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if marca_id %}marca={{ marca_id }}&{% endif %}{% if estado %}estado={{ estado }}&{% endif %}orden={{ orden }}&items_per_page={{ items_per_page }}&page={{ page_obj.paginator.num_pages }}">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<!-- Botón flotante para crear -->
+<a href="{% url 'producto_crear' %}" class="btn btn-primary btn-floating" title="Nuevo Producto">
+    <i class="fas fa-plus"></i>
+</a>
+{% endblock %}
+
+{% block extra_js %}
+<!-- jQuery específico para eliminar problemas de carga -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+console.log('🔍 Verificando jQuery en lista:', typeof $ !== 'undefined' ? '✅' : '❌');
+console.log('🔍 Verificando SweetAlert2 en lista:', typeof Swal !== 'undefined' ? '✅' : '❌');
+</script>
+<script>
+$(document).ready(function() {
+    // Auto-submit en cambios de select
+    $('#categoria-select, #marca-select, #estado-select, #orden-select, #items-select').change(function() {
+        $('#filtros-form').submit();
+    });
+
+    // Búsqueda con debounce
+    let searchTimeout;
+    $('#search-input').on('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(function() {
+            $('#filtros-form').submit();
+        }, 500);
+    });
+});
+
+function confirmarEliminar(id, nombre) {
+    console.log('🔔 Confirmación de eliminación para producto:', id, nombre);
+    
+    Swal.fire({
+        title: '¿Confirmar eliminación?',
+        html: `¿Estás seguro de que deseas eliminar el producto:<br><strong>${nombre}</strong>?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true
+    }).then((result) => {
+        console.log('🤔 Resultado de confirmación:', result);
+        if (result.isConfirmed) {
+            console.log('✅ Usuario confirmó eliminación');
+            eliminarProducto(id);
+        }
+    });
+}
+
+function eliminarProducto(id) {
+    console.log('🗑️ Eliminando producto ID:', id);
+    
+    // Obtener token CSRF directamente desde el template
+    const csrfToken = '{{ csrf_token }}';
+    console.log('🔑 CSRF Token:', csrfToken ? 'Encontrado' : 'NO ENCONTRADO');
+    
+    if (!csrfToken) {
+        Swal.fire({
+            title: 'Error de Seguridad',
+            text: 'Token CSRF no encontrado. Recarga la página.',
+            icon: 'error'
+        });
+        return;
+    }
+    
+    $.ajax({
+        url: `/maestros/productos/${id}/eliminar/`,
+        type: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        beforeSend: function() {
+            console.log('📤 Enviando petición de eliminación...');
+        },
+        success: function(response) {
+            console.log('📥 Respuesta recibida:', response);
+            
+            if (response.success) {
+                Swal.fire({
+                    title: '¡Eliminado!',
+                    text: response.message,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    console.log('🔄 Redirigiendo a:', response.redirect_url);
+                    window.location.href = response.redirect_url;
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: response.message,
+                    icon: 'error'
+                });
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('❌ Error AJAX:', xhr.status, xhr.statusText);
+            console.error('Response:', xhr.responseText);
+            
+            let errorMessage = 'Error de conexión. Inténtalo de nuevo.';
+            
+            if (xhr.status === 403) {
+                errorMessage = 'No tienes permisos para eliminar este producto.';
+            } else if (xhr.status === 404) {
+                errorMessage = 'El producto no fue encontrado.';
+            } else if (xhr.status === 500) {
+                errorMessage = 'Error interno del servidor.';
+            }
+            
+            Swal.fire({
+                title: 'Error al Eliminar',
+                html: `<strong>Status:</strong> ${xhr.status}<br><strong>Error:</strong> ${errorMessage}`,
+                icon: 'error'
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

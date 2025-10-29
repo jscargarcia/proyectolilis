@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Producto - Catálogo{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-plus"></i> Crear Nuevo Producto</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{% url 'catalogo_crear' %}">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Código *</label>
+                                <input type="text" name="codigo" class="form-control" required 
+                                       placeholder="CAT-2024-001" value="{{ form_data.codigo|default:'' }}">
+                                <small class="text-muted">Solo mayúsculas, números y guiones</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre *</label>
+                                <input type="text" name="nombre" class="form-control" required 
+                                       value="{{ form_data.nombre|default:'' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Descripción</label>
+                            <textarea name="descripcion" class="form-control" rows="3">{{ form_data.descripcion|default:'' }}</textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo *</label>
+                                <select name="tipo" class="form-select" required>
+                                    {% for valor, etiqueta in tipos %}
+                                        <option value="{{ valor }}">{{ etiqueta }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Estado *</label>
+                                <select name="estado" class="form-select" required>
+                                    {% for valor, etiqueta in estados %}
+                                        <option value="{{ valor }}">{{ etiqueta }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Precio Base *</label>
+                                <input type="number" name="precio_base" class="form-control" step="0.01" min="0.01" required 
+                                       value="{{ form_data.precio_base|default:'0.00' }}">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Descuento (%)</label>
+                                <input type="number" name="descuento" class="form-control" step="0.01" min="0" max="100" 
+                                       value="{{ form_data.descuento|default:'0' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Stock Disponible *</label>
+                                <input type="number" name="stock_disponible" class="form-control" min="0" required 
+                                       value="{{ form_data.stock_disponible|default:'0' }}">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Stock Mínimo *</label>
+                                <input type="number" name="stock_minimo" class="form-control" min="0" required 
+                                       value="{{ form_data.stock_minimo|default:'5' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Calificación (0-5)</label>
+                                <input type="number" name="calificacion" class="form-control" step="0.01" min="0" max="5" 
+                                       value="{{ form_data.calificacion|default:'0' }}">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Contacto</label>
+                                <input type="text" name="contacto" class="form-control" placeholder="+56912345678" 
+                                       value="{{ form_data.contacto|default:'' }}">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">URL de Imagen</label>
+                            <input type="url" name="imagen_url" class="form-control" placeholder="https://..." 
+                                   value="{{ form_data.imagen_url|default:'' }}">
+                            <small class="text-muted">Debe terminar en .jpg, .jpeg, .png, .gif o .webp</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input type="checkbox" name="destacado" class="form-check-input" id="destacado">
+                                <label class="form-check-label" for="destacado">
+                                    Marcar como destacado
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Crear Producto
+                            </button>
+                            <a href="{% url 'catalogo_listar' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Test Eliminación - Dulcería Lilis{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Test de Eliminación Simple</h2>
+    
+    <div class="alert alert-warning">
+        <strong>Producto a eliminar:</strong> {{ producto.nombre }} (ID: {{ producto.pk }})
+    </div>
+    
+    <!-- Formulario simple sin AJAX -->
+    <form method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este producto?')">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Eliminar Producto (Sin AJAX)</button>
+        <a href="{% url 'producto_listar' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

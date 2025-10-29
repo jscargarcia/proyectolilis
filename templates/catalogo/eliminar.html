@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block title %}Eliminar - {{ catalogo.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación</h4>
+                </div>
+                <div class="card-body">
+                    <p>¿Estás seguro de que deseas eliminar el siguiente producto?</p>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Código:</strong> {{ catalogo.codigo }}<br>
+                        <strong>Nombre:</strong> {{ catalogo.nombre }}<br>
+                        <strong>Precio:</strong> ${{ catalogo.precio_base }}
+                    </div>
+                    
+                    <p class="text-danger">
+                        <i class="fas fa-exclamation-circle"></i> 
+                        <strong>Esta acción no se puede deshacer.</strong>
+                    </p>
+                    
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Sí, Eliminar
+                            </button>
+                            <a href="{% url 'catalogo_detalle' catalogo.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Confirmación adicional con SweetAlert2
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: "Esta acción no se puede deshacer",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                this.submit();
+            }
+        });
+    });
+</script>
+{% endblock %}

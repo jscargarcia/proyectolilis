@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ producto.nombre }} - Detalle del Producto{% endblock %}
+
+{% block extra_css %}
+<style>
+.product-header {
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 25px;
+    color: white;
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
+}
+
+.info-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+    transition: transform 0.2s ease;
+}
+
+.info-card:hover {
+    transform: translateY(-2px);
+}
+
+.info-card .card-header {
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    border-bottom: 2px solid #dc2626;
+    border-radius: 12px 12px 0 0 !important;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 5px;
+}
+
+.detail-value {
+    color: #6b7280;
+    margin-bottom: 15px;
+}
+
+.status-badge {
+    font-size: 0.875rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.status-activo {
+    background-color: #dcfce7;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+}
+
+.status-inactivo {
+    background-color: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #fecaca;
+}
+
+.action-buttons {
+    position: sticky;
+    top: 20px;
+    z-index: 100;
+}
+
+.btn-action {
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    margin-bottom: 10px;
+}
+
+.btn-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.price-display {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #dc2626;
+}
+
+.stock-info {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border-left: 4px solid #0ea5e9;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.provider-card {
+    border-left: 4px solid #dc2626;
+    background: #fafafa;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <!-- Header con información principal -->
+    <div class="product-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-2">
+                    <i class="fas fa-box-open me-2"></i>
+                    {{ producto.nombre }}
+                </h1>
+                <p class="mb-0 opacity-75">
+                    <strong>SKU:</strong> {{ producto.sku }}
+                    {% if producto.categoria %}
+                        | <strong>Categoría:</strong> {{ producto.categoria.nombre }}
+                    {% endif %}
+                    {% if producto.marca %}
+                        | <strong>Marca:</strong> {{ producto.marca.nombre }}
+                    {% endif %}
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <span class="status-badge {% if producto.estado == 'Activo' %}status-activo{% else %}status-inactivo{% endif %}">
+                    <i class="fas fa-circle me-1"></i>
+                    {{ producto.estado }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información principal -->
+        <div class="col-md-8">
+            <!-- Información básica -->
+            <div class="info-card card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Información General
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-label">SKU</div>
+                            <div class="detail-value">{{ producto.sku }}</div>
+                            
+                            <div class="detail-label">Nombre</div>
+                            <div class="detail-value">{{ producto.nombre }}</div>
+                            
+                            <div class="detail-label">Estado</div>
+                            <div class="detail-value">
+                                <span class="status-badge {% if producto.estado == 'Activo' %}status-activo{% else %}status-inactivo{% endif %}">
+                                    {{ producto.estado }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            {% if producto.categoria %}
+                            <div class="detail-label">Categoría</div>
+                            <div class="detail-value">
+                                <i class="fas fa-tags me-1"></i>
+                                {{ producto.categoria.nombre }}
+                            </div>
+                            {% endif %}
+                            
+                            {% if producto.marca %}
+                            <div class="detail-label">Marca</div>
+                            <div class="detail-value">
+                                <i class="fas fa-trademark me-1"></i>
+                                {{ producto.marca.nombre }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de precios y stock -->
+            <div class="info-card card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-dollar-sign me-2"></i>
+                        Precios e Inventario
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-label">Precio de Venta</div>
+                            <div class="price-display">
+                                ${{ producto.precio_venta|floatformat:0 }}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-label">Stock Mínimo</div>
+                            <div class="detail-value">
+                                <i class="fas fa-warehouse me-1"></i>
+                                {{ producto.stock_minimo }} unidades
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Características del producto -->
+            <div class="info-card card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>
+                        Características
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="fas fa-leaf fa-2x {% if producto.perishable %}text-warning{% else %}text-muted{% endif %} mb-2"></i>
+                                <div class="detail-label">Perecedero</div>
+                                <div class="detail-value">
+                                    {% if producto.perishable %}
+                                        <span class="badge bg-warning">Sí</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">No</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="fas fa-barcode fa-2x {% if producto.control_por_lote %}text-info{% else %}text-muted{% endif %} mb-2"></i>
+                                <div class="detail-label">Control por Lote</div>
+                                <div class="detail-value">
+                                    {% if producto.control_por_lote %}
+                                        <span class="badge bg-info">Sí</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">No</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="fas fa-hashtag fa-2x {% if producto.control_por_serie %}text-success{% else %}text-muted{% endif %} mb-2"></i>
+                                <div class="detail-label">Control por Serie</div>
+                                <div class="detail-value">
+                                    {% if producto.control_por_serie %}
+                                        <span class="badge bg-success">Sí</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">No</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Proveedores (si existen) -->
+            {% if proveedores %}
+            <div class="info-card card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-truck me-2"></i>
+                        Proveedores
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% for proveedor_producto in proveedores %}
+                    <div class="provider-card">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <strong>{{ proveedor_producto.proveedor.razon_social }}</strong>
+                                {% if proveedor_producto.preferente %}
+                                    <span class="badge bg-warning ms-2">Preferente</span>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Costo:</small><br>
+                                <strong>${{ proveedor_producto.costo|floatformat:2 }}</strong>
+                            </div>
+                            <div class="col-md-3">
+                                <small class="text-muted">Lead Time:</small><br>
+                                <strong>{{ proveedor_producto.lead_time_dias }} días</strong>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Panel de acciones -->
+        <div class="col-md-4">
+            <div class="action-buttons">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-tools me-2"></i>
+                            Acciones
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'producto_editar' producto.pk %}" class="btn btn-warning btn-action">
+                                <i class="fas fa-edit me-2"></i>
+                                Editar Producto
+                            </a>
+                            
+                            <button class="btn btn-danger btn-action" onclick="confirmarEliminar({{ producto.pk }}, '{{ producto.nombre|escapejs }}')">
+                                <i class="fas fa-trash me-2"></i>
+                                Eliminar Producto
+                            </button>
+                            
+                            <hr>
+                            
+                            <a href="{% url 'producto_listar' %}" class="btn btn-secondary btn-action">
+                                <i class="fas fa-arrow-left me-2"></i>
+                                Volver a Lista
+                            </a>
+                            
+                            <a href="#" class="btn btn-info btn-action" onclick="window.print()">
+                                <i class="fas fa-print me-2"></i>
+                                Imprimir
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información rápida -->
+                <div class="card mt-3">
+                    <div class="card-header">
+                        <h6 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>
+                            Resumen Rápido
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="stock-info">
+                            <div class="text-center">
+                                <i class="fas fa-boxes fa-2x text-primary mb-2"></i>
+                                <div class="detail-label">Stock Mínimo</div>
+                                <div class="h4 text-primary mb-0">{{ producto.stock_minimo }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <div class="detail-label">Precio de Venta</div>
+                            <div class="price-display">${{ producto.precio_venta|floatformat:0 }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para confirmación de eliminación -->
+<script>
+function confirmarEliminar(id, nombre) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        html: `¿Deseas eliminar el producto <strong>"${nombre}"</strong>?<br><small class="text-muted">Esta acción no se puede deshacer.</small>`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: '<i class="fas fa-trash"></i> Sí, eliminar',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+        customClass: {
+            popup: 'swal-wide'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Crear formulario para enviar DELETE
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/maestros/productos/${id}/eliminar/`;
+            
+            // Token CSRF
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Cliente - Dulcería Lilis{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="fas fa-exclamation-triangle"></i> Confirmar Eliminación</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h5>¿Está seguro que desea eliminar este cliente?</h5>
+                        <p class="mb-0">Esta acción no se puede deshacer.</p>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>RUT/NIF:</strong> {{ cliente.rut_nif }}<br>
+                        <strong>Nombre:</strong> {{ cliente.nombre }}<br>
+                        <strong>Email:</strong> {{ cliente.email|default:"-" }}<br>
+                        <strong>Teléfono:</strong> {{ cliente.telefono|default:"-" }}
+                    </div>
+
+                    <form method="post" id="deleteForm">
+                        {% csrf_token %}
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'cliente_detalle' cliente.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Sí, Eliminar
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('deleteForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    Swal.fire({
+        title: '¿Eliminar cliente?',
+        text: "Esta acción no se puede revertir",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            this.submit();
+        }
+    });
+});
+</script>
+{% endblock %}

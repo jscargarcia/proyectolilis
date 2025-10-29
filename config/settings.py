@@ -26,7 +26,7 @@ SECRET_KEY = config('SECRET_KEY', default='django-insecure-faan)^4ha-=$8+tf)jsxg
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,testserver', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
 
 
 # Application definition
@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'sistema',
     'productos',  # La aplicación que ya existía
     'ventas',     # Nueva aplicación de ventas
+    'catalogo',   # Nueva aplicación de catálogo
 ]
 
 MIDDLEWARE = [
@@ -56,6 +57,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Middlewares personalizados
+    'autenticacion.middleware.VisitCounterMiddleware',
+    'autenticacion.middleware.UserActivityMiddleware',
+    'autenticacion.middleware.SessionSecurityMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -63,7 +68,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],  # Agregado directorio de templates
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -136,7 +141,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = config('STATIC_URL', default='static/')
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
+# Media files (uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -145,3 +158,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Modelo de usuario personalizado
 AUTH_USER_MODEL = 'autenticacion.Usuario'
+
+# Configuración de sesiones
+SESSION_COOKIE_AGE = 3600  # 1 hora en segundos (ajustar según necesidad)
+SESSION_SAVE_EVERY_REQUEST = True  # Actualizar la sesión en cada request
+SESSION_COOKIE_HTTPONLY = True  # Prevenir acceso a la cookie desde JavaScript
+SESSION_COOKIE_SECURE = not DEBUG  # Solo HTTPS en producción
+SESSION_COOKIE_SAMESITE = 'Lax'  # Protección contra CSRF
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False  # Mantener sesión al cerrar navegador
+
+# Configuración de seguridad adicional
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+
+# En producción, activar estas configuraciones:
+# SECURE_SSL_REDIRECT = True
+# SECURE_HSTS_SECONDS = 31536000
+# SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+# SECURE_HSTS_PRELOAD = True
+# SESSION_COOKIE_SECURE = True
+# CSRF_COOKIE_SECURE = True

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Cliente - Dulcería Lilis{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-warning">
+                    <h4 class="mb-0"><i class="fas fa-edit"></i> Editar Cliente: {{ cliente.nombre }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="rut_nif" class="form-label">RUT/NIF <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="rut_nif" name="rut_nif" value="{{ cliente.rut_nif }}" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="tipo" class="form-label">Tipo <span class="text-danger">*</span></label>
+                                <select class="form-select" id="tipo" name="tipo" required>
+                                    <option value="PERSONA" {% if cliente.tipo == 'PERSONA' %}selected{% endif %}>Persona Natural</option>
+                                    <option value="EMPRESA" {% if cliente.tipo == 'EMPRESA' %}selected{% endif %}>Empresa</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label for="nombre" class="form-label">Nombre / Razón Social <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="nombre" name="nombre" value="{{ cliente.nombre }}" required>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" value="{{ cliente.email|default:'' }}">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="telefono" class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" id="telefono" name="telefono" value="{{ cliente.telefono|default:'' }}">
+                            </div>
+
+                            <div class="col-md-8 mb-3">
+                                <label for="direccion" class="form-label">Dirección</label>
+                                <input type="text" class="form-control" id="direccion" name="direccion" value="{{ cliente.direccion|default:'' }}">
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="ciudad" class="form-label">Ciudad</label>
+                                <input type="text" class="form-control" id="ciudad" name="ciudad" value="{{ cliente.ciudad|default:'' }}">
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <label for="observaciones" class="form-label">Observaciones</label>
+                                <textarea class="form-control" id="observaciones" name="observaciones" rows="3">{{ cliente.observaciones|default:'' }}</textarea>
+                            </div>
+
+                            <div class="col-12 mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="activo" name="activo" {% if cliente.activo %}checked{% endif %}>
+                                    <label class="form-check-label" for="activo">Cliente activo</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'cliente_detalle' cliente.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> Actualizar Cliente
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

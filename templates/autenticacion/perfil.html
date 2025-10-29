@@ -1,0 +1,263 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Perfil del Usuario - Lilis System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <img src="{% static 'img/logo-small.svg' %}" alt="Dulcería Lili's" style="width: 32px; height: 32px; margin-right: 8px;">
+                Mi Perfil
+            </h2>
+        </div>
+    </div>
+    
+    <!-- Información del usuario -->
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);">
+                    <h5 class="mb-0">
+                        <i class="fas fa-user"></i> Información Personal
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">
+                                        <i class="fas fa-id-card text-danger"></i> Nombre Completo:
+                                    </th>
+                                    <td class="fw-bold">{{ usuario.get_full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>
+                                        <i class="fas fa-user text-danger"></i> Usuario:
+                                    </th>
+                                    <td><code class="bg-light px-2 py-1 rounded">{{ usuario.username }}</code></td>
+                                </tr>
+                                <tr>
+                                    <th>
+                                        <i class="fas fa-envelope text-danger"></i> Email:
+                                    </th>
+                                    <td>{{ usuario.email }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">
+                                        <i class="fas fa-user-tag text-danger"></i> Rol:
+                                    </th>
+                                    <td>
+                                        <span class="badge" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; font-size: 0.9em;">
+                                            {{ usuario.rol.nombre }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>
+                                        <i class="fas fa-toggle-on text-danger"></i> Estado:
+                                    </th>
+                                    <td>
+                                        <span class="badge {% if usuario.estado == 'ACTIVO' %}bg-success{% elif usuario.estado == 'BLOQUEADO' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            {{ usuario.estado }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>
+                                        <i class="fas fa-clock text-danger"></i> Último Acceso:
+                                    </th>
+                                    <td>{{ usuario.ultimo_acceso|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-pie"></i> Estadísticas de Sesión
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <div class="d-flex align-items-center justify-content-center">
+                                <div class="text-center">
+                                    <i class="fas fa-eye fa-2x text-danger mb-2"></i>
+                                    <h4 class="mb-0 text-danger">{{ visitas }}</h4>
+                                    <small class="text-muted">Visitas en esta sesión</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <i class="fas fa-shopping-cart fa-lg text-warning mb-2"></i>
+                                <h5 class="mb-0">{{ carrito_count }}</h5>
+                                <small class="text-muted">Items en carrito</small>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center">
+                                <i class="fas fa-bell fa-lg text-info mb-2"></i>
+                                <h5 class="mb-0">{{ notificaciones_count }}</h5>
+                                <small class="text-muted">Notificaciones</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Permisos del rol -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);">
+                    <h5 class="mb-0">
+                        <i class="fas fa-shield-alt"></i> Permisos y Accesos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <h6 class="text-danger mb-3">
+                        <i class="fas fa-crown"></i> Rol: {{ usuario.rol.nombre }}
+                    </h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">
+                                <i class="fas fa-check-circle text-success"></i> Accesos Permitidos:
+                            </h6>
+                            <ul class="list-unstyled">
+                                {% if usuario.rol.nombre == 'ADMIN' or usuario.rol.nombre == 'Administrador' %}
+                                    <li><i class="fas fa-check text-success me-2"></i> Acceso completo al sistema</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Gestión de usuarios</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Configuración del sistema</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Reportes administrativos</li>
+                                {% elif usuario.rol.nombre == 'GERENTE' or usuario.rol.nombre == 'Gerente' %}
+                                    <li><i class="fas fa-check text-success me-2"></i> Gestión de ventas</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Gestión de compras</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Gestión de inventario</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Reportes gerenciales</li>
+                                {% elif usuario.rol.nombre == 'VENDEDOR' or usuario.rol.nombre == 'Vendedor' %}
+                                    <li><i class="fas fa-check text-success me-2"></i> Gestión de ventas</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Atención a clientes</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Consulta de productos</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Consulta de inventario</li>
+                                {% elif usuario.rol.nombre == 'BODEGUERO' or usuario.rol.nombre == 'Bodeguero' %}
+                                    <li><i class="fas fa-check text-success me-2"></i> Gestión de inventario</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Gestión de productos</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Movimientos de stock</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Recepción de mercancía</li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <h6 class="mb-3">
+                                <i class="fas fa-tools text-primary"></i> Funciones Disponibles:
+                            </h6>
+                            <div class="d-grid gap-2">
+                                {% if usuario.rol.nombre == 'ADMIN' or usuario.rol.nombre == 'GERENTE' or usuario.rol.nombre == 'BODEGUERO' %}
+                                    <a href="{% url 'producto_listar' %}" class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-boxes"></i> Gestión de Productos
+                                    </a>
+                                {% endif %}
+                                
+                                {% if usuario.rol.nombre == 'ADMIN' or usuario.rol.nombre == 'SUPERVISOR' %}
+                                    <a href="{% url 'catalogo_listar' %}" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-book"></i> Gestión de Catálogo
+                                    </a>
+                                {% endif %}
+                                
+                                <button onclick="mostrarCarrito()" class="btn btn-outline-warning btn-sm">
+                                    <i class="fas fa-shopping-cart"></i> Ver Carrito
+                                </button>
+                                
+                                <button onclick="mostrarNotificaciones()" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-bell"></i> Ver Notificaciones
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones del perfil -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cogs"></i> Acciones del Perfil
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Configuración de Cuenta</h6>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-primary" onclick="editarPerfil()">
+                                    <i class="fas fa-edit"></i> Editar Perfil
+                                </button>
+                                <button class="btn btn-outline-warning" onclick="cambiarPassword()">
+                                    <i class="fas fa-key"></i> Cambiar Contraseña
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-3">Navegación</h6>
+                            <div class="d-grid gap-2">
+                                <a href="{% url 'dashboard' %}" class="btn btn-danger">
+                                    <i class="fas fa-tachometer-alt"></i> Volver al Dashboard
+                                </a>
+                                <a href="{% url 'logout' %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Función para editar perfil
+    function editarPerfil() {
+        Swal.fire({
+            title: 'Editar Perfil',
+            text: 'Esta funcionalidad estará disponible próximamente.',
+            icon: 'info',
+            confirmButtonColor: '#dc2626'
+        });
+    }
+    
+    // Función para cambiar contraseña
+    function cambiarPassword() {
+        Swal.fire({
+            title: 'Cambiar Contraseña',
+            text: 'Esta funcionalidad estará disponible próximamente.',
+            icon: 'info',
+            confirmButtonColor: '#dc2626'
+        });
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,638 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <title>{% block title %}Lilis System{% endblock %}</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- SweetAlert2 CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        /* Tema Rojo para Dulcería Lilis */
+        :root {
+            --primary-red: #dc2626;        /* Rojo principal */
+            --secondary-red: #991b1b;      /* Rojo oscuro */
+            --light-red: #fecaca;          /* Rojo claro */
+            --accent-red: #ef4444;         /* Rojo acento */
+            --danger-red: #b91c1c;         /* Rojo peligro */
+            --soft-red: #fee2e2;           /* Rojo suave */
+        }
+        
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: var(--primary-red) !important;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        
+        .navbar-dark .navbar-nav .nav-link {
+            color: rgba(255, 255, 255, 0.9) !important;
+        }
+        
+        .navbar-dark .navbar-nav .nav-link:hover {
+            color: var(--light-red) !important;
+        }
+        
+        .navbar-dark {
+            background: linear-gradient(135deg, var(--secondary-red) 0%, var(--primary-red) 100%) !important;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 20px 0;
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, var(--secondary-red) 0%, var(--primary-red) 100%);
+            color: white;
+            padding: 20px 0;
+            margin-top: auto;
+        }
+        
+        .card {
+            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.15);
+            margin-bottom: 20px;
+            border: 1px solid rgba(220, 38, 38, 0.1);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--accent-red) 100%);
+            color: white;
+            border-bottom: 2px solid var(--secondary-red);
+        }
+        
+        .badge-custom {
+            padding: 0.5em 0.75em;
+        }
+        
+        .visit-counter {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--accent-red) 100%);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+            z-index: 1000;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .floating-crud-btn {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            z-index: 1001;
+            animation: pulse 2s infinite;
+        }
+        
+        .floating-crud-btn a:hover {
+            transform: scale(1.1);
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.6) !important;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .notification-bell {
+            position: relative;
+            cursor: pointer;
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger-red);
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 0.7rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid white;
+        }
+        
+        /* Botones con tema rojo */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--accent-red) 100%);
+            border-color: var(--primary-red);
+            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--secondary-red) 0%, var(--primary-red) 100%);
+            border-color: var(--secondary-red);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger-red) 0%, var(--primary-red) 100%);
+        }
+        
+        /* Enlaces con tema rojo */
+        a {
+            color: var(--primary-red);
+        }
+        
+        a:hover {
+            color: var(--secondary-red);
+        }
+        
+        /* Dropdown con tema rojo */
+        .dropdown-menu {
+            border: 1px solid rgba(220, 38, 38, 0.2);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+        }
+        
+        .dropdown-item:hover {
+            background-color: var(--soft-red);
+            color: var(--secondary-red);
+        }
+        
+        .dropdown-header {
+            color: var(--primary-red);
+            font-weight: bold;
+        }
+        
+        /* Formularios con tema rojo */
+        .form-control:focus {
+            border-color: var(--primary-red);
+            box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+        }
+        
+        .form-select:focus {
+            border-color: var(--primary-red);
+            box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+        }
+        
+        /* Tablas con tema rojo */
+        .table thead th {
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--accent-red) 100%);
+            color: white;
+            border-color: var(--secondary-red);
+        }
+        
+        .table-striped > tbody > tr:nth-child(odd) > td {
+            background-color: rgba(220, 38, 38, 0.05);
+        }
+        
+        /* Alertas con tema rojo */
+        .alert-success {
+            background-color: #dcfce7;
+            border-color: #bbf7d0;
+            color: #166534;
+        }
+        
+        .alert-danger {
+            background-color: var(--soft-red);
+            border-color: var(--light-red);
+            color: var(--secondary-red);
+        }
+        
+        .alert-info {
+            background-color: #dbeafe;
+            border-color: #bfdbfe;
+            color: #1e40af;
+        }
+        
+        /* Paginación con tema rojo */
+        .page-item.active .page-link {
+            background-color: var(--primary-red);
+            border-color: var(--primary-red);
+        }
+        
+        .page-link {
+            color: var(--primary-red);
+        }
+        
+        .page-link:hover {
+            color: var(--secondary-red);
+            background-color: var(--soft-red);
+            border-color: var(--light-red);
+        }
+        
+        /* Progreso con tema rojo */
+        .progress-bar {
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--accent-red) 100%);
+        }
+        
+        /* Badges con tema rojo */
+        .badge.bg-primary {
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--accent-red) 100%) !important;
+        }
+        
+        /* Spinners con tema rojo */
+        .spinner-border {
+            color: var(--primary-red);
+        }
+        
+        /* Personalización de SweetAlert2 */
+        .swal2-popup {
+            border: 2px solid var(--light-red);
+        }
+        
+        .swal2-confirm {
+            background: linear-gradient(135deg, var(--primary-red) 0%, var(--accent-red) 100%) !important;
+        }
+        
+        .swal2-cancel {
+            background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%) !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, var(--secondary-red) 0%, var(--primary-red) 100%)!important;">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <img src="{% static 'img/logo-small.svg' %}" alt="Lili's Logo" width="35" height="35" class="me-2">
+                <span style="font-weight: bold; color: #F59E0B;">Dulcería Lili's</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    {% if user.is_authenticated %}
+                        <!-- Menú dinámico según roles -->
+                        {% if user.rol.nombre == 'ADMIN' or user.rol.nombre == 'SUPERVISOR' %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-book"></i> Catálogo
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'catalogo_listar' %}">
+                                        <i class="fas fa-list"></i> Listar
+                                    </a></li>
+                                    {% if user.rol.permisos.catalogo.crear %}
+                                        <li><a class="dropdown-item" href="{% url 'catalogo_crear' %}">
+                                            <i class="fas fa-plus"></i> Crear
+                                        </a></li>
+                                    {% endif %}
+                                </ul>
+                            </li>
+                        {% endif %}
+                        
+                        <!-- Menú Maestros -->
+                        {% if user.rol.nombre == 'ADMIN' or user.rol.nombre == 'GERENTE' or user.rol.nombre == 'BODEGUERO' %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-boxes"></i> Maestros
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><h6 class="dropdown-header">Productos</h6></li>
+                                    <li><a class="dropdown-item" href="{% url 'producto_listar' %}">
+                                        <i class="fas fa-box"></i> Lista de Productos
+                                    </a></li>
+                                    {% if user.rol.nombre == 'ADMIN' or user.rol.nombre == 'GERENTE' %}
+                                    <li><a class="dropdown-item" href="{% url 'producto_crear' %}">
+                                        <i class="fas fa-plus"></i> Nuevo Producto
+                                    </a></li>
+                                    {% endif %}
+                                    
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Proveedores</h6></li>
+                                    <li><a class="dropdown-item" href="{% url 'proveedor_listar' %}">
+                                        <i class="fas fa-truck"></i> Lista de Proveedores
+                                    </a></li>
+                                    {% if user.rol.nombre == 'ADMIN' or user.rol.nombre == 'GERENTE' %}
+                                    <li><a class="dropdown-item" href="{% url 'proveedor_crear' %}">
+                                        <i class="fas fa-plus"></i> Nuevo Proveedor
+                                    </a></li>
+                                    {% endif %}
+                                    
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Configuración</h6></li>
+                                    <li><a class="dropdown-item" href="{% url 'categoria_listar' %}">
+                                        <i class="fas fa-tags"></i> Categorías
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'marca_listar' %}">
+                                        <i class="fas fa-trademark"></i> Marcas
+                                    </a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
+                        
+                        {% if user.rol.nombre == 'ADMIN' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">
+                                    <i class="fas fa-users"></i> Usuarios
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">
+                                    <i class="fas fa-chart-bar"></i> Reportes
+                                </a>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+                
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                        <!-- Campana de notificaciones -->
+                        <li class="nav-item">
+                            <a class="nav-link notification-bell" href="#" onclick="mostrarNotificaciones(); return false;">
+                                <i class="fas fa-bell"></i>
+                                <span class="notification-badge" id="notificationCount">0</span>
+                            </a>
+                        </li>
+                        
+                        <!-- Carrito -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="#" onclick="mostrarCarrito(); return false;">
+                                <i class="fas fa-shopping-cart"></i>
+                                <span class="badge bg-danger" id="cartCount">0</span>
+                            </a>
+                        </li>
+                        
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-user"></i> {{ user.get_full_name }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'perfil_usuario' %}">
+                                    <i class="fas fa-user-circle"></i> Mi Perfil
+                                </a></li>
+                                <li><a class="dropdown-item" href="#">
+                                    <i class="fas fa-cog"></i> Configuración
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% else %}
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'login' %}">
+                                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid main-content">
+        <!-- Mensajes Flash de Django con SweetAlert2 -->
+        {% if messages %}
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    {% for message in messages %}
+                        Swal.fire({
+                            icon: '{% if message.tags == "success" %}success{% elif message.tags == "error" or message.tags == "danger" %}error{% elif message.tags == "warning" %}warning{% else %}info{% endif %}',
+                            title: '{% if message.tags == "success" %}¡Éxito!{% elif message.tags == "error" or message.tags == "danger" %}Error{% elif message.tags == "warning" %}Advertencia{% else %}Información{% endif %}',
+                            text: '{{ message|escapejs }}',
+                            timer: 5000,
+                            timerProgressBar: true,
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false
+                        });
+                    {% endfor %}
+                });
+            </script>
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Contador de visitas -->
+    {% if user.is_authenticated %}
+    <div class="visit-counter">
+        <i class="fas fa-eye"></i> Visitas: <span id="visitCount">{{ request.session.visit_count|default:1 }}</span>
+    </div>
+    
+    <!-- Botón flotante CRUD Productos -->
+    {% if user.rol.nombre == 'ADMIN' or user.rol.nombre == 'GERENTE' or user.rol.nombre == 'BODEGUERO' %}
+    <div class="floating-crud-btn">
+        <a href="{% url 'producto_listar' %}" class="btn btn-danger btn-lg" 
+           style="border-radius: 50px; padding: 15px 20px; box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4); 
+                  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); border: none;"
+           title="Ir al CRUD de Productos">
+            <i class="fas fa-boxes"></i>
+        </a>
+    </div>
+    {% endif %}
+    {% endif %}
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container text-center">
+            <p class="mb-0 text-muted">
+                &copy; 2024 Lilis System. Todos los derechos reservados.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Scripts personalizados -->
+    <script>
+        // Función para mostrar confirmación de eliminación
+        function confirmarEliminacion(mensaje = '¿Estás seguro de que deseas eliminar este elemento?') {
+            return Swal.fire({
+                title: '¿Estás seguro?',
+                text: mensaje,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+        }
+        
+        // Función para mostrar notificaciones
+        function mostrarNotificaciones() {
+            // Obtener notificaciones de la sesión
+            fetch('/api/notificaciones/')
+                .then(response => response.json())
+                .then(data => {
+                    let html = '<div class="list-group">';
+                    if (data.notificaciones && data.notificaciones.length > 0) {
+                        data.notificaciones.forEach(notif => {
+                            html += `<a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">${notif.titulo}</h6>
+                                    <small>${notif.tiempo}</small>
+                                </div>
+                                <p class="mb-1">${notif.mensaje}</p>
+                            </a>`;
+                        });
+                    } else {
+                        html += '<div class="list-group-item">No tienes notificaciones nuevas</div>';
+                    }
+                    html += '</div>';
+                    
+                    Swal.fire({
+                        title: 'Notificaciones',
+                        html: html,
+                        width: 600,
+                        showCloseButton: true,
+                        showConfirmButton: false
+                    });
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Notificaciones',
+                        text: 'No tienes notificaciones nuevas',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                });
+        }
+        
+        // Función para mostrar carrito
+        function mostrarCarrito() {
+            fetch('/api/carrito/')
+                .then(response => response.json())
+                .then(data => {
+                    let html = '<div class="list-group">';
+                    if (data.items && data.items.length > 0) {
+                        data.items.forEach(item => {
+                            html += `<div class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">${item.nombre}</h6>
+                                        <small>Cantidad: ${item.cantidad}</small>
+                                    </div>
+                                    <div>
+                                        <strong>$${item.precio}</strong>
+                                        <button class="btn btn-sm btn-danger ms-2" onclick="eliminarDelCarrito(${item.id})">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>`;
+                        });
+                        html += `<div class="list-group-item bg-light">
+                            <strong>Total: $${data.total}</strong>
+                        </div>`;
+                    } else {
+                        html += '<div class="list-group-item">Tu carrito está vacío</div>';
+                    }
+                    html += '</div>';
+                    
+                    Swal.fire({
+                        title: 'Mi Carrito',
+                        html: html,
+                        width: 600,
+                        showCloseButton: true,
+                        showCancelButton: data.items && data.items.length > 0,
+                        confirmButtonText: 'Cerrar',
+                        cancelButtonText: 'Vaciar Carrito',
+                        cancelButtonColor: '#dc3545'
+                    }).then((result) => {
+                        if (result.dismiss === Swal.DismissReason.cancel) {
+                            vaciarCarrito();
+                        }
+                    });
+                })
+                .catch(error => {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Carrito',
+                        text: 'Tu carrito está vacío',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000
+                    });
+                });
+        }
+        
+        // Función para eliminar item del carrito
+        function eliminarDelCarrito(itemId) {
+            // Implementar lógica de eliminación
+            console.log('Eliminar item:', itemId);
+        }
+        
+        // Función para vaciar carrito
+        function vaciarCarrito() {
+            // Implementar lógica de vaciado
+            console.log('Vaciar carrito');
+        }
+        
+        // Actualizar contadores
+        function actualizarContadores() {
+            // Actualizar contador de carrito
+            fetch('/api/carrito/count/')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('cartCount').textContent = data.count || 0;
+                })
+                .catch(error => console.log('Error al obtener contador de carrito'));
+            
+            // Actualizar contador de notificaciones
+            fetch('/api/notificaciones/count/')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('notificationCount').textContent = data.count || 0;
+                })
+                .catch(error => console.log('Error al obtener contador de notificaciones'));
+        }
+        
+        // Actualizar contadores al cargar la página
+        if (document.querySelector('.notification-bell')) {
+            actualizarContadores();
+            // Actualizar cada 30 segundos
+            setInterval(actualizarContadores, 30000);
+        }
+    </script>
+    
+    <!-- Custom JavaScript -->
+    <script src="{% static 'js/main.js' %}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

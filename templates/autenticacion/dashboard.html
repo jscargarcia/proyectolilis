@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Lilis System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </h2>
+        </div>
+    </div>
+    
+    <!-- Botón Principal CRUD Productos -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="alert alert-info" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); border: none; box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="text-white">
+                        <h4 class="mb-1">
+                            <i class="fas fa-boxes"></i> Gestión de Productos
+                        </h4>
+                        <p class="mb-0">Accede al sistema completo de gestión de productos con todos tus datos de la base de datos</p>
+                    </div>
+                    <div>
+                        <a href="{% url 'producto_listar' %}" class="btn btn-light btn-lg px-4 py-2 me-2" style="font-weight: bold;">
+                            <i class="fas fa-list"></i> Ver Productos
+                        </a>
+                        {% if usuario.rol.nombre == 'ADMIN' or usuario.rol.nombre == 'GERENTE' %}
+                        <a href="{% url 'producto_crear' %}" class="btn btn-outline-light btn-lg px-4 py-2" style="border: 2px solid white; font-weight: bold;">
+                            <i class="fas fa-plus"></i> Nuevo
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tarjetas de estadísticas -->
+    <div class="row">
+        <div class="col-md-3 mb-4">
+            <div class="card text-white" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Visitas</h6>
+                            <h2>{{ visitas }}</h2>
+                        </div>
+                        <div>
+                            <i class="fas fa-eye fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card text-white" style="background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%); box-shadow: 0 4px 8px rgba(153, 27, 27, 0.3);">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Carrito</h6>
+                            <h2>{{ carrito_count }}</h2>
+                        </div>
+                        <div>
+                            <i class="fas fa-shopping-cart fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card text-white" style="background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%); box-shadow: 0 4px 8px rgba(185, 28, 28, 0.3);">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Notificaciones</h6>
+                            <h2>{{ notificaciones_count }}</h2>
+                        </div>
+                        <div>
+                            <i class="fas fa-bell fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="card text-white" style="background: linear-gradient(135deg, #7f1d1d 0%, #b91c1c 100%); box-shadow: 0 4px 8px rgba(127, 29, 29, 0.3);">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="card-title">Rol</h6>
+                            <h6>{{ usuario.rol.nombre }}</h6>
+                        </div>
+                        <div>
+                            <i class="fas fa-user-tag fa-3x opacity-50"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Información del usuario (ahora en perfil) -->
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);">
+                    <h5 class="mb-0"><i class="fas fa-user-circle"></i> Mi Cuenta</h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-center mb-3">
+                            <img src="{% static 'img/logo.svg' %}" alt="Lili's Logo" width="60" height="60">
+                        </div>
+                        <h5 class="mb-1">{{ usuario.get_full_name }}</h5>
+                        <p class="text-muted mb-0">{{ usuario.rol.nombre }}</p>
+                    </div>
+                    <div class="d-grid">
+                        <a href="{% url 'perfil_usuario' %}" class="btn btn-danger">
+                            <i class="fas fa-eye"></i> Ver Mi Perfil Completo
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%);">
+                    <h5 class="mb-0"><i class="fas fa-rocket"></i> Acciones Rápidas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if usuario.rol.nombre == 'ADMIN' or usuario.rol.nombre == 'SUPERVISOR' %}
+                            <a href="{% url 'catalogo_listar' %}" class="btn btn-outline-primary">
+                                <i class="fas fa-list"></i> Ver Catálogo
+                            </a>
+                            
+                            {% if usuario.rol.permisos.catalogo.crear %}
+                                <a href="{% url 'catalogo_crear' %}" class="btn btn-outline-success">
+                                    <i class="fas fa-plus"></i> Crear Producto Catálogo
+                                </a>
+                            {% endif %}
+                        {% endif %}
+                        
+                        <!-- Accesos rápidos para Maestros -->
+                        {% if usuario.rol.nombre == 'ADMIN' or usuario.rol.nombre == 'GERENTE' or usuario.rol.nombre == 'BODEGUERO' %}
+                            <hr>
+                            <h6 class="text-danger fw-bold">
+                                <i class="fas fa-crown"></i> Gestión de Maestros
+                            </h6>
+                            <a href="{% url 'producto_listar' %}" class="btn btn-outline-danger mb-2" style="border-width: 2px;">
+                                <i class="fas fa-boxes"></i> Gestión de Productos
+                            </a>
+                            
+                            {% if usuario.rol.nombre == 'ADMIN' or usuario.rol.nombre == 'GERENTE' %}
+                            <a href="{% url 'producto_crear' %}" class="btn btn-danger mb-2" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);">
+                                <i class="fas fa-plus"></i> Nuevo Producto
+                            </a>
+                            {% endif %}
+                            
+                            <a href="{% url 'proveedor_listar' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-truck"></i> Proveedores
+                            </a>
+                        {% endif %}
+                        
+                        <hr>
+                        <h6 class="text-muted">Sistema</h6>
+                        <button onclick="mostrarCarrito()" class="btn btn-outline-info">
+                            <i class="fas fa-shopping-cart"></i> Ver Carrito
+                        </button>
+                        
+                        <button onclick="mostrarNotificaciones()" class="btn btn-outline-warning">
+                            <i class="fas fa-bell"></i> Ver Notificaciones
+                        </button>
+                        
+                        <button onclick="testNotification()" class="btn btn-outline-secondary">
+                            <i class="fas fa-test"></i> Probar Notificación
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Resumen de actividad -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #7f1d1d 0%, #991b1b 100%);">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Resumen de Actividad</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <i class="fas fa-eye fa-2x text-danger mb-2"></i>
+                                <h4 class="text-danger mb-1">{{ visitas }}</h4>
+                                <p class="text-muted mb-0">Visitas en esta sesión</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <i class="fas fa-shopping-cart fa-2x text-warning mb-2"></i>
+                                <h4 class="text-warning mb-1">{{ carrito_count }}</h4>
+                                <p class="text-muted mb-0">Items en carrito</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="p-3">
+                                <i class="fas fa-bell fa-2x text-info mb-2"></i>
+                                <h4 class="text-info mb-1">{{ notificaciones_count }}</h4>
+                                <p class="text-muted mb-0">Notificaciones no leídas</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Función para probar notificación
+    function testNotification() {
+        fetch('/api/notificaciones/agregar/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                titulo: 'Notificación de Prueba',
+                mensaje: 'Esta es una notificación de prueba del sistema',
+                tipo: 'info'
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: 'Notificación agregada correctamente',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000
+                });
+                actualizarContadores();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+    
+    // Función para obtener cookie CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

@@ -37,28 +37,70 @@ class UnidadMedida(models.Model):
 
 
 class Proveedor(models.Model):
+    ESTADO_CHOICES = [
+        ('Activo', 'Activo'),
+        ('Inactivo', 'Inactivo'),
+        ('Suspendido', 'Suspendido'),
+    ]
+    
     rut_nif = models.CharField(max_length=20)
     razon_social = models.CharField(max_length=100)
     email = models.EmailField(blank=True, null=True)
     condiciones_pago = models.CharField(max_length=50, blank=True, null=True)
     pais = models.CharField(max_length=50, blank=True, null=True)
-    estado = models.CharField(max_length=20, default='Activo')
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='Activo')
     
     def __str__(self):
         return self.razon_social
 
 
 class Producto(models.Model):
-    sku = models.CharField(max_length=50)
-    nombre = models.CharField(max_length=100)
+    ESTADO_CHOICES = [
+        ('Activo', 'Activo'),
+        ('Inactivo', 'Inactivo'),
+        ('Descontinuado', 'Descontinuado'),
+        ('En Desarrollo', 'En Desarrollo'),
+    ]
+    
+    # Información básica
+    sku = models.CharField(max_length=50, unique=True)
+    ean_upc = models.CharField(max_length=20, blank=True, null=True)
+    nombre = models.CharField(max_length=255)
+    descripcion = models.TextField(blank=True, null=True)
+    modelo = models.CharField(max_length=100, blank=True, null=True)
+    
+    # Clasificación
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE)
-    marca = models.ForeignKey(Marca, on_delete=models.CASCADE)
-    estado = models.CharField(max_length=20, default='Activo')
+    marca = models.ForeignKey(Marca, on_delete=models.CASCADE, null=True, blank=True)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='Activo')
+    
+    # Unidades de medida
+    uom_compra = models.ForeignKey(UnidadMedida, on_delete=models.SET_NULL, null=True, blank=True, related_name='productos_compra')
+    uom_venta = models.ForeignKey(UnidadMedida, on_delete=models.SET_NULL, null=True, blank=True, related_name='productos_venta')
+    uom_stock = models.ForeignKey(UnidadMedida, on_delete=models.SET_NULL, null=True, blank=True, related_name='productos_stock')
+    factor_conversion = models.DecimalField(max_digits=10, decimal_places=4, default=1.0000)
+    
+    # Precios y costos
+    costo_estandar = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    precio_venta = models.DecimalField(max_digits=12, decimal_places=2)
+    impuesto_iva = models.DecimalField(max_digits=5, decimal_places=2, default=19.00)
+    
+    # Control de stock
     stock_minimo = models.IntegerField(default=0)
-    precio_venta = models.DecimalField(max_digits=10, decimal_places=2)
+    stock_maximo = models.IntegerField(null=True, blank=True)
+    punto_reorden = models.IntegerField(null=True, blank=True)
+    
+    # Características
     perishable = models.BooleanField(default=False)
     control_por_lote = models.BooleanField(default=False)
     control_por_serie = models.BooleanField(default=False)
+    
+    # Imagen
+    imagen_url = models.URLField(max_length=500, blank=True, null=True)
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True, null=True)
     
     def __str__(self):
         return self.nombre

@@ -1,0 +1,833 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Producto - {{ producto.nombre }} - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-card {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.form-container {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.form-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-left: 4px solid #f39c12;
+}
+
+.form-section h5 {
+    color: #f39c12;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.required::after {
+    content: ' *';
+    color: #dc3545;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #f39c12;
+    box-shadow: 0 0 0 0.2rem rgba(243, 156, 18, 0.25);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    border: none;
+    color: white;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(135deg, #e68900 0%, #d35400 100%);
+    transform: translateY(-2px);
+    color: white;
+}
+
+.help-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+.invalid-feedback {
+    display: block;
+}
+
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+}
+
+.loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.current-image {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid #f39c12;
+}
+
+.info-badge {
+    background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="form-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-edit me-2"></i>Editar Producto</h2>
+                <p class="mb-0">Modificar información de: <strong>{{ producto.nombre }}</strong></p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'producto_detalle' producto.pk %}" class="btn btn-light">
+                    <i class="fas fa-eye me-2"></i>Ver Detalle
+                </a>
+                <a href="{% url 'producto_listar' %}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <!-- Info del producto -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="info-badge">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Editando producto creado el {{ producto.created_at|date:"d/m/Y H:i" }}
+                    {% if producto.updated_at != producto.created_at %}
+                    - Última modificación: {{ producto.updated_at|date:"d/m/Y H:i" }}
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                {% if producto.imagen_url %}
+                <img src="{{ producto.imagen_url }}" 
+                     alt="{{ producto.nombre }}" 
+                     class="current-image">
+                {% else %}
+                <img src="{% static 'img/placeholder.svg' %}" 
+                     alt="Sin imagen" 
+                     class="current-image">
+                {% endif %}
+            </div>
+        </div>
+
+        <form id="producto-form" method="POST" novalidate onsubmit="return false;">
+            {% csrf_token %}
+            
+            <!-- Información Básica -->
+            <div class="form-section">
+                <h5><i class="fas fa-info-circle me-2"></i>Información Básica</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="sku" class="form-label required">SKU</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="sku" 
+                               name="sku" 
+                               value="{{ producto.sku }}"
+                               required
+                               maxlength="50">
+                        <div class="help-text">Código único del producto</div>
+                        <div class="invalid-feedback" id="sku-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="ean_upc" class="form-label">Código EAN/UPC</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="ean_upc" 
+                               name="ean_upc"
+                               value="{{ producto.ean_upc|default:'' }}"
+                               maxlength="20">
+                        <div class="help-text">Código de barras (8, 12 o 13 dígitos)</div>
+                        <div class="invalid-feedback" id="ean_upc-error"></div>
+                    </div>
+                    
+
+                    
+                    <div class="col-12">
+                        <label for="nombre" class="form-label required">Nombre del Producto</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="nombre" 
+                               name="nombre" 
+                               value="{{ producto.nombre }}"
+                               required
+                               maxlength="255">
+                        <div class="help-text">Nombre comercial del producto</div>
+                        <div class="invalid-feedback" id="nombre-error"></div>
+                    </div>
+                    
+                    <div class="col-12">
+                        <label for="descripcion" class="form-label">Descripción</label>
+                        <textarea class="form-control" 
+                                  id="descripcion" 
+                                  name="descripcion" 
+                                  rows="3">{{ producto.descripcion|default:'' }}</textarea>
+                        <div class="help-text">Descripción detallada del producto</div>
+                    </div>
+                    
+
+                </div>
+            </div>
+
+            <!-- Clasificación -->
+            <div class="form-section">
+                <h5><i class="fas fa-tags me-2"></i>Clasificación</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="categoria" class="form-label required">Categoría</label>
+                        <select class="form-select" id="categoria" name="categoria" required>
+                            <option value="">Seleccionar categoría...</option>
+                            {% for categoria in categorias %}
+                            <option value="{{ categoria.id }}" {% if categoria.id == producto.categoria.id %}selected{% endif %}>
+                                {{ categoria.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="invalid-feedback" id="categoria-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="marca" class="form-label">Marca</label>
+                        <select class="form-select" id="marca" name="marca">
+                            <option value="">Sin marca específica</option>
+                            {% for marca in marcas %}
+                            <option value="{{ marca.id }}" {% if producto.marca and marca.id == producto.marca.id %}selected{% endif %}>
+                                {{ marca.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="modelo" class="form-label">Modelo</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="modelo" 
+                               name="modelo"
+                               value="{{ producto.modelo|default:'' }}"
+                               maxlength="100">
+                        <div class="help-text">Modelo o variante del producto</div>
+                    </div>
+                    
+
+                    
+                    <div class="col-md-6">
+                        <label for="estado" class="form-label required">Estado</label>
+                        <select class="form-select" id="estado" name="estado" required>
+                            {% for valor, texto in estados_producto %}
+                            <option value="{{ valor }}" {% if valor == producto.estado %}selected{% endif %}>{{ texto }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Unidades de Medida -->
+            <div class="form-section">
+                <h5><i class="fas fa-balance-scale me-2"></i>Unidades de Medida</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="uom_compra" class="form-label">Unidad de Compra</label>
+                        <select class="form-select" id="uom_compra" name="uom_compra">
+                            <option value="">Seleccionar unidad...</option>
+                            {% for unidad in unidades %}
+                            <option value="{{ unidad.id }}" {% if producto.uom_compra and unidad.id == producto.uom_compra.id %}selected{% endif %}>
+                                {{ unidad.codigo }} - {{ unidad.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="help-text">Unidad para compras</div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="uom_venta" class="form-label">Unidad de Venta</label>
+                        <select class="form-select" id="uom_venta" name="uom_venta">
+                            <option value="">Seleccionar unidad...</option>
+                            {% for unidad in unidades %}
+                            <option value="{{ unidad.id }}" {% if producto.uom_venta and unidad.id == producto.uom_venta.id %}selected{% endif %}>
+                                {{ unidad.codigo }} - {{ unidad.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="help-text">Unidad para ventas</div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="uom_stock" class="form-label">Unidad de Stock</label>
+                        <select class="form-select" id="uom_stock" name="uom_stock">
+                            <option value="">Seleccionar unidad...</option>
+                            {% for unidad in unidades %}
+                            <option value="{{ unidad.id }}" {% if producto.uom_stock and unidad.id == producto.uom_stock.id %}selected{% endif %}>
+                                {{ unidad.codigo }} - {{ unidad.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <div class="help-text">Unidad para inventario</div>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <label for="factor_conversion" class="form-label">Factor de Conversión</label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="factor_conversion" 
+                               name="factor_conversion" 
+                               step="0.0001"
+                               value="{{ producto.factor_conversion|default:'1.0000' }}">
+                        <div class="help-text">Factor conversión entre unidades (ej: 1 caja = 12 unidades)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Precios y Costos -->
+            <div class="form-section">
+                <h5><i class="fas fa-dollar-sign me-2"></i>Precios y Costos</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="costo_estandar" class="form-label">Costo Estándar</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="costo_estandar" 
+                                   name="costo_estandar" 
+                                   step="0.01"
+                                   min="0"
+                                   value="{{ producto.costo_estandar|default:'' }}">
+                        </div>
+                        <div class="help-text">Costo de adquisición del producto</div>
+                        <div class="invalid-feedback" id="costo_estandar-error"></div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="precio_venta" class="form-label required">Precio de Venta</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="precio_venta" 
+                                   name="precio_venta" 
+                                   step="0.01"
+                                   min="0"
+                                   value="{{ producto.precio_venta|default:0 }}"
+                                   required>
+                        </div>
+                        <div class="help-text">Precio de venta al público</div>
+                        <div class="invalid-feedback" id="precio_venta-error"></div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="impuesto_iva" class="form-label">IVA (%)</label>
+                        <div class="input-group">
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="impuesto_iva" 
+                                   name="impuesto_iva" 
+                                   step="0.01"
+                                   min="0"
+                                   max="100"
+                                   value="{{ producto.impuesto_iva|default:'19.00' }}">
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <div class="help-text">Porcentaje de IVA aplicable</div>
+                        <div class="invalid-feedback" id="impuesto_iva-error"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control de Stock -->
+            <div class="form-section">
+                <h5><i class="fas fa-warehouse me-2"></i>Control de Stock</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="stock_minimo" class="form-label">Stock Mínimo</label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="stock_minimo" 
+                               name="stock_minimo" 
+                               step="1"
+                               min="0"
+                               value="{{ producto.stock_minimo }}">
+                        <div class="help-text">Cantidad mínima en inventario</div>
+                        <div class="invalid-feedback" id="stock_minimo-error"></div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="stock_maximo" class="form-label">Stock Máximo</label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="stock_maximo" 
+                               name="stock_maximo" 
+                               step="1"
+                               min="0"
+                               value="{{ producto.stock_maximo|default:100 }}">
+                        <div class="help-text">Cantidad máxima recomendada</div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="punto_reorden" class="form-label">Punto de Reorden</label>
+                        <input type="number" 
+                               class="form-control" 
+                               id="punto_reorden" 
+                               name="punto_reorden" 
+                               step="1"
+                               min="0"
+                               value="{{ producto.punto_reorden|default:'' }}">
+                        <div class="help-text">Punto para generar orden de compra</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Características -->
+            <div class="form-section">
+                <h5><i class="fas fa-cogs me-2"></i>Características</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   id="perishable" 
+                                   name="perishable"
+                                   {% if producto.perishable %}checked{% endif %}>
+                            <label class="form-check-label" for="perishable">
+                                <i class="fas fa-calendar-alt me-1"></i>Producto Perecedero
+                            </label>
+                        </div>
+                        <div class="help-text">Requiere control de fechas de vencimiento</div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   id="control_por_lote" 
+                                   name="control_por_lote"
+                                   {% if producto.control_por_lote %}checked{% endif %}>
+                            <label class="form-check-label" for="control_por_lote">
+                                <i class="fas fa-layer-group me-1"></i>Control por Lote
+                            </label>
+                        </div>
+                        <div class="help-text">Seguimiento por lotes de producción</div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="form-check">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   id="control_por_serie" 
+                                   name="control_por_serie"
+                                   {% if producto.control_por_serie %}checked{% endif %}>
+                            <label class="form-check-label" for="control_por_serie">
+                                <i class="fas fa-barcode me-1"></i>Control por Serie
+                            </label>
+                        </div>
+                        <div class="help-text">Seguimiento individual por número de serie</div>
+                    </div>
+                </div>
+            </div>
+
+
+
+            </div>
+
+            <!-- Imagen -->
+            <div class="form-section">
+                <h5><i class="fas fa-image me-2"></i>Imagen del Producto</h5>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="imagen_url" class="form-label">URL de la Imagen</label>
+                        <input type="url" 
+                               class="form-control" 
+                               id="imagen_url" 
+                               name="imagen_url"
+                               value="{{ producto.imagen_url|default:'' }}"
+                               maxlength="500">
+                        <div class="help-text">URL completa de la imagen del producto</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="d-flex justify-content-between">
+                        <div class="btn-group">
+                            <a href="{% url 'producto_detalle' producto.pk %}" class="btn btn-outline-info">
+                                <i class="fas fa-eye me-2"></i>Ver Detalle
+                            </a>
+                            <a href="{% url 'producto_listar' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                        </div>
+                        
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-outline-danger" onclick="window.location.href='{% url 'producto_eliminar' producto.pk %}'">
+                                <i class="fas fa-trash me-2"></i>Eliminar
+                            </button>
+                            <button type="button" class="btn btn-warning" onclick="console.log('🔥 BOTÓN EDITAR CLICKEADO'); console.log('Tipo de $:', typeof $); console.log('Tipo de Swal:', typeof Swal); actualizarProducto();">
+                                <i class="fas fa-save me-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner">
+        <div class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Guardando...</span>
+        </div>
+        <p class="text-white mt-2">Actualizando producto...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- jQuery específico para edición -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Verificar librerías necesarias
+    console.log('🔍 Verificando librerías...');
+    console.log('jQuery:', typeof $ !== 'undefined' ? '✅' : '❌');
+    console.log('SweetAlert2:', typeof Swal !== 'undefined' ? '✅' : '❌');
+    // Validación en tiempo real
+    $('#sku').on('blur', function() {
+        validateSKU();
+    });
+    
+    $('#ean_upc').on('blur', function() {
+        validateEANUPC();
+    });
+    
+    // Formulario principal
+    $('#producto-form').on('submit', function(e) {
+        e.preventDefault();
+        console.log('🚀 Formulario interceptado - usando AJAX');
+        actualizarProducto();
+        return false; // Asegurar que no se envíe normalmente
+    });
+});
+
+function validateSKU() {
+    const sku = $('#sku').val().trim();
+    const $skuField = $('#sku');
+    const $error = $('#sku-error');
+    
+    if (!sku) {
+        $skuField.addClass('is-invalid');
+        $error.text('El SKU es requerido.');
+        return false;
+    }
+    
+    if (sku.length < 3) {
+        $skuField.addClass('is-invalid');
+        $error.text('El SKU debe tener al menos 3 caracteres.');
+        return false;
+    }
+    
+    $skuField.removeClass('is-invalid').addClass('is-valid');
+    $error.text('');
+    return true;
+}
+
+function validateEANUPC() {
+    const ean = $('#ean_upc').val().trim();
+    const $eanField = $('#ean_upc');
+    const $error = $('#ean_upc-error');
+    
+    if (ean) {
+        if (!/^\d+$/.test(ean)) {
+            $eanField.addClass('is-invalid');
+            $error.text('El código EAN/UPC solo debe contener números.');
+            return false;
+        }
+        
+        if (![8, 12, 13].includes(ean.length)) {
+            $eanField.addClass('is-invalid');
+            $error.text('El código EAN/UPC debe tener 8, 12 o 13 dígitos.');
+            return false;
+        }
+    }
+    
+    $eanField.removeClass('is-invalid').addClass('is-valid');
+    $error.text('');
+    return true;
+}
+
+function validarFormularioEdicion() {
+    console.log('🔍 Validando formulario de edición...');
+    let isValid = true;
+    let errores = [];
+    
+    // Mostrar valores actuales para debugging
+    console.log('Valores del formulario:');
+    console.log('- SKU:', $('#sku').val());
+    console.log('- Nombre:', $('#nombre').val());
+    console.log('- Categoría:', $('#categoria').val());
+    console.log('- Precio venta:', $('#precio_venta').val());
+    console.log('- Stock mínimo:', $('#stock_minimo').val());
+    console.log('- Stock máximo:', $('#stock_maximo').val());
+    console.log('- UOM Compra:', $('#uom_compra').val());
+    console.log('- UOM Venta:', $('#uom_venta').val());
+    console.log('- UOM Stock:', $('#uom_stock').val());
+    
+    // Validar precio de venta
+    const precioVenta = parseFloat($('#precio_venta').val()) || 0;
+    if (precioVenta <= 0) {
+        $('#precio_venta').addClass('is-invalid');
+        $('#precio_venta-error').text('El precio de venta debe ser mayor a 0');
+        isValid = false;
+        errores.push('Precio de venta inválido');
+        console.log('❌ Error: Precio de venta inválido:', precioVenta);
+    }
+    
+    // Validar stock mínimo y máximo
+    const stockMinimo = parseFloat($('#stock_minimo').val()) || 0;
+    const stockMaximo = parseFloat($('#stock_maximo').val()) || 0;
+    
+    if (stockMaximo < stockMinimo) {
+        $('#stock_maximo').addClass('is-invalid');
+        $('#stock_maximo-error').text('El stock máximo debe ser mayor o igual al mínimo');
+        isValid = false;
+        errores.push(`Stock máximo (${stockMaximo}) menor que mínimo (${stockMinimo})`);
+        console.log('❌ Error: Stock máximo menor que mínimo:', stockMaximo, '<', stockMinimo);
+    }
+    
+    // Validar campos requeridos
+    const camposRequeridos = ['sku', 'nombre', 'categoria', 'uom_compra', 'uom_venta', 'uom_stock'];
+    
+    camposRequeridos.forEach(campo => {
+        const elemento = $(`#${campo}`);
+        const valor = elemento.val();
+        if (!valor || valor.trim() === '') {
+            elemento.addClass('is-invalid');
+            $(`#${campo}-error`).text('Este campo es requerido');
+            isValid = false;
+            errores.push(`Campo ${campo} requerido`);
+            console.log(`❌ Error: Campo ${campo} requerido. Valor actual:`, valor);
+        }
+    });
+    
+    // Mostrar resumen de errores
+    if (!isValid) {
+        console.log('❌ ERRORES ENCONTRADOS:');
+        errores.forEach(error => console.log('  - ' + error));
+        
+        // Mostrar alerta con errores específicos
+        alert('Errores de validación:\n' + errores.join('\n'));
+    } else {
+        console.log('✅ Validación de edición exitosa');
+    }
+    
+    return isValid;
+}
+
+function validarFormularioEdicionMejorada() {
+    console.log('🔍 Validación mejorada para edición...');
+    let isValid = true;
+    
+    // Solo validar campos realmente críticos para edición
+    
+    // 1. SKU (requerido)
+    const sku = $('#sku').val();
+    if (!sku || sku.trim() === '') {
+        $('#sku').addClass('is-invalid');
+        $('#sku-error').text('El SKU es requerido');
+        isValid = false;
+        console.log('❌ SKU requerido');
+        
+        Swal.fire({
+            icon: 'error',
+            title: 'Campo Requerido',
+            text: 'El SKU es obligatorio'
+        });
+    }
+    
+    // 2. Nombre (requerido)
+    const nombre = $('#nombre').val();
+    if (!nombre || nombre.trim() === '') {
+        $('#nombre').addClass('is-invalid');
+        $('#nombre-error').text('El nombre es requerido');
+        isValid = false;
+        console.log('❌ Nombre requerido');
+        
+        if (isValid) { // Solo mostrar primera alerta
+            Swal.fire({
+                icon: 'error',
+                title: 'Campo Requerido',
+                text: 'El nombre del producto es obligatorio'
+            });
+        }
+    }
+    
+    // 3. Precio de venta (si existe, debe ser > 0)
+    const precioVenta = $('#precio_venta').val();
+    if (precioVenta && parseFloat(precioVenta) <= 0) {
+        $('#precio_venta').addClass('is-invalid');
+        $('#precio_venta-error').text('El precio debe ser mayor a 0');
+        isValid = false;
+        console.log('❌ Precio inválido');
+    }
+    
+    console.log(isValid ? '✅ Validación mejorada exitosa' : '❌ Errores críticos encontrados');
+    return isValid;
+}
+
+function actualizarProducto() {
+    console.log('📝 FUNCIÓN ACTUALIZAR PRODUCTO EJECUTADA');
+    
+    // Verificar jQuery
+    if (typeof $ === 'undefined') {
+        console.error('❌ jQuery no está cargado');
+        return;
+    }
+    
+    // Verificar SweetAlert2
+    if (typeof Swal === 'undefined') {
+        console.error('❌ SweetAlert2 no está cargado');
+        return;
+    }
+    
+    console.log('✅ Librerías verificadas correctamente');
+    
+    console.log('✅ Librerías verificadas en edición');
+    
+    // Validación mejorada para edición
+    if (!validarFormularioEdicionMejorada()) {
+        console.log('❌ Validación falló - no se enviará el formulario');
+        return;
+    }
+    
+    console.log('✅ Validación exitosa - continuando con AJAX');
+    
+    // Mostrar loading
+    $('#loading-overlay').show();
+    
+    // Limpiar errores previos
+    $('.is-invalid').removeClass('is-invalid');
+    $('.invalid-feedback').text('');
+    
+    const formData = new FormData($('#producto-form')[0]);
+    console.log('📦 FormData creado para edición');
+    
+    $.ajax({
+        url: '{% url "producto_editar" producto.pk %}',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(response) {
+            $('#loading-overlay').hide();
+            
+            if (response.success) {
+                Swal.fire({
+                    title: '¡Producto Actualizado!',
+                    text: response.message,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = response.redirect_url;
+                });
+            } else {
+                if (response.errors) {
+                    response.errors.forEach(error => {
+                        Swal.fire({
+                            title: 'Error de Validación',
+                            text: error,
+                            icon: 'error'
+                        });
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: response.message || 'Error al actualizar el producto',
+                        icon: 'error'
+                    });
+                }
+            }
+        },
+        error: function(xhr) {
+            $('#loading-overlay').hide();
+            
+            if (xhr.status === 400) {
+                const response = xhr.responseJSON;
+                if (response && response.errors) {
+                    response.errors.forEach(error => {
+                        Swal.fire({
+                            title: 'Error de Validación',
+                            text: error,
+                            icon: 'error'
+                        });
+                    });
+                }
+            } else {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Error de conexión. Inténtalo de nuevo.',
+                    icon: 'error'
+                });
+            }
+        }
+    });
+}
+
+// Confirmación de cambios no guardados
+let hasChanges = false;
+
+$('#producto-form input, #producto-form select, #producto-form textarea').on('change', function() {
+    hasChanges = true;
+});
+
+window.addEventListener('beforeunload', function(e) {
+    if (hasChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
+// Handler de submit eliminado para evitar conflictos
+</script>
+{% endblock %}
