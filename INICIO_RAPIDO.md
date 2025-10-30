@@ -54,11 +54,6 @@ Abrir navegador en: **http://localhost:8000/auth/login/**
 - Editar un producto → Ver mensaje de actualización
 - Eliminar un producto → Ver confirmación y mensaje
 
-### ✅ Contador de visitas
-- Ver en la esquina inferior derecha
-- Se incrementa con cada página visitada
-- Se resetea al cerrar sesión
-
 ## 📍 URLs importantes
 
 | Página | URL |

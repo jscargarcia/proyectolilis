@@ -58,7 +58,6 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     # Middlewares personalizados
-    'autenticacion.middleware.VisitCounterMiddleware',
     'autenticacion.middleware.UserActivityMiddleware',
     'autenticacion.middleware.SessionSecurityMiddleware',
 ]

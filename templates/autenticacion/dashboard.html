@@ -42,22 +42,6 @@
     <!-- Tarjetas de estadísticas -->
     <div class="row">
         <div class="col-md-3 mb-4">
-            <div class="card text-white" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="card-title">Visitas</h6>
-                            <h2>{{ visitas }}</h2>
-                        </div>
-                        <div>
-                            <i class="fas fa-eye fa-3x opacity-50"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-3 mb-4">
             <div class="card text-white" style="background: linear-gradient(135deg, #991b1b 0%, #dc2626 100%); box-shadow: 0 4px 8px rgba(153, 27, 27, 0.3);">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center">
@@ -198,21 +182,14 @@
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
-                        <div class="col-md-4">
-                            <div class="p-3">
-                                <i class="fas fa-eye fa-2x text-danger mb-2"></i>
-                                <h4 class="text-danger mb-1">{{ visitas }}</h4>
-                                <p class="text-muted mb-0">Visitas en esta sesión</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="p-3">
                                 <i class="fas fa-shopping-cart fa-2x text-warning mb-2"></i>
                                 <h4 class="text-warning mb-1">{{ carrito_count }}</h4>
                                 <p class="text-muted mb-0">Items en carrito</p>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <div class="p-3">
                                 <i class="fas fa-bell fa-2x text-info mb-2"></i>
                                 <h4 class="text-info mb-1">{{ notificaciones_count }}</h4>

@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="csrf-token" content="{{ csrf_token }}">
     <title>{% block title %}Lilis System{% endblock %}</title>
     
     <!-- Favicon -->
@@ -86,19 +85,6 @@
         
         .badge-custom {
             padding: 0.5em 0.75em;
-        }
-        
-        .visit-counter {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: linear-gradient(135deg, var(--primary-red) 0%, var(--accent-red) 100%);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 25px;
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-            z-index: 1000;
-            border: 2px solid rgba(255, 255, 255, 0.2);
         }
         
         .floating-crud-btn {
@@ -439,12 +425,6 @@
         {% block content %}{% endblock %}
     </div>
 
-    <!-- Contador de visitas -->
-    {% if user.is_authenticated %}
-    <div class="visit-counter">
-        <i class="fas fa-eye"></i> Visitas: <span id="visitCount">{{ request.session.visit_count|default:1 }}</span>
-    </div>
-    
     <!-- Botón flotante CRUD Productos -->
     {% if user.rol.nombre == 'ADMIN' or user.rol.nombre == 'GERENTE' or user.rol.nombre == 'BODEGUERO' %}
     <div class="floating-crud-btn">

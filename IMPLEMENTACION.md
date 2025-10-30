@@ -55,16 +55,7 @@ Este documento resume todas las funcionalidades implementadas en el proyecto.
   - Opciones visibles solo para ADMIN/SUPERVISOR
   - Enlaces contextuales
 
-### 6. Contador de Visitas en Sesión ✓
-- **Ubicación**: `autenticacion/middleware.py`
-- **Middleware**: `VisitCounterMiddleware`
-- **Características**:
-  - Incrementa en cada request
-  - Visible en el footer (esquina inferior derecha)
-  - Almacenado en sesión
-  - Se resetea al hacer logout
-
-### 7. Sistema de Carrito ✓
+### 6. Sistema de Carrito ✓
 - **Ubicación**: `sistema/views.py`
 - **APIs implementadas**:
   - `/api/carrito/` - Listar items
@@ -77,7 +68,7 @@ Este documento resume todas las funcionalidades implementadas en el proyecto.
   - Interfaz con SweetAlert2
   - Botón en navbar con contador
 
-### 8. Sistema de Notificaciones ✓
+### 7. Sistema de Notificaciones ✓
 - **Ubicación**: `sistema/views.py`
 - **APIs implementadas**:
   - `/api/notificaciones/` - Listar
@@ -91,7 +82,7 @@ Este documento resume todas las funcionalidades implementadas en el proyecto.
   - Tiempo relativo de las notificaciones
   - Tipos: info, success, warning, error
 
-### 9. Mensajes Flash Funcionando ✓
+### 8. Mensajes Flash Funcionando ✓
 - **Ubicación**: Integrado en `templates/base.html`
 - **Características**:
   - Convertidos automáticamente a SweetAlert2
@@ -99,7 +90,7 @@ Este documento resume todas las funcionalidades implementadas en el proyecto.
   - Temporizador automático
   - Estilos según tipo (success, error, warning, info)
 
-### 10. Configuración de Sesiones Segura ✓
+### 9. Configuración de Sesiones Segura ✓
 - **Ubicación**: `config/settings.py`
 - **Configuraciones**:
   ```python
@@ -111,7 +102,7 @@ Este documento resume todas las funcionalidades implementadas en el proyecto.
   SESSION_EXPIRE_AT_BROWSER_CLOSE = False
   ```
 
-### 11. cycle_key en Login ✓
+### 10. cycle_key en Login ✓
 - **Ubicación**: `autenticacion/views.py`
 - **Implementación**:
   ```python
@@ -120,7 +111,7 @@ Este documento resume todas las funcionalidades implementadas en el proyecto.
 - Se ejecuta antes de `login(request, user)`
 - Regenera la clave de sesión en cada login exitoso
 
-### 12. Templates Completos ✓
+### 11. Templates Completos ✓
 - **Templates creados**:
   - `templates/base.html` - Template base con navbar, footer, SweetAlert2
   - `templates/autenticacion/login.html` - Página de inicio de sesión
@@ -138,7 +129,6 @@ En `config/settings.py`, agregar los middlewares personalizados:
 ```python
 MIDDLEWARE = [
     # ... middlewares por defecto ...
-    'autenticacion.middleware.VisitCounterMiddleware',
     'autenticacion.middleware.UserActivityMiddleware',
     'autenticacion.middleware.SessionSecurityMiddleware',
 ]

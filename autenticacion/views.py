@@ -34,7 +34,6 @@ def login_view(request):
             user.save(update_fields=['ultimo_acceso'])
             
             # Inicializar variables de sesión
-            request.session['visit_count'] = 1
             request.session['login_time'] = timezone.now().isoformat()
             request.session['carrito'] = []
             request.session['notificaciones'] = []
@@ -78,7 +77,6 @@ def dashboard(request):
     
     context = {
         'usuario': request.user,
-        'visitas': request.session.get('visit_count', 0),
         'carrito_count': len(request.session.get('carrito', [])),
         'notificaciones_count': len([n for n in request.session.get('notificaciones', []) if not n.get('leida', True)]),
     }
@@ -93,7 +91,6 @@ def perfil_usuario(request):
     
     context = {
         'usuario': request.user,
-        'visitas': request.session.get('visit_count', 0),
         'carrito_count': len(request.session.get('carrito', [])),
         'notificaciones_count': len([n for n in request.session.get('notificaciones', []) if not n.get('leida', True)]),
     }

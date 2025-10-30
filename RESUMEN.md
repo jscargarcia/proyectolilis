@@ -41,29 +41,24 @@
 
 ### **PARTE 2: Sesiones y Seguridad** ✓
 
-7. ✅ **Contador de visitas** - `autenticacion/middleware.py`
-   - Middleware `VisitCounterMiddleware`
-   - Contador visible en footer
-   - Almacenado en sesión
-
-8. ✅ **Carrito de compras** - `sistema/views.py`
+7. ✅ **Carrito de compras** - `sistema/views.py`
    - Agregar, quitar, listar items
    - API REST completa
    - Contador en navbar
    - Interfaz con SweetAlert2
 
-9. ✅ **Sistema de notificaciones** - `sistema/views.py`
+8. ✅ **Sistema de notificaciones** - `sistema/views.py`
    - Campana de notificaciones
    - Marcar como leída
    - Contador de no leídas
    - API REST completa
 
-10. ✅ **Mensajes flash** - Integrado en `base.html`
+9. ✅ **Mensajes flash** - Integrado en `base.html`
     - Convertidos automáticamente a SweetAlert2
     - Toast position: top-end
     - Auto-dismiss con timer
 
-11. ✅ **SESSION_COOKIE_AGE y Secure/SameSite** - `config/settings.py`
+10. ✅ **SESSION_COOKIE_AGE y Secure/SameSite** - `config/settings.py`
     ```python
     SESSION_COOKIE_AGE = 3600
     SESSION_COOKIE_HTTPONLY = True
@@ -71,7 +66,7 @@
     SESSION_COOKIE_SAMESITE = 'Lax'
     ```
 
-12. ✅ **cycle_key en login** - `autenticacion/views.py`
+11. ✅ **cycle_key en login** - `autenticacion/views.py`
     ```python
     request.session.cycle_key()  # Previene session fixation
     ```

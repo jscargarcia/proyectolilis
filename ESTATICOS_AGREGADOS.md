@@ -70,7 +70,7 @@ proyectolilis/
   - Hover con color primario
   - Active con gradiente
 
-- ✅ **Footer fijo (contador de visitas)**
+- ✅ **Footer fijo**
   - Position fixed
   - Gradiente de fondo
   - Animación slideInUp

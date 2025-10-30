@@ -14,7 +14,7 @@
 - ✅ Tablas estilizadas
 - ✅ Formularios con foco mejorado
 - ✅ Paginación personalizada
-- ✅ Footer fijo con contador de visitas
+- ✅ Footer fijo
 - ✅ Animaciones suaves
 - ✅ Soporte para modo oscuro
 - ✅ Estilos para impresión

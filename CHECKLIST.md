@@ -26,7 +26,7 @@
 
 ### 5️⃣ Dashboard
 - [ ] Verificar que muestra estadísticas
-- [ ] Verificar contador de visitas (footer)
+
 - [ ] Verificar navbar con menú según rol
 - [ ] Verificar contador de carrito (0)
 - [ ] Verificar contador de notificaciones (1)
@@ -134,9 +134,6 @@
 ### No se puede acceder después de login
 **Solución**: Verificar que el usuario tenga un rol asignado
 
-### Contador de visitas no aparece
-**Solución**: Verificar que el middleware esté agregado en settings.py
-
 ### SweetAlert2 no funciona
 **Solución**: Abrir consola (F12) y verificar errores de JavaScript
 
@@ -153,7 +150,6 @@ Después de completar el checklist:
 - Permisos diferenciados por rol
 - Carrito funcionando
 - Notificaciones operativas
-- Contador de visitas activo
 - Mensajes flash con SweetAlert2
 - Validaciones funcionando
 - UI responsiva y estilizada

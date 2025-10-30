@@ -4,27 +4,6 @@ Middleware personalizado para el sistema
 from django.utils import timezone
 
 
-class VisitCounterMiddleware:
-    """
-    Middleware para contar las visitas de un usuario en su sesión
-    """
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        # Incrementar contador de visitas
-        if request.user.is_authenticated:
-            if 'visit_count' not in request.session:
-                request.session['visit_count'] = 0
-            request.session['visit_count'] += 1
-            
-            # Guardar última visita
-            request.session['last_visit'] = timezone.now().isoformat()
-        
-        response = self.get_response(request)
-        return response
-
-
 class UserActivityMiddleware:
     """
     Middleware para actualizar la última actividad del usuario

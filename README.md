@@ -156,7 +156,6 @@ El script de semillas crea automáticamente los siguientes usuarios:
 
 #### 📊 Dashboard Mejorado
 - ✅ Estadísticas en tiempo real
-- ✅ Contador de visitas en sesión
 - ✅ Widgets informativos
 - ✅ Acciones rápidas según rol
 
@@ -215,13 +214,12 @@ Este script crea:
 5. ✅ Menú dinámico
 6. ✅ Decoradores personalizados
 
-#### ✅ Parte 2: Sesiones (5/5)
-7. ✅ Contador de visitas
-8. ✅ Carrito de compras
-9. ✅ Notificaciones
-10. ✅ Mensajes flash
-11. ✅ Seguridad de sesiones
-12. ✅ cycle_key en login
+#### ✅ Parte 2: Sesiones (4/4)
+7. ✅ Carrito de compras
+8. ✅ Notificaciones
+9. ✅ Mensajes flash
+10. ✅ Seguridad de sesiones
+11. ✅ cycle_key en login
 
 #### ✅ Parte 3: Templates (1/1)
 13. ✅ Templates completos con Bootstrap 5
