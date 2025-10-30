@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Prueba Estado - {{ producto.nombre }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <h2>🧪 Prueba de Cambio de Estado</h2>
+    <p><strong>Producto:</strong> {{ producto.nombre }}</p>
+    <p><strong>Estado actual:</strong> <span class="badge bg-info">{{ producto.estado }}</span></p>
+
+    <div class="card mt-3">
+        <div class="card-body">
+            <h5>Formulario Simple (sin JavaScript)</h5>
+            <form method="POST" action="{% url 'producto_editar' producto.pk %}">
+                {% csrf_token %}
+                
+                <!-- Campos mínimos requeridos -->
+                <input type="hidden" name="sku" value="{{ producto.sku }}">
+                <input type="hidden" name="nombre" value="{{ producto.nombre }}">
+                <input type="hidden" name="categoria" value="{{ producto.categoria.pk }}">
+                <input type="hidden" name="precio_venta" value="{{ producto.precio_venta }}">
+                
+                <div class="mb-3">
+                    <label for="estado" class="form-label">Cambiar Estado:</label>
+                    <select class="form-select" id="estado" name="estado" required>
+                        {% for valor, texto in estados_producto %}
+                        <option value="{{ valor }}" {% if valor == producto.estado %}selected{% endif %}>
+                            {{ texto }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Actualizar Estado</button>
+                <a href="{% url 'producto_detalle' producto.pk %}" class="btn btn-secondary">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

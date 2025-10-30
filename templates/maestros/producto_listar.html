@@ -129,9 +129,10 @@
                     </label>
                     <select class="form-select" name="estado" id="estado-select">
                         <option value="">Todos</option>
-                        <option value="ACTIVO" {% if estado == 'ACTIVO' %}selected{% endif %}>Activo</option>
-                        <option value="INACTIVO" {% if estado == 'INACTIVO' %}selected{% endif %}>Inactivo</option>
-                        <option value="DESCONTINUADO" {% if estado == 'DESCONTINUADO' %}selected{% endif %}>Descontinuado</option>
+                        <option value="Activo" {% if estado == 'Activo' %}selected{% endif %}>Activo</option>
+                        <option value="Inactivo" {% if estado == 'Inactivo' %}selected{% endif %}>Inactivo</option>
+                        <option value="Descontinuado" {% if estado == 'Descontinuado' %}selected{% endif %}>Descontinuado</option>
+                        <option value="En Desarrollo" {% if estado == 'En Desarrollo' %}selected{% endif %}>En Desarrollo</option>
                     </select>
                 </div>
 
@@ -256,12 +257,16 @@
                                 <span class="badge bg-info">{{ producto.stock_minimo|floatformat:0 }}</span>
                             </td>
                             <td>
-                                {% if producto.estado == 'ACTIVO' %}
+                                {% if producto.estado == 'Activo' %}
                                 <span class="badge bg-success badge-estado">Activo</span>
-                                {% elif producto.estado == 'INACTIVO' %}
+                                {% elif producto.estado == 'Inactivo' %}
                                 <span class="badge bg-warning badge-estado">Inactivo</span>
-                                {% else %}
+                                {% elif producto.estado == 'Descontinuado' %}
                                 <span class="badge bg-danger badge-estado">Descontinuado</span>
+                                {% elif producto.estado == 'En Desarrollo' %}
+                                <span class="badge bg-info badge-estado">En Desarrollo</span>
+                                {% else %}
+                                <span class="badge bg-secondary badge-estado">{{ producto.estado }}</span>
                                 {% endif %}
                             </td>
                             <td>

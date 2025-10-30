@@ -429,8 +429,10 @@ def producto_editar(request, pk):
                     messages.success(request, f'Producto "{producto.nombre}" actualizado exitosamente.')
                     return JsonResponse({
                         'success': True,
-                        'message': f'Producto "{producto.nombre}" actualizado exitosamente.',
-                        'redirect_url': reverse('producto_detalle', kwargs={'pk': producto.pk})
+                        'message': f'Producto "{producto.nombre}" actualizado exitosamente. Estado: {producto.get_estado_display()}',
+                        'redirect_url': reverse('producto_detalle', kwargs={'pk': producto.pk}),
+                        'nuevo_estado': producto.estado,
+                        'estado_display': producto.get_estado_display()
                     })
             except Exception as e:
                 messages.error(request, f'Error al actualizar producto: {str(e)}')
@@ -458,6 +460,31 @@ def producto_editar(request, pk):
         'estados_producto': Producto.ESTADO_CHOICES,
     }
     return render(request, 'maestros/producto_editar.html', context)
+
+
+@login_required_custom
+@estado_usuario_activo
+def producto_test_estado(request, pk):
+    """Vista de prueba simple para cambio de estado"""
+    producto = get_object_or_404(Producto, pk=pk)
+    
+    if request.method == 'POST':
+        nuevo_estado = request.POST.get('estado')
+        print(f"🧪 TEST: Estado recibido: '{nuevo_estado}'")
+        print(f"🧪 TEST: Estado actual: '{producto.estado}'")
+        
+        producto.estado = nuevo_estado
+        producto.save()
+        
+        print(f"🧪 TEST: Estado después de guardar: '{producto.estado}'")
+        messages.success(request, f'Estado cambiado a {nuevo_estado}')
+        return redirect('producto_test_estado', pk=pk)
+    
+    context = {
+        'producto': producto,
+        'estados_producto': Producto.ESTADO_CHOICES,
+    }
+    return render(request, 'maestros/producto_test_estado.html', context)
 
 
 @login_required_custom

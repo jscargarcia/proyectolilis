@@ -251,6 +251,12 @@
                     
                     <div class="col-md-6">
                         <label for="estado" class="form-label required">Estado</label>
+                        <div class="mb-2">
+                            <small class="text-muted">Estado actual: </small>
+                            <span class="badge bg-{% if producto.estado == 'Activo' %}success{% elif producto.estado == 'Inactivo' %}secondary{% elif producto.estado == 'Descontinuado' %}danger{% else %}warning{% endif %}">
+                                {{ producto.estado }}
+                            </span>
+                        </div>
                         <select class="form-select" id="estado" name="estado" required>
                             {% for valor, texto in estados_producto %}
                             <option value="{{ valor }}" {% if valor == producto.estado %}selected{% endif %}>{{ texto }}</option>
@@ -752,6 +758,11 @@ function actualizarProducto() {
     const formData = new FormData($('#producto-form')[0]);
     console.log('📦 FormData creado para edición');
     
+    // Debug: verificar qué estado se está enviando
+    const estadoValue = $('#estado').val();
+    console.log('🔍 Estado seleccionado:', estadoValue);
+    console.log('🔍 Formulario datos estado:', formData.get('estado'));
+    
     $.ajax({
         url: '{% url "producto_editar" producto.pk %}',
         type: 'POST',
@@ -766,10 +777,16 @@ function actualizarProducto() {
                     title: '¡Producto Actualizado!',
                     text: response.message,
                     icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => {
-                    window.location.href = response.redirect_url;
+                    confirmButtonText: 'Ver Producto',
+                    showCancelButton: true,
+                    cancelButtonText: 'Seguir Editando'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        window.location.href = response.redirect_url;
+                    } else {
+                        // Recargar para mostrar los cambios
+                        window.location.reload();
+                    }
                 });
             } else {
                 if (response.errors) {
