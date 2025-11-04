@@ -1,0 +1,198 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Denegado - Dulcería Lilis</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Estilos personalizados -->
+    <link href="{% static 'css/auth-styles.css' %}" rel="stylesheet">
+    <link href="{% static 'css/sweet-theme.css' %}" rel="stylesheet">
+    
+    <style>
+        .error-container {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .error-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            position: relative;
+            z-index: 10;
+            animation: errorCardEnter 1s ease-out;
+        }
+        
+        .error-header {
+            background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+            color: white;
+            padding: 40px 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .error-number {
+            font-size: 8rem;
+            font-weight: 900;
+            margin: 0;
+            text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .error-body {
+            padding: 40px 30px;
+            background: #f8fafc;
+        }
+        
+        .error-icon {
+            font-size: 4rem;
+            color: #dc3545;
+            margin-bottom: 20px;
+            animation: shake 0.5s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .error-title {
+            color: #2d3748;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .error-description {
+            color: #4a5568;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .permission-info {
+            background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+            border: 1px solid #fc8181;
+            border-radius: 15px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        
+        .permission-info h5 {
+            color: #c53030;
+            margin-bottom: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-login {
+            background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+            border: none;
+            border-radius: 15px;
+            padding: 15px 30px;
+            font-weight: 600;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(220, 53, 69, 0.3);
+        }
+        
+        .btn-login:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(220, 53, 69, 0.4);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-card">
+            <div class="error-header">
+                <h1 class="error-number">403</h1>
+            </div>
+            
+            <div class="error-body">
+                <div class="error-icon">
+                    <i class="fas fa-ban"></i>
+                </div>
+                
+                <h2 class="error-title">Acceso Denegado</h2>
+                
+                <p class="error-description">
+                    No tienes permisos suficientes para acceder a esta página. 
+                    Tu nivel de acceso actual no permite realizar esta acción.
+                </p>
+                
+                {% if user.is_authenticated %}
+                <div class="permission-info">
+                    <h5>
+                        <i class="fas fa-user-shield"></i>
+                        Información de Tu Cuenta
+                    </h5>
+                    <p><strong>Usuario:</strong> {{ user.get_full_name|default:user.username }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                    {% if user.rol %}
+                    <p><strong>Rol:</strong> {{ user.rol.nombre }}</p>
+                    <p><strong>Descripción:</strong> {{ user.rol.descripcion }}</p>
+                    {% endif %}
+                    <p class="mb-0 text-muted small">
+                        Si crees que esto es un error, contacta al administrador del sistema.
+                    </p>
+                </div>
+                {% else %}
+                <div class="permission-info">
+                    <h5>
+                        <i class="fas fa-sign-in-alt"></i>
+                        Sesión Requerida
+                    </h5>
+                    <p class="mb-0">Necesitas iniciar sesión para acceder a esta página.</p>
+                </div>
+                {% endif %}
+                
+                <div class="error-actions">
+                    {% if user.is_authenticated %}
+                    <a href="{% url 'home' %}" class="btn-login">
+                        <i class="fas fa-home me-2"></i>
+                        Volver al Inicio
+                    </a>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="btn-login">
+                        <i class="fas fa-sign-in-alt me-2"></i>
+                        Iniciar Sesión
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,668 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verificar Código de Recuperación - Lilis System{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .main-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        margin: 0;
+    }
+    
+    .auth-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        max-width: 600px;
+        width: 100%;
+        margin: 0;
+    }
+    
+    .auth-header {
+        background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+        color: white;
+        padding: 30px;
+        text-align: center;
+        position: relative;
+    }
+    
+    .auth-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+        animation: shimmer 3s infinite;
+    }
+    
+    @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    .auth-header h1 {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        position: relative;
+        z-index: 2;
+    }
+    
+    .auth-body {
+        padding: 40px 30px;
+        background: #f8fafc;
+    }
+    
+    .user-info {
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        border: 1px solid #93c5fd;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .user-info h5 {
+        color: #1e40af;
+        margin-bottom: 10px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .user-info p {
+        margin: 5px 0;
+        color: #374151;
+    }
+    
+    .form-group {
+        margin-bottom: 25px;
+        position: relative;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .form-control {
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 15px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: white;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .form-control:focus {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        outline: none;
+    }
+    
+    .codigo-input {
+        text-align: center;
+        font-size: 1.5rem;
+        letter-spacing: 0.5rem;
+        font-weight: bold;
+        font-family: 'Courier New', monospace;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 15px 30px;
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+        width: 100%;
+        color: white;
+        cursor: pointer;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
+        background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+    }
+    
+    .btn-outline-secondary {
+        border: 2px solid #6b7280;
+        color: #6b7280;
+        background: transparent;
+        border-radius: 12px;
+        padding: 15px 30px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+        width: 100%;
+        box-sizing: border-box;
+        cursor: pointer;
+    }
+    
+    .btn-outline-secondary:hover {
+        background: #6b7280;
+        color: white;
+        transform: translateY(-1px);
+        text-decoration: none;
+    }
+    
+    .info-box {
+        background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+        border: 1px solid #f59e0b;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 25px 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .info-box h6 {
+        color: #d97706;
+        margin-bottom: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .countdown-timer {
+        font-size: 1.1rem;
+        font-weight: bold;
+        color: #dc2626;
+    }
+    
+    .password-requirements {
+        font-size: 0.875rem;
+        margin-top: 10px;
+    }
+    
+    .password-requirements .requirement {
+        padding: 2px 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .password-requirements .requirement.valid {
+        color: #28a745;
+    }
+    
+    .password-requirements .requirement.invalid {
+        color: #dc3545;
+    }
+    
+    .password-strength {
+        height: 5px;
+        border-radius: 3px;
+        margin-top: 5px;
+        transition: all 0.3s ease;
+    }
+    
+    .password-strength.weak {
+        background-color: #dc3545;
+        width: 33%;
+    }
+    
+    .password-strength.medium {
+        background-color: #ffc107;
+        width: 66%;
+    }
+    
+    .password-strength.strong {
+        background-color: #28a745;
+        width: 100%;
+    }
+    
+    .show-password {
+        cursor: pointer;
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        z-index: 10;
+    }
+    
+    .show-password:hover {
+        color: #dc2626;
+    }
+    
+    .help-box {
+        background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+        border: 1px solid #3b82f6;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 25px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    
+    .help-box h6 {
+        color: #1d4ed8;
+        margin-bottom: 15px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .help-box ul {
+        margin: 0;
+        padding-left: 20px;
+        color: #1e40af;
+    }
+    
+    .help-box li {
+        margin-bottom: 8px;
+        line-height: 1.5;
+    }
+    
+    .help-box a {
+        color: #1d4ed8;
+        text-decoration: none;
+    }
+    
+    .help-box a:hover {
+        text-decoration: underline;
+    }
+    
+    .d-grid {
+        display: grid;
+    }
+    
+    .gap-3 {
+        gap: 1rem;
+    }
+    
+    .position-relative {
+        position: relative;
+    }
+    
+    .invalid-feedback {
+        color: #dc3545;
+        font-size: 0.875rem;
+        margin-top: 5px;
+        display: block;
+    }
+    
+    .d-block {
+        display: block;
+    }
+</style>
+
+<div class="main-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h1>
+                <i class="fas fa-key"></i>
+                Verificar Código y Cambiar Contraseña
+            </h1>
+        </div>
+
+        <div class="auth-body">
+            <!-- Información del usuario -->
+            <div class="user-info">
+                <h5>
+                    <i class="fas fa-user"></i>
+                    Recuperación de contraseña para:
+                </h5>
+                <p><strong>{{ usuario.get_full_name }}</strong> ({{ usuario.username }})</p>
+                <p>Email: {{ usuario.email }}</p>
+            </div>
+
+            <!-- Información del código enviado -->
+            <div class="info-box">
+                <h6>
+                    <i class="fas fa-envelope"></i>
+                    Código Enviado
+                </h6>
+                <p><strong>El código expira en <span id="countdown" class="countdown-timer">10:00</span></strong></p>
+            </div>
+
+            <form method="post" id="verificarCodigoForm">
+                {% csrf_token %}
+                
+                <!-- Campo de código -->
+                <div class="form-group">
+                    <label for="{{ form.codigo.id_for_label }}" class="form-label">
+                        <i class="fas fa-hashtag"></i>
+                        Código de verificación
+                    </label>
+                    {{ form.codigo }}
+                    {% if form.codigo.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.codigo.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Campo de nueva contraseña -->
+                <div class="form-group">
+                    <label for="{{ form.new_password1.id_for_label }}" class="form-label">
+                        <i class="fas fa-lock"></i>
+                        Nueva contraseña
+                    </label>
+                    <div class="position-relative">
+                        {{ form.new_password1 }}
+                        <span class="show-password" onclick="togglePassword('{{ form.new_password1.id_for_label }}')">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                    <div class="password-strength" id="password-strength"></div>
+                    {% if form.new_password1.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.new_password1.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Requisitos de contraseña -->
+                <div class="password-requirements">
+                    <div class="requirement" id="length-req">
+                        <i class="fas fa-times"></i> Mínimo 8 caracteres
+                    </div>
+                    <div class="requirement" id="uppercase-req">
+                        <i class="fas fa-times"></i> Al menos una mayúscula
+                    </div>
+                    <div class="requirement" id="lowercase-req">
+                        <i class="fas fa-times"></i> Al menos una minúscula
+                    </div>
+                    <div class="requirement" id="number-req">
+                        <i class="fas fa-times"></i> Al menos un número
+                    </div>
+                </div>
+
+                <!-- Campo de confirmación de contraseña -->
+                <div class="form-group">
+                    <label for="{{ form.new_password2.id_for_label }}" class="form-label">
+                        <i class="fas fa-check"></i>
+                        Confirma tu nueva contraseña
+                    </label>
+                    <div class="position-relative">
+                        {{ form.new_password2 }}
+                        <span class="show-password" onclick="togglePassword('{{ form.new_password2.id_for_label }}')">
+                            <i class="fas fa-eye"></i>
+                        </span>
+                    </div>
+                    {% if form.new_password2.errors %}
+                        <div class="invalid-feedback d-block">
+                            {{ form.new_password2.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Botones -->
+                <div class="d-grid gap-3">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <i class="fas fa-key"></i>
+                        Cambiar Contraseña
+                    </button>
+                    
+                    <a href="{% url 'recuperar_password' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Solicitar Nuevo Código
+                    </a>
+                </div>
+            </form>
+
+            <!-- Ayuda -->
+            <div class="help-box">
+                <h6>
+                    <i class="fas fa-question-circle"></i>
+                    ¿No recibiste el código?
+                </h6>
+                <ul>
+                    <li>Revisa tu carpeta de spam o correo no deseado</li>
+                    <li>El código puede tardar unos minutos en llegar</li>
+                    <li>Si no lo recibes, <a href="{% url 'recuperar_password' %}">solicita un nuevo código</a></li>
+                    <li>El código tiene una validez de 10 minutos</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Configurar campos del formulario
+    const codigoField = document.getElementById('{{ form.codigo.id_for_label }}');
+    const password1Field = document.getElementById('{{ form.new_password1.id_for_label }}');
+    const password2Field = document.getElementById('{{ form.new_password2.id_for_label }}');
+    
+    // Aplicar clases CSS
+    codigoField.className = 'form-control codigo-input';
+    codigoField.setAttribute('placeholder', '000000');
+    codigoField.setAttribute('maxlength', '6');
+    codigoField.setAttribute('pattern', '[0-9]{6}');
+    
+    password1Field.className = 'form-control';
+    password1Field.setAttribute('placeholder', 'Ingresa tu nueva contraseña');
+    password1Field.setAttribute('type', 'password');
+    
+    password2Field.className = 'form-control';
+    password2Field.setAttribute('placeholder', 'Confirma tu nueva contraseña');
+    password2Field.setAttribute('type', 'password');
+    
+    // Validación en tiempo real del código
+    codigoField.addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '').substring(0, 6);
+    });
+    
+    // Validación de contraseña en tiempo real
+    password1Field.addEventListener('input', function() {
+        validatePassword(this.value);
+    });
+    
+    // Validación de confirmación de contraseña
+    password2Field.addEventListener('input', function() {
+        validatePasswordMatch();
+    });
+    
+    // Contador regresivo (10 minutos)
+    let timeLeft = 10 * 60; // 10 minutos en segundos
+    const countdownElement = document.getElementById('countdown');
+    
+    function updateCountdown() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        countdownElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timeLeft <= 0) {
+            countdownElement.textContent = 'EXPIRADO';
+            countdownElement.style.color = '#dc3545';
+        }
+        
+        timeLeft--;
+    }
+    
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+    
+    // Envío del formulario con AJAX
+    document.getElementById('verificarCodigoForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const originalText = submitBtn.innerHTML;
+        
+        // Mostrar loading
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Verificando...';
+        submitBtn.disabled = true;
+        
+        const formData = new FormData(this);
+        
+        fetch(this.action || window.location.pathname, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Contraseña Cambiada!',
+                    text: data.message,
+                    confirmButtonText: 'Ir al Login',
+                    allowOutsideClick: false
+                }).then(() => {
+                    window.location.href = data.redirect_url || '/auth/login/';
+                });
+            } else {
+                // Mostrar errores
+                if (data.errors) {
+                    let errorMessage = '';
+                    for (const [field, errors] of Object.entries(data.errors)) {
+                        errorMessage += errors.join(', ') + '\\n';
+                    }
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Errores en el formulario',
+                        text: errorMessage
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Hubo un problema procesando tu solicitud'
+                    });
+                }
+                
+                // Restaurar botón
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de conexión',
+                text: 'No se pudo procesar tu solicitud. Inténtalo nuevamente.'
+            });
+            
+            // Restaurar botón
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    });
+});
+
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const icon = field.nextElementSibling.querySelector('i');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+    } else {
+        field.type = 'password';
+        icon.className = 'fas fa-eye';
+    }
+}
+
+function validatePassword(password) {
+    const strengthBar = document.getElementById('password-strength');
+    const lengthReq = document.getElementById('length-req');
+    const uppercaseReq = document.getElementById('uppercase-req');
+    const lowercaseReq = document.getElementById('lowercase-req');
+    const numberReq = document.getElementById('number-req');
+    
+    let score = 0;
+    
+    // Verificar longitud
+    if (password.length >= 8) {
+        lengthReq.className = 'requirement valid';
+        lengthReq.innerHTML = '<i class="fas fa-check"></i> Mínimo 8 caracteres';
+        score++;
+    } else {
+        lengthReq.className = 'requirement invalid';
+        lengthReq.innerHTML = '<i class="fas fa-times"></i> Mínimo 8 caracteres';
+    }
+    
+    // Verificar mayúscula
+    if (/[A-Z]/.test(password)) {
+        uppercaseReq.className = 'requirement valid';
+        uppercaseReq.innerHTML = '<i class="fas fa-check"></i> Al menos una mayúscula';
+        score++;
+    } else {
+        uppercaseReq.className = 'requirement invalid';
+        uppercaseReq.innerHTML = '<i class="fas fa-times"></i> Al menos una mayúscula';
+    }
+    
+    // Verificar minúscula
+    if (/[a-z]/.test(password)) {
+        lowercaseReq.className = 'requirement valid';
+        lowercaseReq.innerHTML = '<i class="fas fa-check"></i> Al menos una minúscula';
+        score++;
+    } else {
+        lowercaseReq.className = 'requirement invalid';
+        lowercaseReq.innerHTML = '<i class="fas fa-times"></i> Al menos una minúscula';
+    }
+    
+    // Verificar número
+    if (/[0-9]/.test(password)) {
+        numberReq.className = 'requirement valid';
+        numberReq.innerHTML = '<i class="fas fa-check"></i> Al menos un número';
+        score++;
+    } else {
+        numberReq.className = 'requirement invalid';
+        numberReq.innerHTML = '<i class="fas fa-times"></i> Al menos un número';
+    }
+    
+    // Actualizar barra de fuerza
+    if (score < 2) {
+        strengthBar.className = 'password-strength weak';
+    } else if (score < 4) {
+        strengthBar.className = 'password-strength medium';
+    } else {
+        strengthBar.className = 'password-strength strong';
+    }
+}
+
+function validatePasswordMatch() {
+    const password1 = document.getElementById('{{ form.new_password1.id_for_label }}').value;
+    const password2 = document.getElementById('{{ form.new_password2.id_for_label }}').value;
+    const password2Field = document.getElementById('{{ form.new_password2.id_for_label }}');
+    
+    if (password1 !== password2 && password2.length > 0) {
+        password2Field.style.borderColor = '#dc3545';
+    } else {
+        password2Field.style.borderColor = '#e5e7eb';
+    }
+}
+</script>
+{% endblock %}

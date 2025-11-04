@@ -1,0 +1,400 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Verificar Código - Lilis System{% endblock %}
+
+{% block extra_head %}
+<style>
+    .password-strength {
+        height: 5px;
+        border-radius: 3px;
+        margin-top: 5px;
+        transition: all 0.3s ease;
+    }
+    .password-strength.weak {
+        background-color: #dc3545;
+        width: 33%;
+    }
+    .password-strength.medium {
+        background-color: #ffc107;
+        width: 66%;
+    }
+    .password-strength.strong {
+        background-color: #28a745;
+        width: 100%;
+    }
+    .password-requirements {
+        font-size: 0.875rem;
+        margin-top: 10px;
+    }
+    .password-requirements .requirement {
+        padding: 2px 0;
+    }
+    .password-requirements .requirement.valid {
+        color: #28a745;
+    }
+    .password-requirements .requirement.invalid {
+        color: #dc3545;
+    }
+    .show-password {
+        cursor: pointer;
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+    }
+    .show-password:hover {
+        color: #dc2626;
+    }
+    .codigo-input {
+        text-align: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        letter-spacing: 0.5rem;
+        font-family: 'Courier New', monospace;
+    }
+    .countdown {
+        font-weight: bold;
+        color: #dc2626;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);">
+                    <h4 class="mb-0">
+                        <i class="fas fa-key"></i> Verificar Código y Cambiar Contraseña
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="text-center mb-4">
+                                <i class="fas fa-envelope-open-text fa-3x text-danger mb-3"></i>
+                                <h5>Código Enviado</h5>
+                                <p class="text-muted">
+                                    Hemos enviado un código de 6 dígitos a:<br>
+                                    <strong>{{ usuario.email }}</strong>
+                                </p>
+                                <div class="alert alert-warning">
+                                    <i class="fas fa-clock"></i> El código expira en <span class="countdown" id="countdown">10:00</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <form method="post" id="verificarCodigoForm">
+                                {% csrf_token %}
+                                
+                                <!-- Código de Verificación -->
+                                <div class="mb-4">
+                                    <label for="{{ form.codigo.id_for_label }}" class="form-label">
+                                        <i class="fas fa-hashtag text-danger"></i> {{ form.codigo.label }}
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control codigo-input" 
+                                           name="codigo" 
+                                           id="{{ form.codigo.id_for_label }}"
+                                           placeholder="000000"
+                                           maxlength="6"
+                                           pattern="[0-9]{6}"
+                                           required>
+                                    {% if form.codigo.help_text %}
+                                        <div class="form-text">{{ form.codigo.help_text }}</div>
+                                    {% endif %}
+                                    {% if form.codigo.errors %}
+                                        <div class="text-danger mt-2">
+                                            {% for error in form.codigo.errors %}
+                                                <small><i class="fas fa-exclamation-circle"></i> {{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <hr>
+                                
+                                <!-- Nueva Contraseña -->
+                                <div class="mb-3">
+                                    <label for="{{ form.new_password1.id_for_label }}" class="form-label">
+                                        <i class="fas fa-lock text-danger"></i> {{ form.new_password1.label }}
+                                    </label>
+                                    <div class="position-relative">
+                                        {{ form.new_password1 }}
+                                        <i class="fas fa-eye show-password" onclick="togglePassword('{{ form.new_password1.id_for_label }}', this)"></i>
+                                    </div>
+                                    
+                                    <!-- Indicador de fuerza -->
+                                    <div class="password-strength" id="passwordStrength"></div>
+                                    
+                                    <!-- Requisitos de contraseña -->
+                                    <div class="password-requirements">
+                                        <div class="requirement" id="req-length">
+                                            <i class="fas fa-times"></i> Mínimo 8 caracteres
+                                        </div>
+                                        <div class="requirement" id="req-uppercase">
+                                            <i class="fas fa-times"></i> Al menos una mayúscula
+                                        </div>
+                                        <div class="requirement" id="req-lowercase">
+                                            <i class="fas fa-times"></i> Al menos una minúscula
+                                        </div>
+                                        <div class="requirement" id="req-number">
+                                            <i class="fas fa-times"></i> Al menos un número
+                                        </div>
+                                    </div>
+                                    
+                                    {% if form.new_password1.errors %}
+                                        <div class="text-danger mt-2">
+                                            {% for error in form.new_password1.errors %}
+                                                <small><i class="fas fa-exclamation-circle"></i> {{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Confirmar Contraseña -->
+                                <div class="mb-4">
+                                    <label for="{{ form.new_password2.id_for_label }}" class="form-label">
+                                        <i class="fas fa-check-double text-danger"></i> {{ form.new_password2.label }}
+                                    </label>
+                                    <div class="position-relative">
+                                        {{ form.new_password2 }}
+                                        <i class="fas fa-eye show-password" onclick="togglePassword('{{ form.new_password2.id_for_label }}', this)"></i>
+                                    </div>
+                                    <div id="passwordMatch" class="mt-2"></div>
+                                    {% if form.new_password2.errors %}
+                                        <div class="text-danger mt-2">
+                                            {% for error in form.new_password2.errors %}
+                                                <small><i class="fas fa-exclamation-circle"></i> {{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Botones -->
+                                <div class="d-flex gap-2 justify-content-between">
+                                    <a href="{% url 'solicitar_codigo_cambio' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-arrow-left"></i> Solicitar Nuevo Código
+                                    </a>
+                                    <button type="submit" class="btn btn-danger" id="submitBtn">
+                                        <i class="fas fa-save"></i> Cambiar Contraseña
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Ayuda -->
+                    <hr class="mt-4">
+                    <div class="alert alert-info">
+                        <h6><i class="fas fa-question-circle"></i> ¿No recibiste el código?</h6>
+                        <ul class="small mb-0">
+                            <li>Revisa tu carpeta de spam o correo no deseado</li>
+                            <li>El código puede tardar unos minutos en llegar</li>
+                            <li>Si no lo recibes, solicita un nuevo código</li>
+                            <li>El código tiene una validez de 10 minutos</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    const newPassword = $('#{{ form.new_password1.id_for_label }}');
+    const confirmPassword = $('#{{ form.new_password2.id_for_label }}');
+    const codigoInput = $('#{{ form.codigo.id_for_label }}');
+    
+    // Iniciar countdown de 10 minutos
+    startCountdown(10 * 60); // 10 minutos en segundos
+    
+    // Solo números en el código
+    codigoInput.on('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+    
+    // Validación en tiempo real de nueva contraseña
+    newPassword.on('input', function() {
+        const password = $(this).val();
+        checkPasswordStrength(password);
+        checkPasswordMatch();
+    });
+    
+    // Validación de confirmación de contraseña
+    confirmPassword.on('input', function() {
+        checkPasswordMatch();
+    });
+    
+    // Envío del formulario con AJAX
+    $('#verificarCodigoForm').submit(function(e) {
+        e.preventDefault();
+        
+        const submitBtn = $('#submitBtn');
+        const formData = $(this).serialize();
+        
+        // Deshabilitar botón
+        submitBtn.prop('disabled', true);
+        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Verificando...');
+        
+        $.ajax({
+            url: '{% url "verificar_codigo_cambio" %}',
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        title: '¡Contraseña Cambiada!',
+                        text: response.message,
+                        icon: 'success',
+                        confirmButtonColor: '#dc2626',
+                        confirmButtonText: 'Continuar'
+                    }).then(() => {
+                        window.location.href = response.redirect_url;
+                    });
+                } else {
+                    let errorText = response.message || 'Error verificando el código';
+                    
+                    if (response.errors) {
+                        errorText = 'Por favor corrige los siguientes errores:\n';
+                        for (let field in response.errors) {
+                            errorText += `\n• ${response.errors[field].join(', ')}`;
+                        }
+                    }
+                    
+                    Swal.fire({
+                        title: 'Error',
+                        text: errorText,
+                        icon: 'error',
+                        confirmButtonColor: '#dc2626'
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Hubo un problema procesando tu solicitud. Inténtalo nuevamente.',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
+            },
+            complete: function() {
+                // Rehabilitar botón
+                submitBtn.prop('disabled', false);
+                submitBtn.html('<i class="fas fa-save"></i> Cambiar Contraseña');
+            }
+        });
+    });
+});
+
+// Función para countdown
+function startCountdown(seconds) {
+    const countdownElement = $('#countdown');
+    
+    const interval = setInterval(function() {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        
+        countdownElement.text(
+            `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+        );
+        
+        if (seconds <= 0) {
+            clearInterval(interval);
+            countdownElement.text('EXPIRADO');
+            countdownElement.removeClass('countdown').addClass('text-danger');
+            
+            Swal.fire({
+                title: 'Código Expirado',
+                text: 'El código de verificación ha expirado. Solicita uno nuevo.',
+                icon: 'warning',
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Solicitar Nuevo Código'
+            }).then(() => {
+                window.location.href = '{% url "solicitar_codigo_cambio" %}';
+            });
+        }
+        
+        seconds--;
+    }, 1000);
+}
+
+// Función para verificar fuerza de contraseña
+function checkPasswordStrength(password) {
+    const requirements = {
+        length: password.length >= 8,
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        number: /[0-9]/.test(password)
+    };
+    
+    // Actualizar indicadores visuales
+    updateRequirement('req-length', requirements.length);
+    updateRequirement('req-uppercase', requirements.uppercase);
+    updateRequirement('req-lowercase', requirements.lowercase);
+    updateRequirement('req-number', requirements.number);
+    
+    // Calcular fuerza
+    const validCount = Object.values(requirements).filter(Boolean).length;
+    const strengthBar = $('#passwordStrength');
+    
+    if (password.length === 0) {
+        strengthBar.removeClass('weak medium strong');
+    } else if (validCount <= 2) {
+        strengthBar.removeClass('medium strong').addClass('weak');
+    } else if (validCount === 3) {
+        strengthBar.removeClass('weak strong').addClass('medium');
+    } else if (validCount === 4) {
+        strengthBar.removeClass('weak medium').addClass('strong');
+    }
+}
+
+// Función para actualizar requisitos
+function updateRequirement(id, isValid) {
+    const element = $('#' + id);
+    if (isValid) {
+        element.removeClass('invalid').addClass('valid');
+        element.find('i').removeClass('fa-times').addClass('fa-check');
+    } else {
+        element.removeClass('valid').addClass('invalid');
+        element.find('i').removeClass('fa-check').addClass('fa-times');
+    }
+}
+
+// Función para verificar coincidencia de contraseñas
+function checkPasswordMatch() {
+    const password1 = $('#{{ form.new_password1.id_for_label }}').val();
+    const password2 = $('#{{ form.new_password2.id_for_label }}').val();
+    const matchDiv = $('#passwordMatch');
+    
+    if (password2.length === 0) {
+        matchDiv.html('');
+        return;
+    }
+    
+    if (password1 === password2) {
+        matchDiv.html('<small class="text-success"><i class="fas fa-check"></i> Las contraseñas coinciden</small>');
+    } else {
+        matchDiv.html('<small class="text-danger"><i class="fas fa-times"></i> Las contraseñas no coinciden</small>');
+    }
+}
+
+// Función para mostrar/ocultar contraseña
+function togglePassword(fieldId, icon) {
+    const field = $('#' + fieldId);
+    const type = field.attr('type') === 'password' ? 'text' : 'password';
+    field.attr('type', type);
+    
+    $(icon).removeClass('fa-eye fa-eye-slash').addClass(
+        type === 'password' ? 'fa-eye' : 'fa-eye-slash'
+    );
+}
+</script>
+{% endblock %}

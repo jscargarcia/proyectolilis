@@ -19,15 +19,28 @@ from django.urls import path, include
 from django.shortcuts import redirect
 from django.conf import settings
 from django.conf.urls.static import static
+from django.shortcuts import render
+
+def home_redirect(request):
+    if request.user.is_authenticated:
+        return redirect('/auth/dashboard/')
+    else:
+        return redirect('login')
+
+def demo_alertas(request):
+    """Vista para demostrar el sistema de alertas"""
+    return render(request, 'demo_alertas.html')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', lambda request: redirect('dashboard'), name='home'),
+    path('', home_redirect, name='home'),
     path('auth/', include('autenticacion.urls')),
     path('catalogo/', include('catalogo.urls')),
     path('api/', include('sistema.urls')),
     path('ventas/', include('ventas.urls')),
     path('maestros/', include('maestros.urls')),
+    path('productos/', include('productos.urls')),
+    path('demo/alertas/', demo_alertas, name='demo_alertas'),
 ]
 
 # Servir archivos estáticos y media en desarrollo

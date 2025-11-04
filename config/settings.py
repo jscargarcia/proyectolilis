@@ -178,3 +178,26 @@ X_FRAME_OPTIONS = 'DENY'
 # SECURE_HSTS_PRELOAD = True
 # SESSION_COOKIE_SECURE = True
 # CSRF_COOKIE_SECURE = True
+
+# Configuración de Email
+# Para cambiar entre console y email real, modifica EMAIL_BACKEND en .env
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+
+# Configuración SMTP (solo si se usa smtp backend)
+if 'smtp' in EMAIL_BACKEND:
+    EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+    EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+    EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+    EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+    EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+
+# Email settings comunes
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@dulcerialilis.com')
+SERVER_EMAIL = DEFAULT_FROM_EMAIL
+
+# Configuración de negocio
+COMPANY_NAME = config('COMPANY_NAME', default='Dulcería Lilis')
+
+# Configuración de archivos subidos
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440  # 2.5MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 2621440  # 2.5MB

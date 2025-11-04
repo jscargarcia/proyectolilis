@@ -20,67 +20,132 @@
     
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/custom.css' %}">
+    <link rel="stylesheet" href="{% static 'css/alerts.css' %}">
     
     {% block extra_css %}{% endblock %}
     
     <style>
-        /* Tema Rojo para Dulcería Lilis */
+        /* Tema Profesional Dulcería Lilis */
         :root {
-            --primary-red: #dc2626;        /* Rojo principal */
-            --secondary-red: #991b1b;      /* Rojo oscuro */
-            --light-red: #fecaca;          /* Rojo claro */
-            --accent-red: #ef4444;         /* Rojo acento */
-            --danger-red: #b91c1c;         /* Rojo peligro */
-            --soft-red: #fee2e2;           /* Rojo suave */
+            --primary-pink: #dc2626;       /* Rojo principal */
+            --secondary-pink: #991b1b;     /* Rojo oscuro */
+            --light-pink: #fca5a5;         /* Rojo claro */
+            --accent-pink: #ef4444;        /* Rojo acento */
+            --soft-pink: #fee2e2;          /* Rojo suave */
+            --cream: #fff8e1;              /* Crema suave */
+            --gold: #ffc107;               /* Dorado */
+            --dark-text: #2d3748;          /* Texto oscuro legible */
+            --medium-text: #4a5568;        /* Texto medio */
+            --light-text: #718096;         /* Texto claro */
+            --white: #ffffff;              /* Blanco puro */
+            --success: #10b981;            /* Verde éxito */
+            --warning: #f59e0b;            /* Amarillo advertencia */
+            --danger: #ef4444;             /* Rojo peligro */
+            --info: #3b82f6;               /* Azul información */
         }
         
         body {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            background: linear-gradient(135deg, var(--cream) 0%, var(--soft-pink) 50%, #f3e5f5 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--dark-text);
+            line-height: 1.6;
         }
         
         .navbar-brand {
-            font-weight: bold;
-            color: var(--primary-red) !important;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            font-weight: 700;
+            color: var(--white) !important;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-size: 1.3rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .navbar-brand:hover {
+            color: var(--gold) !important;
+            transform: scale(1.05);
+            text-decoration: none;
+            text-shadow: 2px 2px 8px rgba(255, 193, 7, 0.5);
+        }
+        
+        .navbar-brand img {
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand:hover img {
+            filter: drop-shadow(2px 2px 8px rgba(255, 193, 7, 0.5));
+            transform: rotate(5deg);
         }
         
         .navbar-dark .navbar-nav .nav-link {
-            color: rgba(255, 255, 255, 0.9) !important;
+            color: rgba(255, 255, 255, 0.95) !important;
+            font-weight: 500;
+            padding: 0.75rem 1rem !important;
+            border-radius: 8px;
+            margin: 0 2px;
+            transition: all 0.3s ease;
         }
         
         .navbar-dark .navbar-nav .nav-link:hover {
-            color: var(--light-red) !important;
+            color: var(--gold) !important;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
         }
         
         .navbar-dark {
-            background: linear-gradient(135deg, var(--secondary-red) 0%, var(--primary-red) 100%) !important;
+            background: linear-gradient(135deg, var(--secondary-pink) 0%, var(--primary-pink) 100%) !important;
+            box-shadow: 0 4px 20px rgba(233, 30, 99, 0.3);
+            backdrop-filter: blur(10px);
         }
         
         .main-content {
             flex: 1;
-            padding: 20px 0;
+            padding: 2rem 0;
+            background: transparent;
         }
         
         .footer {
-            background: linear-gradient(135deg, var(--secondary-red) 0%, var(--primary-red) 100%);
-            color: white;
-            padding: 20px 0;
+            background: linear-gradient(135deg, var(--secondary-pink) 0%, var(--primary-pink) 100%);
+            color: var(--white);
+            padding: 2rem 0;
             margin-top: auto;
+            box-shadow: 0 -4px 20px rgba(233, 30, 99, 0.2);
+            backdrop-filter: blur(10px);
+        }
+        
+        .footer p {
+            margin: 0;
+            font-weight: 300;
+            letter-spacing: 0.5px;
         }
         
         .card {
-            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.15);
-            margin-bottom: 20px;
-            border: 1px solid rgba(220, 38, 38, 0.1);
+            box-shadow: 0 8px 32px rgba(233, 30, 99, 0.15);
+            margin-bottom: 2rem;
+            border: none;
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 48px rgba(233, 30, 99, 0.25);
         }
         
         .card-header {
-            background: linear-gradient(135deg, var(--primary-red) 0%, var(--accent-red) 100%);
-            color: white;
-            border-bottom: 2px solid var(--secondary-red);
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--accent-pink) 100%);
+            color: var(--white);
+            border: none;
+            border-radius: 16px 16px 0 0 !important;
+            padding: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
         }
         
         .badge-custom {
@@ -89,116 +154,301 @@
         
         .floating-crud-btn {
             position: fixed;
-            bottom: 90px;
-            right: 20px;
+            bottom: 2rem;
+            right: 2rem;
             z-index: 1001;
-            animation: pulse 2s infinite;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .floating-crud-btn a {
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--accent-pink) 100%) !important;
+            border: none !important;
+            border-radius: 50% !important;
+            width: 64px !important;
+            height: 64px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 1.5rem !important;
+            color: var(--white) !important;
+            text-decoration: none !important;
+            box-shadow: 0 8px 32px rgba(233, 30, 99, 0.4) !important;
+            transition: all 0.4s ease !important;
+            backdrop-filter: blur(10px) !important;
         }
         
         .floating-crud-btn a:hover {
-            transform: scale(1.1);
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 25px rgba(220, 38, 38, 0.6) !important;
+            transform: scale(1.15) rotate(5deg) !important;
+            box-shadow: 0 12px 48px rgba(233, 30, 99, 0.6) !important;
+            background: linear-gradient(135deg, var(--accent-pink) 0%, var(--primary-pink) 100%) !important;
+            color: var(--white) !important;
         }
         
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
         }
         
         .notification-bell {
             position: relative;
             cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .notification-bell:hover {
+            transform: scale(1.1);
         }
         
         .notification-badge {
             position: absolute;
-            top: -5px;
-            right: -5px;
-            background: var(--danger-red);
-            color: white;
+            top: -8px;
+            right: -8px;
+            background: linear-gradient(135deg, var(--danger) 0%, #f87171 100%);
+            color: var(--white);
             border-radius: 50%;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             font-size: 0.7rem;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 2px solid white;
+            border: 2px solid var(--white);
+            box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+            animation: pulse-notification 2s infinite;
         }
         
-        /* Botones con tema rojo */
+        @keyframes pulse-notification {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        /* Mejoras para títulos y textos */
+        .display-1, .display-2, .display-3, .display-4, .display-5, .display-6 {
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+        
+        .lead {
+            color: var(--medium-text);
+            font-weight: 500;
+        }
+        
+        /* Efectos de hover para elementos interactivos */
+        .btn, .card, .badge, .alert {
+            transition: all 0.3s ease;
+        }
+        
+        .btn:focus {
+            box-shadow: 0 0 0 0.25rem rgba(233, 30, 99, 0.25);
+        }
+        
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--soft-pink);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, var(--primary-pink), var(--accent-pink));
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, var(--secondary-pink), var(--primary-pink));
+        }
+        
+        /* Botones con tema rosa profesional */
         .btn-primary {
-            background: linear-gradient(135deg, var(--primary-red) 0%, var(--accent-red) 100%);
-            border-color: var(--primary-red);
-            box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--accent-pink) 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
+            color: var(--white);
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
         }
         
         .btn-primary:hover {
-            background: linear-gradient(135deg, var(--secondary-red) 0%, var(--primary-red) 100%);
-            border-color: var(--secondary-red);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+            background: linear-gradient(135deg, var(--secondary-pink) 0%, var(--primary-pink) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(233, 30, 99, 0.4);
+            color: var(--white);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
         }
         
         .btn-success {
-            background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+            background: linear-gradient(135deg, var(--success) 0%, #34d399 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            color: var(--white);
+            font-weight: 600;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+            color: var(--white);
         }
         
         .btn-warning {
-            background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+            background: linear-gradient(135deg, var(--warning) 0%, var(--gold) 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            color: var(--white);
+            font-weight: 600;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
+            color: var(--white);
         }
         
         .btn-danger {
-            background: linear-gradient(135deg, var(--danger-red) 0%, var(--primary-red) 100%);
+            background: linear-gradient(135deg, var(--danger) 0%, #f87171 100%);
+            border: none;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+            color: var(--white);
+            font-weight: 600;
+            border-radius: 12px;
+            transition: all 0.3s ease;
         }
         
-        /* Enlaces con tema rojo */
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
+            color: var(--white);
+        }
+        
+        /* Enlaces con tema rosa profesional */
         a {
-            color: var(--primary-red);
+            color: var(--primary-pink);
+            text-decoration: none;
+            transition: all 0.3s ease;
         }
         
         a:hover {
-            color: var(--secondary-red);
+            color: var(--secondary-pink);
+            text-decoration: none;
         }
         
-        /* Dropdown con tema rojo */
+        /* Dropdown con tema rosa profesional */
         .dropdown-menu {
-            border: 1px solid rgba(220, 38, 38, 0.2);
-            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
+            border: none;
+            box-shadow: 0 8px 32px rgba(233, 30, 99, 0.2);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 0.5rem;
+        }
+        
+        .dropdown-item {
+            border-radius: 8px;
+            margin: 2px 0;
+            padding: 0.75rem 1rem;
+            color: var(--dark-text);
+            font-weight: 500;
+            transition: all 0.3s ease;
         }
         
         .dropdown-item:hover {
-            background-color: var(--soft-red);
-            color: var(--secondary-red);
+            background: linear-gradient(135deg, var(--soft-pink), var(--light-pink));
+            color: var(--secondary-pink);
+            transform: translateX(4px);
         }
         
         .dropdown-header {
-            color: var(--primary-red);
-            font-weight: bold;
+            color: var(--primary-pink);
+            font-weight: 700;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 0.5rem 1rem;
         }
         
-        /* Formularios con tema rojo */
+        /* Formularios con tema rosa profesional */
+        .form-control {
+            border: 2px solid rgba(233, 30, 99, 0.1);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+            color: var(--dark-text);
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
         .form-control:focus {
-            border-color: var(--primary-red);
-            box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 0 0.25rem rgba(233, 30, 99, 0.15);
+            background: var(--white);
+            transform: translateY(-1px);
+        }
+        
+        .form-select {
+            border: 2px solid rgba(233, 30, 99, 0.1);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-weight: 500;
+            color: var(--dark-text);
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
         }
         
         .form-select:focus {
-            border-color: var(--primary-red);
-            box-shadow: 0 0 0 0.2rem rgba(220, 38, 38, 0.25);
+            border-color: var(--primary-pink);
+            box-shadow: 0 0 0 0.25rem rgba(233, 30, 99, 0.15);
+            background: var(--white);
+            transform: translateY(-1px);
         }
         
-        /* Tablas con tema rojo */
+        .form-label {
+            color: var(--dark-text);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            letter-spacing: 0.3px;
+        }
+        
+        /* Tablas con tema rosa profesional */
         .table thead th {
-            background: linear-gradient(135deg, var(--primary-red) 0%, var(--accent-red) 100%);
-            color: white;
-            border-color: var(--secondary-red);
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--accent-pink) 100%);
+            color: var(--white);
+            border: none;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            padding: 1rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        
+        .table tbody td {
+            padding: 1rem;
+            color: var(--dark-text);
+            font-weight: 500;
+            border-color: rgba(233, 30, 99, 0.1);
+            vertical-align: middle;
         }
         
         .table-striped > tbody > tr:nth-child(odd) > td {
-            background-color: rgba(220, 38, 38, 0.05);
+            background-color: rgba(233, 30, 99, 0.03);
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(233, 30, 99, 0.08);
+            transform: scale(1.01);
+            transition: all 0.3s ease;
         }
         
         /* Alertas con tema rojo */
@@ -220,20 +470,34 @@
             color: #1e40af;
         }
         
-        /* Paginación con tema rojo */
-        .page-item.active .page-link {
-            background-color: var(--primary-red);
-            border-color: var(--primary-red);
+        /* Paginación con tema rosa profesional */
+        .pagination {
+            gap: 0.5rem;
         }
         
-        .page-link {
-            color: var(--primary-red);
+        .page-item .page-link {
+            color: var(--primary-pink);
+            border: 2px solid rgba(233, 30, 99, 0.2);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        .page-item.active .page-link {
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--accent-pink) 100%);
+            border-color: var(--primary-pink);
+            color: var(--white);
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
         }
         
         .page-link:hover {
-            color: var(--secondary-red);
-            background-color: var(--soft-red);
-            border-color: var(--light-red);
+            color: var(--white);
+            background: linear-gradient(135deg, var(--secondary-pink) 0%, var(--primary-pink) 100%);
+            border-color: var(--secondary-pink);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
         }
         
         /* Progreso con tema rojo */
@@ -253,25 +517,96 @@
         
         /* Personalización de SweetAlert2 */
         .swal2-popup {
-            border: 2px solid var(--light-red);
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 16px 64px rgba(233, 30, 99, 0.2);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        .swal2-title {
+            color: var(--dark-text);
+            font-weight: 700;
+        }
+        
+        .swal2-content {
+            color: var(--medium-text);
+            font-weight: 500;
         }
         
         .swal2-confirm {
-            background: linear-gradient(135deg, var(--primary-red) 0%, var(--accent-red) 100%) !important;
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--accent-pink) 100%) !important;
+            border: none !important;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+            padding: 0.75rem 1.5rem !important;
+            box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3) !important;
         }
         
         .swal2-cancel {
             background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%) !important;
+            border: none !important;
+            border-radius: 12px !important;
+            font-weight: 600 !important;
+            padding: 0.75rem 1.5rem !important;
+            box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3) !important;
+        }
+        
+        /* Badges profesionales */
+        .badge {
+            font-weight: 600;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            letter-spacing: 0.3px;
+        }
+        
+        .badge.bg-primary {
+            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--accent-pink) 100%) !important;
+        }
+        
+        .badge.bg-success {
+            background: linear-gradient(135deg, var(--success) 0%, #34d399 100%) !important;
+        }
+        
+        .badge.bg-warning {
+            background: linear-gradient(135deg, var(--warning) 0%, var(--gold) 100%) !important;
+        }
+        
+        .badge.bg-danger {
+            background: linear-gradient(135deg, var(--danger) 0%, #f87171 100%) !important;
+        }
+        
+        /* Mejoras de legibilidad */
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--dark-text);
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            line-height: 1.3;
+        }
+        
+        .text-muted {
+            color: var(--medium-text) !important;
+        }
+        
+        /* Efectos de glassmorphism */
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 16px;
         }
     </style>
 </head>
 <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, var(--secondary-red) 0%, var(--primary-red) 100%)!important;">
-        <div class="container-fluid">
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: linear-gradient(135deg, var(--secondary-pink) 0%, var(--primary-pink) 100%)!important;">
+        <div class="container-fluid px-4">
             <a class="navbar-brand d-flex align-items-center" href="/">
-                <img src="{% static 'img/logo-small.svg' %}" alt="Lili's Logo" width="35" height="35" class="me-2">
-                <span style="font-weight: bold; color: #F59E0B;">Dulcería Lili's</span>
+                <img src="{% static 'img/logo-small.svg' %}" alt="Lili's Logo" width="40" height="40" class="me-3">
+                <div class="d-flex flex-column">
+                    <span style="font-weight: 700; color: var(--white); font-size: 1.2rem;">Dulcería Lili's</span>
+                    <small style="color: var(--gold); font-weight: 500; font-size: 0.75rem; margin-top: -4px;">Sistema de Gestión</small>
+                </div>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
@@ -402,24 +737,15 @@
 
     <!-- Main Content -->
     <div class="container-fluid main-content">
-        <!-- Mensajes Flash de Django con SweetAlert2 -->
+        <!-- Mensajes Flash de Django - Datos para JavaScript -->
         {% if messages %}
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    {% for message in messages %}
-                        Swal.fire({
-                            icon: '{% if message.tags == "success" %}success{% elif message.tags == "error" or message.tags == "danger" %}error{% elif message.tags == "warning" %}warning{% else %}info{% endif %}',
-                            title: '{% if message.tags == "success" %}¡Éxito!{% elif message.tags == "error" or message.tags == "danger" %}Error{% elif message.tags == "warning" %}Advertencia{% else %}Información{% endif %}',
-                            text: '{{ message|escapejs }}',
-                            timer: 5000,
-                            timerProgressBar: true,
-                            toast: true,
-                            position: 'top-end',
-                            showConfirmButton: false
-                        });
-                    {% endfor %}
-                });
-            </script>
+            <div id="django-messages" style="display: none;">
+                {% for message in messages %}
+                <div data-type="{% if message.tags == 'success' %}success{% elif message.tags == 'error' or message.tags == 'danger' %}error{% elif message.tags == 'warning' %}warning{% else %}info{% endif %}" 
+                     data-title="{% if message.tags == 'success' %}¡Éxito!{% elif message.tags == 'error' or message.tags == 'danger' %}Error{% elif message.tags == 'warning' %}Advertencia{% else %}Información{% endif %}"
+                     data-text="{{ message|escapejs }}"></div>
+                {% endfor %}
+            </div>
         {% endif %}
         
         {% block content %}{% endblock %}
@@ -428,10 +754,7 @@
     <!-- Botón flotante CRUD Productos -->
     {% if user.rol.nombre == 'ADMIN' or user.rol.nombre == 'GERENTE' or user.rol.nombre == 'BODEGUERO' %}
     <div class="floating-crud-btn">
-        <a href="{% url 'producto_listar' %}" class="btn btn-danger btn-lg" 
-           style="border-radius: 50px; padding: 15px 20px; box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4); 
-                  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); border: none;"
-           title="Ir al CRUD de Productos">
+        <a href="{% url 'producto_listar' %}" title="Gestión de Productos">
             <i class="fas fa-boxes"></i>
         </a>
     </div>
@@ -451,6 +774,9 @@
     
     <!-- SweetAlert2 JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Sistema de alertas avanzado -->
+    <script src="{% static 'js/alerts.js' %}"></script>
     
     <!-- Scripts personalizados -->
     <script>
@@ -607,6 +933,36 @@
             // Actualizar cada 30 segundos
             setInterval(actualizarContadores, 30000);
         }
+        
+        // Procesar mensajes de Django Flash
+        function procesarMensajesDjango() {
+            const messagesContainer = document.getElementById('django-messages');
+            if (messagesContainer && typeof Swal !== 'undefined') {
+                const messages = messagesContainer.querySelectorAll('div[data-type]');
+                messages.forEach(function(msgElement) {
+                    const type = msgElement.dataset.type;
+                    const title = msgElement.dataset.title;
+                    const text = msgElement.dataset.text;
+                    
+                    Swal.fire({
+                        icon: type,
+                        title: title,
+                        text: text,
+                        timer: 5000,
+                        timerProgressBar: true,
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false
+                    });
+                });
+                
+                // Limpiar mensajes después de mostrarlos
+                messagesContainer.remove();
+            }
+        }
+        
+        // Ejecutar al cargar la página
+        document.addEventListener('DOMContentLoaded', procesarMensajesDjango);
     </script>
     
     <!-- Custom JavaScript -->

@@ -1,0 +1,585 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ producto.nombre }} | Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .product-header {
+        background: linear-gradient(135deg, #4caf50, #66bb6a);
+        color: white;
+        border-radius: 15px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .product-image {
+        max-width: 100%;
+        height: 300px;
+        object-fit: cover;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+    }
+    
+    .product-image:hover {
+        transform: scale(1.05);
+    }
+    
+    .no-image {
+        height: 300px;
+        background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #999;
+        font-size: 4rem;
+    }
+    
+    .info-card {
+        background: white;
+        border-radius: 15px;
+        padding: 1.5rem;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        border: none;
+        margin-bottom: 1.5rem;
+        transition: transform 0.2s ease;
+    }
+    
+    .info-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+    
+    .info-card h6 {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .detail-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .detail-item:last-child {
+        border-bottom: none;
+    }
+    
+    .detail-label {
+        font-weight: 500;
+        color: #666;
+        display: flex;
+        align-items: center;
+    }
+    
+    .detail-value {
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .price-tag {
+        background: linear-gradient(135deg, #4caf50, #66bb6a);
+        color: white;
+        padding: 1rem 2rem;
+        border-radius: 25px;
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: center;
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    }
+    
+    .cost-tag {
+        background: linear-gradient(135deg, #2196f3, #64b5f6);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 20px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        text-align: center;
+        box-shadow: 0 3px 10px rgba(33, 150, 243, 0.3);
+    }
+    
+    .status-badge {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+    
+    .status-activo {
+        background: linear-gradient(135deg, #4caf50, #66bb6a);
+        color: white;
+    }
+    
+    .status-inactivo {
+        background: linear-gradient(135deg, #f44336, #ef5350);
+        color: white;
+    }
+    
+    .status-descontinuado {
+        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        color: white;
+    }
+    
+    .feature-badge {
+        background: linear-gradient(135deg, #9c27b0, #ba68c8);
+        color: white;
+        padding: 0.4rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+    }
+    
+    .btn-action {
+        border-radius: 25px;
+        padding: 10px 25px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn-action:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-edit {
+        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        border: none;
+        color: white;
+    }
+    
+    .btn-edit:hover {
+        background: linear-gradient(135deg, #f57c00, #ff9800);
+        color: white;
+    }
+    
+    .btn-delete {
+        background: linear-gradient(135deg, #f44336, #ef5350);
+        border: none;
+        color: white;
+    }
+    
+    .btn-delete:hover {
+        background: linear-gradient(135deg, #d32f2f, #f44336);
+        color: white;
+    }
+    
+    .margin-info {
+        background: linear-gradient(135deg, #673ab7, #9575cd);
+        color: white;
+        padding: 1rem;
+        border-radius: 15px;
+        text-align: center;
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    
+    .audit-info {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .product-sku {
+        background: linear-gradient(135deg, #607d8b, #90a4ae);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-family: 'Courier New', monospace;
+        font-weight: bold;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Encabezado del Producto -->
+    <div class="product-header">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="product-sku">
+                    <i class="fas fa-barcode me-2"></i>{{ producto.sku }}
+                </div>
+                <h1 class="mb-2">{{ producto.nombre }}</h1>
+                {% if producto.descripcion %}
+                    <p class="mb-3 fs-5">{{ producto.descripcion }}</p>
+                {% endif %}
+                <div class="d-flex align-items-center gap-3">
+                    <span class="status-badge status-{{ producto.estado|lower }}">
+                        <i class="fas fa-circle me-1"></i>{{ producto.get_estado_display }}
+                    </span>
+                    {% if producto.categoria %}
+                        <span class="badge bg-light text-dark fs-6">
+                            <i class="fas fa-tags me-1"></i>{{ producto.categoria.nombre }}
+                        </span>
+                    {% endif %}
+                    {% if producto.marca %}
+                        <span class="badge bg-light text-dark fs-6">
+                            <i class="fas fa-trademark me-1"></i>{{ producto.marca.nombre }}
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <div class="d-flex flex-column gap-2">
+                    {% if user_permissions.puede_editar %}
+                        <a href="{% url 'productos:editar' producto.id %}" class="btn btn-edit btn-action">
+                            <i class="fas fa-edit me-2"></i>Editar Producto
+                        </a>
+                    {% endif %}
+                    {% if user_permissions.puede_eliminar %}
+                        <button type="button" class="btn btn-delete btn-action" onclick="confirmarEliminacion()">
+                            <i class="fas fa-trash me-2"></i>Eliminar Producto
+                        </button>
+                    {% endif %}
+                    <a href="{% url 'productos:lista' %}" class="btn btn-outline-light btn-action">
+                        <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Columna Izquierda: Imagen y Características -->
+        <div class="col-lg-5">
+            <!-- Imagen del Producto -->
+            <div class="info-card">
+                <h6>
+                    <i class="fas fa-image text-primary me-2"></i>Imagen del Producto
+                </h6>
+                {% if producto.imagen_url %}
+                    <img src="{{ producto.imagen_url }}" 
+                         alt="{{ producto.nombre }}" 
+                         class="product-image"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="no-image d-none">
+                        <i class="fas fa-image"></i>
+                    </div>
+                {% else %}
+                    <div class="no-image">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <p class="text-muted text-center mt-2">Sin imagen disponible</p>
+                {% endif %}
+            </div>
+
+            <!-- Características Especiales -->
+            {% if producto.perishable or producto.control_por_lote or producto.control_por_serie %}
+                <div class="info-card">
+                    <h6>
+                        <i class="fas fa-cogs text-warning me-2"></i>Características Especiales
+                    </h6>
+                    {% if producto.perishable %}
+                        <span class="feature-badge">
+                            <i class="fas fa-clock me-1"></i>Perecedero
+                        </span>
+                    {% endif %}
+                    {% if producto.control_por_lote %}
+                        <span class="feature-badge">
+                            <i class="fas fa-boxes me-1"></i>Control por Lote
+                        </span>
+                    {% endif %}
+                    {% if producto.control_por_serie %}
+                        <span class="feature-badge">
+                            <i class="fas fa-barcode me-1"></i>Control por Serie
+                        </span>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Columna Derecha: Información Detallada -->
+        <div class="col-lg-7">
+            <!-- Información Básica -->
+            <div class="info-card">
+                <h6>
+                    <i class="fas fa-info-circle text-info me-2"></i>Información Básica
+                </h6>
+                <div class="detail-item">
+                    <span class="detail-label">
+                        <i class="fas fa-barcode text-muted me-2"></i>SKU
+                    </span>
+                    <span class="detail-value">{{ producto.sku }}</span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">
+                        <i class="fas fa-tag text-muted me-2"></i>Nombre
+                    </span>
+                    <span class="detail-value">{{ producto.nombre }}</span>
+                </div>
+                {% if producto.modelo %}
+                    <div class="detail-item">
+                        <span class="detail-label">
+                            <i class="fas fa-cube text-muted me-2"></i>Modelo/Presentación
+                        </span>
+                        <span class="detail-value">{{ producto.modelo }}</span>
+                    </div>
+                {% endif %}
+                <div class="detail-item">
+                    <span class="detail-label">
+                        <i class="fas fa-tags text-muted me-2"></i>Categoría
+                    </span>
+                    <span class="detail-value">
+                        {% if producto.categoria %}
+                            {{ producto.categoria.nombre }}
+                        {% else %}
+                            <em class="text-muted">Sin categoría</em>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">
+                        <i class="fas fa-trademark text-muted me-2"></i>Marca
+                    </span>
+                    <span class="detail-value">
+                        {% if producto.marca %}
+                            {{ producto.marca.nombre }}
+                        {% else %}
+                            <em class="text-muted">Sin marca</em>
+                        {% endif %}
+                    </span>
+                </div>
+                <div class="detail-item">
+                    <span class="detail-label">
+                        <i class="fas fa-circle text-muted me-2"></i>Estado
+                    </span>
+                    <span class="detail-value">
+                        <span class="status-badge status-{{ producto.estado|lower }}">
+                            {{ producto.get_estado_display }}
+                        </span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Información de Precios -->
+            <div class="info-card">
+                <h6>
+                    <i class="fas fa-dollar-sign text-success me-2"></i>Información de Precios
+                </h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="price-tag mb-3">
+                            <div class="small">Precio de Venta</div>
+                            ${{ producto.precio_venta|floatformat:2 }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        {% if producto.costo_estandar %}
+                            <div class="cost-tag mb-3">
+                                <div class="small">Costo Estándar</div>
+                                ${{ producto.costo_estandar|floatformat:2 }}
+                            </div>
+                        {% else %}
+                            <div class="cost-tag mb-3" style="background: #999;">
+                                <div class="small">Costo Estándar</div>
+                                No definido
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="detail-item">
+                            <span class="detail-label">
+                                <i class="fas fa-percentage text-muted me-2"></i>IVA
+                            </span>
+                            <span class="detail-value">{{ producto.impuesto_iva }}%</span>
+                        </div>
+                    </div>
+                    {% if producto.margen_ganancia %}
+                        <div class="col-md-6">
+                            <div class="margin-info">
+                                <div class="small">Margen de Ganancia</div>
+                                {{ producto.margen_ganancia|floatformat:2 }}%
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Información de Auditoría -->
+            <div class="info-card">
+                <h6>
+                    <i class="fas fa-history text-secondary me-2"></i>Información de Auditoría
+                </h6>
+                <div class="audit-info">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <span class="detail-label">
+                                    <i class="fas fa-calendar-plus text-muted me-2"></i>Fecha de Creación
+                                </span>
+                                <div class="text-end">
+                                    <div class="detail-value">{{ producto.created_at|date:"d/m/Y" }}</div>
+                                    <small class="text-muted">{{ producto.created_at|date:"H:i" }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <span class="detail-label">
+                                    <i class="fas fa-calendar-check text-muted me-2"></i>Última Modificación
+                                </span>
+                                <div class="text-end">
+                                    <div class="detail-value">{{ producto.updated_at|date:"d/m/Y" }}</div>
+                                    <small class="text-muted">{{ producto.updated_at|date:"H:i" }}</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+function confirmarEliminacion() {
+    Swal.fire({
+        title: '¿Eliminar Producto?',
+        html: `
+            <div class="text-start">
+                <p class="mb-2">¿Estás seguro de que deseas eliminar este producto?</p>
+                <div class="bg-light p-3 rounded">
+                    <strong>{{ producto.nombre }}</strong><br>
+                    <small class="text-muted">SKU: {{ producto.sku }}</small>
+                </div>
+                <p class="text-danger mt-3 mb-0">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Esta acción no se puede deshacer.
+                </p>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#f44336',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="fas fa-trash me-1"></i> Sí, eliminar',
+        cancelButtonText: '<i class="fas fa-times me-1"></i> Cancelar',
+        reverseButtons: true,
+        customClass: {
+            popup: 'swal-candy-theme',
+            confirmButton: 'btn-rounded',
+            cancelButton: 'btn-rounded'
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Eliminando...',
+                html: 'Por favor espera un momento',
+                allowOutsideClick: false,
+                allowEscapeKey: false,
+                showConfirmButton: false,
+                customClass: {
+                    popup: 'swal-candy-theme'
+                },
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            // Realizar la eliminación
+            fetch('{% url "productos:eliminar" producto.id %}', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: '¡Eliminado!',
+                        text: data.message,
+                        icon: 'success',
+                        confirmButtonColor: '#4caf50',
+                        customClass: {
+                            popup: 'swal-candy-theme',
+                            confirmButton: 'btn-rounded'
+                        }
+                    }).then(() => {
+                        window.location.href = '{% url "productos:lista" %}';
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.message,
+                        icon: 'error',
+                        confirmButtonColor: '#f44336',
+                        customClass: {
+                            popup: 'swal-candy-theme',
+                            confirmButton: 'btn-rounded'
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Ocurrió un error inesperado al eliminar el producto',
+                    icon: 'error',
+                    confirmButtonColor: '#f44336',
+                    customClass: {
+                        popup: 'swal-candy-theme',
+                        confirmButton: 'btn-rounded'
+                    }
+                });
+            });
+        }
+    });
+}
+
+// Agregar token CSRF para las peticiones AJAX
+document.addEventListener('DOMContentLoaded', function() {
+    // Crear un input hidden con el token CSRF si no existe
+    if (!document.querySelector('[name=csrfmiddlewaretoken]')) {
+        const csrfToken = document.createElement('input');
+        csrfToken.type = 'hidden';
+        csrfToken.name = 'csrfmiddlewaretoken';
+        csrfToken.value = '{{ csrf_token }}';
+        document.body.appendChild(csrfToken);
+    }
+});
+</script>
+
+<style>
+/* Estilos personalizados para SweetAlert */
+.swal-candy-theme {
+    border-radius: 15px !important;
+}
+
+.btn-rounded {
+    border-radius: 25px !important;
+    padding: 10px 25px !important;
+    font-weight: 500 !important;
+}
+
+.swal2-popup {
+    font-family: inherit !important;
+}
+</style>
+{% endblock %}

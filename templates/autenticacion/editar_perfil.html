@@ -1,0 +1,393 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Perfil - Lilis System{% endblock %}
+
+{% block extra_head %}
+<style>
+    .avatar-preview {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #dc2626;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .avatar-placeholder {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 3rem;
+        border: 3px solid #dc2626;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .file-input-wrapper {
+        position: relative;
+        overflow: hidden;
+        display: inline-block;
+    }
+    .file-input-wrapper input[type=file] {
+        position: absolute;
+        left: -9999px;
+    }
+    .file-input-label {
+        cursor: pointer;
+        display: inline-block;
+        padding: 8px 16px;
+        background: #6c757d;
+        color: white;
+        border-radius: 4px;
+        font-size: 0.875rem;
+    }
+    .file-input-label:hover {
+        background: #5a6268;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);">
+                    <h4 class="mb-0">
+                        <i class="fas fa-user-edit"></i> Editar Mi Perfil
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="editarPerfilForm">
+                        {% csrf_token %}
+                        
+                        <!-- Sección Avatar -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-danger mb-3">
+                                    <i class="fas fa-camera"></i> Foto de Perfil
+                                </h5>
+                                <div class="text-center">
+                                    <div class="mb-3">
+                                        {% if usuario.avatar %}
+                                            <img src="{{ usuario.avatar.url }}" alt="Avatar" class="avatar-preview" id="avatarPreview">
+                                        {% else %}
+                                            <div class="avatar-placeholder" id="avatarPreview">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <div class="file-input-wrapper">
+                                            {{ form.avatar }}
+                                            <label for="{{ form.avatar.id_for_label }}" class="file-input-label">
+                                                <i class="fas fa-upload"></i> Seleccionar Imagen
+                                            </label>
+                                        </div>
+                                        
+                                        {% if usuario.avatar %}
+                                            <button type="button" class="btn btn-outline-danger btn-sm" onclick="eliminarAvatar()">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <small class="text-muted d-block mt-2">
+                                        Formatos: JPG, PNG, WEBP | Tamaño máximo: 2MB
+                                    </small>
+                                    
+                                    {% if form.avatar.errors %}
+                                        <div class="text-danger mt-2">
+                                            {% for error in form.avatar.errors %}
+                                                <small>{{ error }}</small>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Información Personal -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="text-danger mb-3">
+                                    <i class="fas fa-user"></i> Información Personal
+                                </h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.nombres.id_for_label }}" class="form-label">
+                                    <i class="fas fa-signature text-danger"></i> Nombres *
+                                </label>
+                                {{ form.nombres }}
+                                {% if form.nombres.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.nombres.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.apellidos.id_for_label }}" class="form-label">
+                                    <i class="fas fa-signature text-danger"></i> Apellidos *
+                                </label>
+                                {{ form.apellidos }}
+                                {% if form.apellidos.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.apellidos.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.email.id_for_label }}" class="form-label">
+                                    <i class="fas fa-envelope text-danger"></i> Email *
+                                </label>
+                                {{ form.email }}
+                                {% if form.email.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.email.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                                    <i class="fas fa-phone text-danger"></i> Teléfono
+                                </label>
+                                {{ form.telefono }}
+                                {% if form.telefono.errors %}
+                                    <div class="text-danger mt-1">
+                                        {% for error in form.telefono.errors %}
+                                            <small>{{ error }}</small>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Información de Sistema (Solo lectura) -->
+                        <div class="row">
+                            <div class="col-12">
+                                <h5 class="text-secondary mb-3">
+                                    <i class="fas fa-info-circle"></i> Información del Sistema
+                                </h5>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-user-tag text-secondary"></i> Usuario
+                                </label>
+                                <input type="text" class="form-control" value="{{ usuario.username }}" disabled>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-shield-alt text-secondary"></i> Rol
+                                </label>
+                                <input type="text" class="form-control" value="{{ usuario.rol.nombre }}" disabled>
+                            </div>
+                        </div>
+                        
+                        <!-- Botones -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <hr>
+                                <div class="d-flex gap-2 justify-content-between">
+                                    <div>
+                                        <a href="{% url 'perfil_usuario' %}" class="btn btn-outline-secondary">
+                                            <i class="fas fa-arrow-left"></i> Cancelar
+                                        </a>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <a href="{% url 'cambiar_password' %}" class="btn btn-outline-warning">
+                                            <i class="fas fa-key"></i> Cambiar Contraseña
+                                        </a>
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-save"></i> Guardar Cambios
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Preview de imagen al seleccionar archivo
+    $('#{{ form.avatar.id_for_label }}').change(function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            // Validar tamaño
+            if (file.size > 2 * 1024 * 1024) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'La imagen no puede ser mayor a 2MB',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
+                this.value = '';
+                return;
+            }
+            
+            // Validar formato
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Solo se permiten imágenes JPG, PNG o WEBP',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
+                this.value = '';
+                return;
+            }
+            
+            // Mostrar preview
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                $('#avatarPreview').html(`<img src="${e.target.result}" alt="Preview" class="avatar-preview">`);
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+    
+    // Envío del formulario con AJAX
+    $('#editarPerfilForm').submit(function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const submitBtn = $(this).find('button[type="submit"]');
+        
+        // Deshabilitar botón
+        submitBtn.prop('disabled', true);
+        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
+        
+        $.ajax({
+            url: '{% url "editar_perfil" %}',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        title: '¡Éxito!',
+                        text: response.message,
+                        icon: 'success',
+                        confirmButtonColor: '#dc2626'
+                    }).then(() => {
+                        window.location.href = '{% url "perfil_usuario" %}';
+                    });
+                } else {
+                    // Mostrar errores
+                    let errorText = 'Por favor corrige los siguientes errores:\n';
+                    for (let field in response.errors) {
+                        errorText += `\n• ${response.errors[field].join(', ')}`;
+                    }
+                    
+                    Swal.fire({
+                        title: 'Error de Validación',
+                        text: errorText,
+                        icon: 'error',
+                        confirmButtonColor: '#dc2626'
+                    });
+                }
+            },
+            error: function(xhr) {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Hubo un problema guardando tu perfil. Inténtalo nuevamente.',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
+            },
+            complete: function() {
+                // Rehabilitar botón
+                submitBtn.prop('disabled', false);
+                submitBtn.html('<i class="fas fa-save"></i> Guardar Cambios');
+            }
+        });
+    });
+});
+
+// Función para eliminar avatar
+function eliminarAvatar() {
+    Swal.fire({
+        title: '¿Eliminar avatar?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: '{% url "eliminar_avatar" %}',
+                type: 'DELETE',
+                headers: {
+                    'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $('#avatarPreview').html(`
+                            <div class="avatar-placeholder">
+                                <i class="fas fa-user"></i>
+                            </div>
+                        `);
+                        
+                        Swal.fire({
+                            title: '¡Eliminado!',
+                            text: response.message,
+                            icon: 'success',
+                            confirmButtonColor: '#dc2626'
+                        });
+                        
+                        // Recargar página para actualizar botones
+                        setTimeout(() => {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: response.message,
+                            icon: 'error',
+                            confirmButtonColor: '#dc2626'
+                        });
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error',
+                        text: 'Hubo un problema eliminando el avatar',
+                        icon: 'error',
+                        confirmButtonColor: '#dc2626'
+                    });
+                }
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

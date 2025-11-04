@@ -4,7 +4,91 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from autenticacion.decorators import login_required_custom
 from django.utils import timezone
+from django.db.models import Count
+from maestros.models import Producto, Categoria, Marca
+from autenticacion.models import Usuario
 import json
+
+
+@login_required_custom
+def dashboard(request):
+    """Vista principal del dashboard"""
+    
+    # Estadísticas básicas
+    total_productos = Producto.objects.count()
+    productos_activos = Producto.objects.filter(estado='ACTIVO').count()
+    total_categorias = Categoria.objects.filter(activo=True).count()
+    total_marcas = Marca.objects.filter(activo=True).count()
+    total_usuarios = Usuario.objects.filter(estado='ACTIVO').count()
+    
+    # Productos por categoría
+    productos_por_categoria = list(
+        Categoria.objects.filter(activo=True)
+        .annotate(total_productos=Count('productos'))
+        .values('nombre', 'total_productos')
+        .order_by('-total_productos')[:5]
+    )
+    
+    # Productos por estado
+    productos_por_estado = list(
+        Producto.objects.values('estado')
+        .annotate(total=Count('id'))
+        .order_by('-total')
+    )
+    
+    # Productos recientes
+    productos_recientes = Producto.objects.select_related('categoria', 'marca').order_by('-created_at')[:5]
+    
+    # Verificar permisos del usuario
+    user_permissions = {
+        'puede_ver_productos': _check_user_permission(request.user, 'productos.ver'),
+        'puede_crear_productos': _check_user_permission(request.user, 'productos.crear'),
+        'puede_ver_usuarios': _check_user_permission(request.user, 'usuarios.ver'),
+    }
+    
+    context = {
+        'total_productos': total_productos,
+        'productos_activos': productos_activos,
+        'total_categorias': total_categorias,
+        'total_marcas': total_marcas,
+        'total_usuarios': total_usuarios,
+        'productos_por_categoria': productos_por_categoria,
+        'productos_por_estado': productos_por_estado,
+        'productos_recientes': productos_recientes,
+        'user_permissions': user_permissions,
+    }
+    
+    return render(request, 'sistema/dashboard.html', context)
+
+
+def _check_user_permission(user, permission_name):
+    """Función auxiliar para verificar permisos de usuario"""
+    if not user.is_authenticated:
+        return False
+    
+    user_role = getattr(user, 'rol', None)
+    if not user_role:
+        return False
+    
+    # Los administradores tienen acceso completo
+    if user_role.nombre == 'Administrador':
+        return True
+    
+    if not user_role.permisos:
+        return False
+    
+    # Separar el permiso en módulo y acción
+    parts = permission_name.split('.')
+    if len(parts) != 2:
+        return False
+    
+    modulo, accion = parts
+    
+    # Verificar si el módulo existe y tiene el permiso
+    if modulo in user_role.permisos and accion in user_role.permisos[modulo]:
+        return user_role.permisos[modulo][accion]
+    
+    return False
 
 
 @login_required_custom

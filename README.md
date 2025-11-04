@@ -101,7 +101,76 @@ El script de semillas crea automáticamente los siguientes usuarios:
 ### 🏷️ Roles del Sistema
 - **Administrador**: Acceso completo al sistema
 - **Gerente**: Gestión general del negocio y reportes
-- **Vendedor**: Gestión de ventas y atención a clientes  
+
+## 🎨 SISTEMA DE ANIMACIONES Y DISEÑO PROFESIONAL
+
+### ✨ Nuevas Características Visuales (Noviembre 2025)
+
+#### 🎭 Sistema Completo de Animaciones
+- ✅ **CSS Animations**: 50+ animaciones profesionales personalizadas
+- ✅ **JavaScript Dinámico**: Clase `LilisAnimations` con efectos interactivos
+- ✅ **Animaciones de Entrada**: fade-in, slide-up, scale-in, bounce-in
+- ✅ **Efectos Hover**: lift, grow, glow, shake para mejor UX
+- ✅ **Animaciones Especiales**: sweet-bounce, candy-wiggle, sugar-sparkle
+- ✅ **Stagger Animation**: Efectos escalonados para elementos múltiples
+
+#### 🎨 Diseño Profesional Dulcería
+- ✅ **Paleta Rosa Profesional**: Colores consistentes para marca dulcería
+- ✅ **Efectos Glassmorphism**: Transparencias y blur modernos  
+- ✅ **Gradientes Elegantes**: Transiciones suaves en botones y cards
+- ✅ **Tipografía Optimizada**: Segoe UI con pesos y espaciados profesionales
+- ✅ **Componentes Mejorados**: Botones, cards, tablas, formularios renovados
+
+#### 🚀 Templates Actualizados con Animaciones
+- ✅ **Login**: Card animada con efectos profesionales
+- ✅ **Dashboard**: Estadísticas con stagger y hover effects
+- ✅ **Lista Productos**: Tabla animada y filtros glassmorphism
+- ✅ **Base Template**: Sistema integrado de animaciones
+
+#### 📁 Archivos de Animaciones Creados
+```
+static/css/
+├── animations.css              # 500+ líneas de animaciones CSS
+├── professional-components.css # Estilos profesionales mejorados
+static/js/
+└── animations.js              # Sistema JavaScript de animaciones
+
+SISTEMA_ANIMACIONES_COMPLETO.md # Documentación completa
+```
+
+#### 🎯 Características Técnicas
+- **Performance Optimizado**: GPU acceleration con transform/opacity
+- **Accessibility**: Respeta `prefers-reduced-motion`
+- **Responsive**: Animaciones adaptativas por dispositivo
+- **Modular**: Sistema de variables CSS reutilizable
+- **Cross-browser**: Compatible con navegadores modernos
+
+#### 🍭 Efectos Especiales Dulcería
+```css
+.sweet-bounce     /* Rebote dulce para logos */
+.candy-wiggle     /* Movimiento ondulante */
+.sugar-sparkle    /* Efecto brillante deslizante */
+.glass-effect     /* Transparencia profesional */
+.hover-lift       /* Elevación suave en hover */
+```
+
+### 🎨 Paleta de Colores Profesional
+```css
+--primary-pink: #e91e63       /* Rosa principal marca */
+--secondary-pink: #ad1457     /* Rosa oscuro contraste */
+--accent-pink: #ec407a        /* Rosa acento highlights */
+--soft-pink: #fce4ec          /* Rosa suave backgrounds */
+--cream: #fff8e1              /* Crema base */
+--gold: #ffc107               /* Dorado acentos */
+```
+
+### 🚀 Próximas Actualizaciones Visuales
+- 🔄 Formularios de productos con animaciones
+- 🔄 Sistema de ventas con efectos interactivos  
+- 🔄 Catálogo con transiciones suaves
+- 🔄 Reportes con gráficos animados
+
+**Sistema completamente modernizado con animaciones profesionales** ✨*Vendedor**: Gestión de ventas y atención a clientes  
 - **Bodeguero**: Gestión de inventario y almacén
 
 ## Acceso al Sistema

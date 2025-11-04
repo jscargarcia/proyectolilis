@@ -9,8 +9,16 @@ from django.urls import reverse
 from django.db import transaction
 from decimal import Decimal, InvalidOperation
 from autenticacion.decorators import login_required_custom, permission_required, estado_usuario_activo
-# Importar modelos de la app productos donde están los datos reales
-from productos.models import Producto, Proveedor, Categoria, Marca, UnidadMedida
+# Importar modelos desde maestros donde están definidos
+from .models import Producto, Proveedor, Categoria, Marca, UnidadMedida
+# Para exportación a Excel
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+from datetime import datetime
+# Para manejo de imágenes
+from PIL import Image
+import os
 
 
 # ==================== PRODUCTOS ====================
@@ -25,29 +33,55 @@ def producto_listar(request):
     marca_id = request.GET.get('marca', '')
     estado = request.GET.get('estado', '')
     
-    # Parámetros de ordenamiento y paginación
+    # Parámetros de ordenamiento y paginación con mantenimiento en sesión
     orden = request.GET.get('orden', 'nombre')
-    items_per_page = request.GET.get('items_per_page', '20')
+    items_per_page = request.GET.get('items_per_page')
     
-    # Validar items por página
+    # Si no se especifica en URL, usar valor de sesión o default
+    if not items_per_page:
+        items_per_page = request.session.get('productos_items_per_page', '15')
+    
+    # Validar items por página con nuevas opciones
     try:
         items_per_page = int(items_per_page)
-        if items_per_page not in [10, 20, 50, 100]:
-            items_per_page = 20
+        if items_per_page not in [5, 15, 30, 50]:
+            items_per_page = 15
     except (ValueError, TypeError):
-        items_per_page = 20
+        items_per_page = 15
     
-    # Query base con relaciones (solo los campos que existen en el modelo productos)
-    productos = Producto.objects.select_related('categoria', 'marca').all()
+    # Guardar selección en sesión
+    request.session['productos_items_per_page'] = str(items_per_page)
     
-    # Aplicar filtros
+    # Query base con relaciones mejoradas
+    productos = Producto.objects.select_related('categoria', 'marca', 'uom_compra', 'uom_venta', 'uom_stock').all()
+    
+    # Aplicar filtros mejorados con búsqueda por precio y stock
     if query:
-        productos = productos.filter(
-            Q(sku__icontains=query) |
-            Q(nombre__icontains=query) |
-            Q(categoria__nombre__icontains=query) |
-            Q(marca__nombre__icontains=query)
-        )
+        # Intentar convertir query a número para búsqueda por precio/stock
+        try:
+            query_num = Decimal(query)
+            productos = productos.filter(
+                Q(sku__icontains=query) |
+                Q(nombre__icontains=query) |
+                Q(descripcion__icontains=query) |
+                Q(categoria__nombre__icontains=query) |
+                Q(marca__nombre__icontains=query) |
+                Q(modelo__icontains=query) |
+                Q(precio_venta=query_num) |
+                Q(stock_minimo=query_num) |
+                Q(ean_upc__icontains=query)
+            )
+        except (ValueError, InvalidOperation):
+            # Si no es número, buscar solo en campos de texto
+            productos = productos.filter(
+                Q(sku__icontains=query) |
+                Q(nombre__icontains=query) |
+                Q(descripcion__icontains=query) |
+                Q(categoria__nombre__icontains=query) |
+                Q(marca__nombre__icontains=query) |
+                Q(modelo__icontains=query) |
+                Q(ean_upc__icontains=query)
+            )
     
     if categoria_id:
         productos = productos.filter(categoria_id=categoria_id)
@@ -104,7 +138,7 @@ def producto_listar(request):
         'categorias': categorias,
         'marcas': marcas,
         'total_productos': total_productos,
-        'items_per_page_options': [10, 20, 50, 100],
+        'items_per_page_options': [5, 15, 30, 50],
         'orden_options': [
             ('nombre', 'Nombre A-Z'),
             ('nombre_desc', 'Nombre Z-A'),
@@ -116,6 +150,8 @@ def producto_listar(request):
             ('marca_desc', 'Marca Z-A'),
             ('precio', 'Precio Menor'),
             ('precio_desc', 'Precio Mayor'),
+            ('stock', 'Stock Menor'),
+            ('stock_desc', 'Stock Mayor'),
             ('fecha', 'Más Antiguos'),
             ('fecha_desc', 'Más Recientes'),
         ]
@@ -153,48 +189,156 @@ def producto_crear(request):
         elif not Categoria.objects.filter(id=categoria_id, activo=True).exists():
             errores.append('La categoría seleccionada no es válida.')
         
-        # Validar precios y stock
+        # Validar precios y stock con validaciones mejoradas
         precio_venta = request.POST.get('precio_venta', '').strip()
+        costo_estandar = request.POST.get('costo_estandar', '').strip()
         stock_minimo = request.POST.get('stock_minimo', '0').strip()
+        stock_maximo = request.POST.get('stock_maximo', '').strip()
+        ean_upc = request.POST.get('ean_upc', '').strip()
         
+        # Validar precio de venta (debe ser > 0)
         if precio_venta:
             try:
                 precio_venta = Decimal(precio_venta)
-                if precio_venta < 0:
-                    errores.append('El precio de venta no puede ser negativo.')
+                if precio_venta <= 0:
+                    errores.append('El precio de venta debe ser mayor a 0.')
             except (ValueError, InvalidOperation):
                 errores.append('El precio de venta debe ser un número válido.')
                 precio_venta = None
         else:
             precio_venta = None
-            
+        
+        # Validar costo estándar (debe ser >= 0)
+        if costo_estandar:
+            try:
+                costo_estandar = Decimal(costo_estandar)
+                if costo_estandar < 0:
+                    errores.append('El costo estándar no puede ser negativo.')
+            except (ValueError, InvalidOperation):
+                errores.append('El costo estándar debe ser un número válido.')
+                costo_estandar = None
+        else:
+            costo_estandar = None
+        
+        # Validar stock mínimo (debe ser >= 0)    
         try:
-            stock_minimo = int(stock_minimo) if stock_minimo else 0
+            stock_minimo = Decimal(stock_minimo) if stock_minimo else 0
             if stock_minimo < 0:
                 errores.append('El stock mínimo no puede ser negativo.')
-        except (ValueError, TypeError):
-            errores.append('El stock mínimo debe ser un número entero válido.')
+        except (ValueError, TypeError, InvalidOperation):
+            errores.append('El stock mínimo debe ser un número válido.')
             stock_minimo = 0
+        
+        # Validar stock máximo (debe ser >= stock mínimo)
+        if stock_maximo:
+            try:
+                stock_maximo = Decimal(stock_maximo)
+                if stock_maximo < 0:
+                    errores.append('El stock máximo no puede ser negativo.')
+                elif stock_maximo < stock_minimo:
+                    errores.append('El stock máximo debe ser mayor o igual al stock mínimo.')
+            except (ValueError, InvalidOperation):
+                errores.append('El stock máximo debe ser un número válido.')
+                stock_maximo = None
+        else:
+            stock_maximo = None
+        
+        # Validar código de barras (debe ser único si se proporciona)
+        if ean_upc:
+            if len(ean_upc) < 8 or len(ean_upc) > 20:
+                errores.append('El código de barras debe tener entre 8 y 20 caracteres.')
+            elif Producto.objects.filter(ean_upc=ean_upc).exists():
+                errores.append('Ya existe un producto con este código de barras.')
+        
+        # Validar unidades de medida requeridas
+        uom_compra_id = request.POST.get('uom_compra', '')
+        uom_venta_id = request.POST.get('uom_venta', '')
+        uom_stock_id = request.POST.get('uom_stock', '')
+        
+        if not uom_compra_id:
+            errores.append('La unidad de medida de compra es requerida.')
+        elif not UnidadMedida.objects.filter(id=uom_compra_id, activo=True).exists():
+            errores.append('La unidad de medida de compra seleccionada no es válida.')
+            
+        if not uom_venta_id:
+            errores.append('La unidad de medida de venta es requerida.')
+        elif not UnidadMedida.objects.filter(id=uom_venta_id, activo=True).exists():
+            errores.append('La unidad de medida de venta seleccionada no es válida.')
+            
+        if not uom_stock_id:
+            errores.append('La unidad de medida de stock es requerida.')
+        elif not UnidadMedida.objects.filter(id=uom_stock_id, activo=True).exists():
+            errores.append('La unidad de medida de stock seleccionada no es válida.')
+        
+        # Validar factor de conversión
+        factor_conversion = request.POST.get('factor_conversion', '1').strip()
+        try:
+            factor_conversion = Decimal(factor_conversion) if factor_conversion else 1
+            if factor_conversion <= 0:
+                errores.append('El factor de conversión debe ser mayor a 0.')
+        except (ValueError, InvalidOperation):
+            errores.append('El factor de conversión debe ser un número válido.')
+            factor_conversion = 1
+        
+        # Validar imagen subida
+        imagen = request.FILES.get('imagen')
+        if imagen:
+            # Validar tipo de archivo
+            allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif']
+            if imagen.content_type not in allowed_types:
+                errores.append('La imagen debe ser JPG, PNG o GIF.')
+            
+            # Validar tamaño (máximo 5MB)
+            if imagen.size > 5 * 1024 * 1024:  # 5MB en bytes
+                errores.append('La imagen no puede superar los 5MB.')
+            
+            # Validar dimensiones usando PIL
+            try:
+                img = Image.open(imagen)
+                width, height = img.size
+                
+                # Recomendaciones de dimensiones
+                if width > 2000 or height > 2000:
+                    errores.append('Se recomienda que la imagen no supere 2000x2000 píxeles.')
+                
+                img.close()
+            except Exception as e:
+                errores.append('El archivo de imagen no es válido.')
+        
+        imagen_url = request.POST.get('imagen_url', '').strip()
         
         # Si hay errores, mostrarlos
         if errores:
             for error in errores:
                 messages.error(request, error)
         else:
-            # Crear producto usando solo campos disponibles en el modelo productos
+            # Crear producto con todos los campos validados
             try:
                 with transaction.atomic():
                     producto = Producto.objects.create(
                         sku=sku,
+                        ean_upc=ean_upc if ean_upc else None,
                         nombre=nombre,
+                        descripcion=request.POST.get('descripcion', '').strip(),
                         categoria_id=categoria_id,
                         marca_id=marca_id if marca_id else None,
-                        estado=request.POST.get('estado', 'Activo'),
+                        modelo=request.POST.get('modelo', '').strip(),
+                        uom_compra_id=uom_compra_id,
+                        uom_venta_id=uom_venta_id,
+                        uom_stock_id=uom_stock_id,
+                        factor_conversion=factor_conversion,
+                        costo_estandar=costo_estandar,
+                        precio_venta=precio_venta,
+                        impuesto_iva=Decimal(request.POST.get('impuesto_iva', '19')),
                         stock_minimo=stock_minimo,
-                        precio_venta=precio_venta if precio_venta else 0,
+                        stock_maximo=stock_maximo,
+                        punto_reorden=Decimal(request.POST.get('punto_reorden', '0')) if request.POST.get('punto_reorden') else None,
                         perishable=request.POST.get('perishable') == 'on',
                         control_por_lote=request.POST.get('control_por_lote') == 'on',
                         control_por_serie=request.POST.get('control_por_serie') == 'on',
+                        imagen=imagen if imagen else None,
+                        imagen_url=imagen_url if imagen_url else None,
+                        estado=request.POST.get('estado', 'ACTIVO'),
                     )
                     messages.success(request, f'Producto "{producto.nombre}" creado exitosamente.')
                     return JsonResponse({
@@ -218,10 +362,12 @@ def producto_crear(request):
     # GET request - mostrar formulario
     categorias = Categoria.objects.filter(activo=True).order_by('nombre')
     marcas = Marca.objects.filter(activo=True).order_by('nombre')
+    unidades_medida = UnidadMedida.objects.filter(activo=True).order_by('tipo', 'nombre')
     
     context = {
         'categorias': categorias,
         'marcas': marcas,
+        'unidades_medida': unidades_medida,
         'estados_producto': [
             ('Activo', 'Activo'),
             ('Inactivo', 'Inactivo'),
@@ -669,4 +815,185 @@ def marca_listar(request):
     
     context = {'marcas': marcas}
     return render(request, 'maestros/marca_listar.html', context)
+
+
+# ==================== EXPORTACIÓN A EXCEL ====================
+
+@login_required_custom
+@estado_usuario_activo
+def productos_exportar_excel(request):
+    """Exportar productos a Excel con formato profesional"""
+    
+    # Aplicar los mismos filtros que en la vista de listado
+    query = request.GET.get('query', '').strip()
+    categoria_id = request.GET.get('categoria', '')
+    marca_id = request.GET.get('marca', '')
+    estado = request.GET.get('estado', '')
+    orden = request.GET.get('orden', 'nombre')
+    
+    # Query base con relaciones
+    productos = Producto.objects.select_related('categoria', 'marca', 'uom_compra', 'uom_venta', 'uom_stock').all()
+    
+    # Aplicar filtros
+    if query:
+        productos = productos.filter(
+            Q(sku__icontains=query) |
+            Q(nombre__icontains=query) |
+            Q(categoria__nombre__icontains=query) |
+            Q(marca__nombre__icontains=query)
+        )
+    
+    if categoria_id:
+        productos = productos.filter(categoria_id=categoria_id)
+    
+    if marca_id:
+        productos = productos.filter(marca_id=marca_id)
+    
+    if estado:
+        productos = productos.filter(estado=estado)
+    
+    # Aplicar ordenamiento
+    orden_mapping = {
+        'nombre': 'nombre',
+        'nombre_desc': '-nombre',
+        'sku': 'sku',
+        'sku_desc': '-sku',
+        'categoria': 'categoria__nombre',
+        'categoria_desc': '-categoria__nombre',
+        'marca': 'marca__nombre',
+        'marca_desc': '-marca__nombre',
+        'precio': 'precio_venta',
+        'precio_desc': '-precio_venta',
+        'stock': 'stock_minimo',
+        'stock_desc': '-stock_minimo',
+        'fecha': 'created_at',
+        'fecha_desc': '-created_at',
+    }
+    
+    if orden in orden_mapping:
+        productos = productos.order_by(orden_mapping[orden])
+    else:
+        productos = productos.order_by('nombre')
+    
+    # Crear workbook y worksheet
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Productos"
+    
+    # Configurar estilos
+    header_font = Font(name='Arial', size=12, bold=True, color='FFFFFF')
+    header_fill = PatternFill(start_color='D32F2F', end_color='D32F2F', fill_type='solid')
+    header_alignment = Alignment(horizontal='center', vertical='center')
+    
+    data_font = Font(name='Arial', size=10)
+    data_alignment = Alignment(horizontal='left', vertical='center')
+    number_alignment = Alignment(horizontal='right', vertical='center')
+    center_alignment = Alignment(horizontal='center', vertical='center')
+    
+    border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    # Definir encabezados
+    headers = [
+        'SKU',
+        'Nombre',
+        'Categoría',
+        'Marca',
+        'Precio Venta',
+        'Stock Mínimo',
+        'UOM Compra',
+        'UOM Venta',
+        'UOM Stock',
+        'Estado',
+        'Perecible',
+        'Control Lote',
+        'Control Serie',
+        'Fecha Creación'
+    ]
+    
+    # Escribir encabezados
+    for col, header in enumerate(headers, 1):
+        cell = ws.cell(row=1, column=col, value=header)
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_alignment
+        cell.border = border
+    
+    # Escribir datos
+    for row, producto in enumerate(productos, 2):
+        data = [
+            producto.sku,
+            producto.nombre,
+            producto.categoria.nombre if producto.categoria else '',
+            producto.marca.nombre if producto.marca else '',
+            float(producto.precio_venta) if producto.precio_venta else 0,
+            float(producto.stock_minimo) if producto.stock_minimo else 0,
+            producto.uom_compra.codigo if producto.uom_compra else '',
+            producto.uom_venta.codigo if producto.uom_venta else '',
+            producto.uom_stock.codigo if producto.uom_stock else '',
+            producto.estado,
+            'Sí' if producto.perishable else 'No',
+            'Sí' if producto.control_por_lote else 'No',
+            'Sí' if producto.control_por_serie else 'No',
+            producto.created_at.strftime('%d/%m/%Y %H:%M') if producto.created_at else ''
+        ]
+        
+        for col, value in enumerate(data, 1):
+            cell = ws.cell(row=row, column=col, value=value)
+            cell.font = data_font
+            cell.border = border
+            
+            # Aplicar alineación específica según el tipo de dato
+            if col in [5, 6]:  # Precios y stock
+                cell.alignment = number_alignment
+                if col == 5 and value:  # Precio
+                    cell.number_format = '"$"#,##0.00'
+            elif col in [11, 12, 13]:  # Booleanos
+                cell.alignment = center_alignment
+            else:
+                cell.alignment = data_alignment
+    
+    # Ajustar ancho de columnas
+    column_widths = {
+        1: 15,  # SKU
+        2: 35,  # Nombre
+        3: 20,  # Categoría
+        4: 20,  # Marca
+        5: 15,  # Precio
+        6: 12,  # Stock
+        7: 12,  # UOM Compra
+        8: 12,  # UOM Venta
+        9: 12,  # UOM Stock
+        10: 12, # Estado
+        11: 10, # Perecible
+        12: 12, # Control Lote
+        13: 13, # Control Serie
+        14: 18  # Fecha
+    }
+    
+    for col, width in column_widths.items():
+        ws.column_dimensions[get_column_letter(col)].width = width
+    
+    # Agregar información adicional
+    total_productos = productos.count()
+    ws.cell(row=total_productos + 3, column=1, value=f"Total de productos: {total_productos}")
+    ws.cell(row=total_productos + 4, column=1, value=f"Fecha de exportación: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}")
+    ws.cell(row=total_productos + 5, column=1, value=f"Exportado por: {request.user.get_full_name() or request.user.username}")
+    
+    # Configurar respuesta HTTP
+    response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    
+    # Nombre del archivo con timestamp
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    filename = f'productos_dulceria_lilis_{timestamp}.xlsx'
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    
+    # Guardar workbook en la respuesta
+    wb.save(response)
+    
+    return response
 

@@ -1,0 +1,565 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar {{ producto.nombre }} | Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card-header {
+        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        color: white;
+        border-radius: 12px 12px 0 0 !important;
+    }
+    
+    .form-control:focus {
+        border-color: #ff9800;
+        box-shadow: 0 0 0 0.2rem rgba(255, 152, 0, 0.25);
+    }
+    
+    .btn-candy {
+        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        border: none;
+        color: white;
+        border-radius: 25px;
+        padding: 10px 30px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-candy:hover {
+        background: linear-gradient(135deg, #f57c00, #ff9800);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        color: white;
+    }
+    
+    .btn-outline-secondary {
+        border-color: #6c757d;
+        color: #6c757d;
+        border-radius: 25px;
+        padding: 10px 30px;
+        font-weight: 500;
+    }
+    
+    .btn-outline-secondary:hover {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        transform: translateY(-2px);
+    }
+    
+    .required {
+        color: #ff9800;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 2px solid #e3f2fd;
+        padding: 12px 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:hover, .form-select:hover {
+        border-color: #bbdefb;
+    }
+    
+    .card {
+        border: none;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    .alert {
+        border-radius: 10px;
+        border: none;
+    }
+    
+    .alert-success {
+        background: linear-gradient(135deg, #4caf50, #66bb6a);
+        color: white;
+    }
+    
+    .alert-error {
+        background: linear-gradient(135deg, #f44336, #ef5350);
+        color: white;
+    }
+    
+    .form-check-input:checked {
+        background-color: #ff9800;
+        border-color: #ff9800;
+    }
+    
+    .form-check-input:focus {
+        box-shadow: 0 0 0 0.25rem rgba(255, 152, 0, 0.25);
+    }
+    
+    .preview-image {
+        max-width: 200px;
+        max-height: 200px;
+        border-radius: 10px;
+        border: 3px solid #e3f2fd;
+        margin-top: 10px;
+    }
+    
+    .info-badge {
+        background: linear-gradient(135deg, #2196f3, #64b5f6);
+        color: white;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        display: inline-block;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Encabezado -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-0">
+                        <i class="fas fa-edit text-warning me-2"></i>
+                        Editar Producto
+                    </h2>
+                    <p class="text-muted mb-0">Modifica la información del producto: <strong>{{ producto.nombre }}</strong></p>
+                    <span class="info-badge">
+                        <i class="fas fa-barcode me-1"></i>SKU: {{ producto.sku }}
+                    </span>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'productos:detalle' producto.id %}" class="btn btn-outline-info">
+                        <i class="fas fa-eye me-2"></i>Ver
+                    </a>
+                    <a href="{% url 'productos:lista' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-candy-cane me-2"></i>
+                        Actualizar Información
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <!-- Alertas -->
+                    <div id="alert-container"></div>
+                    
+                    <form id="producto-form" method="post" novalidate>
+                        {% csrf_token %}
+                        
+                        <!-- Información Básica -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="sku" class="form-label">
+                                        SKU <span class="required">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="sku" 
+                                           name="sku" 
+                                           value="{{ producto.sku }}"
+                                           placeholder="Ej: CHOC001"
+                                           required>
+                                    <div class="form-text">Código único del producto</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="nombre" class="form-label">
+                                        Nombre <span class="required">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           class="form-control" 
+                                           id="nombre" 
+                                           name="nombre" 
+                                           value="{{ producto.nombre }}"
+                                           placeholder="Nombre del producto"
+                                           required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea class="form-control" 
+                                      id="descripcion" 
+                                      name="descripcion" 
+                                      rows="3"
+                                      placeholder="Descripción detallada del producto">{{ producto.descripcion|default_if_none:"" }}</textarea>
+                        </div>
+
+                        <!-- Categorización -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="categoria" class="form-label">
+                                        Categoría <span class="required">*</span>
+                                    </label>
+                                    <select class="form-select" id="categoria" name="categoria" required>
+                                        <option value="">Seleccionar categoría</option>
+                                        {% for categoria in categorias %}
+                                            <option value="{{ categoria.id }}" 
+                                                    {% if categoria.id == producto.categoria.id %}selected{% endif %}>
+                                                {{ categoria.nombre }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="marca" class="form-label">Marca</label>
+                                    <select class="form-select" id="marca" name="marca">
+                                        <option value="">Sin marca específica</option>
+                                        {% for marca in marcas %}
+                                            <option value="{{ marca.id }}" 
+                                                    {% if producto.marca and marca.id == producto.marca.id %}selected{% endif %}>
+                                                {{ marca.nombre }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="modelo" class="form-label">Modelo/Presentación</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="modelo" 
+                                   name="modelo" 
+                                   value="{{ producto.modelo|default_if_none:"" }}"
+                                   placeholder="Ej: Bolsa 250g, Caja 12 unidades">
+                        </div>
+
+                        <!-- Precios -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="precio_venta" class="form-label">
+                                        Precio de Venta <span class="required">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="precio_venta" 
+                                               name="precio_venta" 
+                                               value="{{ producto.precio_venta }}"
+                                               step="0.01" 
+                                               min="0.01"
+                                               placeholder="0.00"
+                                               required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="costo_estandar" class="form-label">Costo Estándar</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="number" 
+                                               class="form-control" 
+                                               id="costo_estandar" 
+                                               name="costo_estandar" 
+                                               value="{{ producto.costo_estandar|default_if_none:"" }}"
+                                               step="0.01" 
+                                               min="0.01"
+                                               placeholder="0.00">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Configuración -->
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="impuesto_iva" class="form-label">IVA (%)</label>
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="impuesto_iva" 
+                                           name="impuesto_iva" 
+                                           value="{{ producto.impuesto_iva }}"
+                                           min="0" 
+                                           max="100"
+                                           step="0.01">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="estado" class="form-label">Estado</label>
+                                    <select class="form-select" id="estado" name="estado">
+                                        {% for codigo, nombre in estados %}
+                                            <option value="{{ codigo }}" {% if codigo == producto.estado %}selected{% endif %}>
+                                                {{ nombre }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Controles especiales -->
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           id="perishable" 
+                                           name="perishable"
+                                           {% if producto.perishable %}checked{% endif %}>
+                                    <label class="form-check-label" for="perishable">
+                                        <i class="fas fa-clock text-warning me-1"></i>
+                                        Producto perecedero
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           id="control_por_lote" 
+                                           name="control_por_lote"
+                                           {% if producto.control_por_lote %}checked{% endif %}>
+                                    <label class="form-check-label" for="control_por_lote">
+                                        <i class="fas fa-boxes text-info me-1"></i>
+                                        Control por lote
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" 
+                                           type="checkbox" 
+                                           id="control_por_serie" 
+                                           name="control_por_serie"
+                                           {% if producto.control_por_serie %}checked{% endif %}>
+                                    <label class="form-check-label" for="control_por_serie">
+                                        <i class="fas fa-barcode text-success me-1"></i>
+                                        Control por serie
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Imagen -->
+                        <div class="form-group">
+                            <label for="imagen_url" class="form-label">URL de Imagen</label>
+                            <input type="url" 
+                                   class="form-control" 
+                                   id="imagen_url" 
+                                   name="imagen_url" 
+                                   value="{{ producto.imagen_url|default_if_none:"" }}"
+                                   placeholder="https://ejemplo.com/imagen.jpg">
+                            <div class="form-text">Opcional: URL de la imagen del producto</div>
+                            {% if producto.imagen_url %}
+                                <img id="preview-imagen" class="preview-image" src="{{ producto.imagen_url }}" alt="Vista previa">
+                            {% else %}
+                                <img id="preview-imagen" class="preview-image d-none" alt="Vista previa">
+                            {% endif %}
+                        </div>
+
+                        <!-- Información de auditoría -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="bg-light p-3 rounded">
+                                    <h6 class="text-muted mb-2">
+                                        <i class="fas fa-info-circle me-2"></i>Información de Auditoría
+                                    </h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <small class="text-muted">
+                                                <strong>Creado:</strong> {{ producto.created_at|date:"d/m/Y H:i" }}
+                                            </small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <small class="text-muted">
+                                                <strong>Modificado:</strong> {{ producto.updated_at|date:"d/m/Y H:i" }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    {% if producto.margen_ganancia %}
+                                    <div class="mt-2">
+                                        <small class="text-success">
+                                            <strong>Margen de Ganancia:</strong> {{ producto.margen_ganancia|floatformat:2 }}%
+                                        </small>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-end gap-3">
+                                    <a href="{% url 'productos:detalle' producto.id %}" class="btn btn-outline-info">
+                                        <i class="fas fa-eye me-2"></i>Ver Producto
+                                    </a>
+                                    <a href="{% url 'productos:lista' %}" class="btn btn-outline-secondary">
+                                        <i class="fas fa-times me-2"></i>Cancelar
+                                    </a>
+                                    <button type="submit" class="btn btn-candy" id="btn-guardar">
+                                        <i class="fas fa-save me-2"></i>
+                                        <span id="texto-guardar">Actualizar Producto</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('producto-form');
+    const btnGuardar = document.getElementById('btn-guardar');
+    const textoGuardar = document.getElementById('texto-guardar');
+    const alertContainer = document.getElementById('alert-container');
+    const imagenUrl = document.getElementById('imagen_url');
+    const previewImagen = document.getElementById('preview-imagen');
+
+    // Vista previa de imagen
+    imagenUrl.addEventListener('input', function() {
+        const url = this.value.trim();
+        if (url) {
+            previewImagen.src = url;
+            previewImagen.classList.remove('d-none');
+            previewImagen.onerror = function() {
+                this.classList.add('d-none');
+            };
+        } else {
+            previewImagen.classList.add('d-none');
+        }
+    });
+
+    // Función para mostrar alertas
+    function showAlert(message, type = 'success') {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+        const iconClass = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+        
+        const alertHtml = `
+            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                <i class="fas ${iconClass} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+        
+        alertContainer.innerHTML = alertHtml;
+        
+        // Scroll hasta la alerta
+        alertContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        
+        // Auto-ocultar después de 5 segundos si es éxito
+        if (type === 'success') {
+            setTimeout(() => {
+                const alert = alertContainer.querySelector('.alert');
+                if (alert) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+    }
+
+    // Manejo del envío del formulario
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Cambiar estado del botón
+        btnGuardar.disabled = true;
+        textoGuardar.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Actualizando...';
+        
+        // Limpiar alertas anteriores
+        alertContainer.innerHTML = '';
+        
+        const formData = new FormData(form);
+        
+        fetch('{% url "productos:editar" producto.id %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert(data.message, 'success');
+                
+                // Esperar un momento y redirigir
+                setTimeout(() => {
+                    window.location.href = '{% url "productos:detalle" producto.id %}';
+                }, 2000);
+            } else {
+                showAlert(data.message, 'error');
+                
+                // Restaurar botón
+                btnGuardar.disabled = false;
+                textoGuardar.innerHTML = '<i class="fas fa-save me-2"></i>Actualizar Producto';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showAlert('Error inesperado al actualizar el producto', 'error');
+            
+            // Restaurar botón
+            btnGuardar.disabled = false;
+            textoGuardar.innerHTML = '<i class="fas fa-save me-2"></i>Actualizar Producto';
+        });
+    });
+
+    // Validación en tiempo real
+    const requiredFields = form.querySelectorAll('[required]');
+    requiredFields.forEach(field => {
+        field.addEventListener('blur', function() {
+            if (this.value.trim() === '') {
+                this.classList.add('is-invalid');
+            } else {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        });
+        
+        field.addEventListener('input', function() {
+            if (this.classList.contains('is-invalid') && this.value.trim() !== '') {
+                this.classList.remove('is-invalid');
+                this.classList.add('is-valid');
+            }
+        });
+    });
+
+    // Formateo automático de precios
+    const priceFields = document.querySelectorAll('input[type="number"][step="0.01"]');
+    priceFields.forEach(field => {
+        field.addEventListener('change', function() {
+            if (this.value) {
+                this.value = parseFloat(this.value).toFixed(2);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

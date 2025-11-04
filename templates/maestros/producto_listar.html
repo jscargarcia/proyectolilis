@@ -10,27 +10,6 @@
 
 {% block extra_css %}
 <style>
-.search-filters {
-    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
-    border-radius: 15px;
-    padding: 25px;
-    margin-bottom: 25px;
-    color: white;
-    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
-}
-
-.product-card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    border: none;
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.product-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-}
-
 .product-image {
     width: 60px;
     height: 60px;
@@ -43,21 +22,9 @@
     padding: 4px 8px;
 }
 
-.table-responsive {
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-}
-
-.btn-floating {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    z-index: 1000;
+.sortable {
+    cursor: pointer;
+    user-select: none;
 }
 </style>
 {% endblock %}
@@ -68,142 +35,201 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2><i class="fas fa-boxes me-2"></i>Gestión de Productos</h2>
-            <p class="text-muted mb-0">Total: {{ total_productos }} productos</p>
+            <p class="text-muted mb-0">Total: <span class="badge bg-primary">{{ total_productos }}</span> productos</p>
         </div>
-        <a href="{% url 'producto_crear' %}" class="btn btn-primary">
-            <i class="fas fa-plus me-2"></i>Nuevo Producto
-        </a>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-success" onclick="exportarExcel()">
+                <i class="fas fa-file-excel me-2"></i>Exportar Excel
+            </button>
+            <a href="{% url 'producto_crear' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Nuevo Producto
+            </a>
+        </div>
     </div>
 
     <!-- Filtros y Búsqueda -->
-    <div class="search-filters">
-        <form method="GET" id="filtros-form">
-            <div class="row g-3">
-                <!-- Búsqueda -->
-                <div class="col-md-4">
-                    <label class="form-label">
-                        <i class="fas fa-search me-1"></i>Buscar
-                    </label>
-                    <input type="text" 
-                           class="form-control" 
-                           name="query" 
-                           value="{{ query }}" 
-                           placeholder="SKU, nombre, descripción..."
-                           id="search-input">
-                </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" id="filtros-form">
+                <div class="row g-3">
+                    <!-- Búsqueda -->
+                    <div class="col-md-4">
+                        <label class="form-label">
+                            <i class="fas fa-search me-1"></i>Buscar
+                        </label>
+                        <input type="text" 
+                               class="form-control" 
+                               name="query" 
+                               value="{{ query }}" 
+                               placeholder="SKU, nombre, precio, stock, código barras..."
+                               id="search-input">
+                    </div>
 
-                <!-- Categoría -->
-                <div class="col-md-2">
-                    <label class="form-label">
-                        <i class="fas fa-tags me-1"></i>Categoría
-                    </label>
-                    <select class="form-select" name="categoria" id="categoria-select">
-                        <option value="">Todas</option>
-                        {% for categoria in categorias %}
-                        <option value="{{ categoria.id }}" {% if categoria.id|stringformat:"s" == categoria_id %}selected{% endif %}>
-                            {{ categoria.nombre }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
+                    <!-- Categoría -->
+                    <div class="col-md-2">
+                        <label class="form-label">
+                            <i class="fas fa-tags me-1"></i>Categoría
+                        </label>
+                        <select class="form-select" name="categoria" id="categoria-select">
+                            <option value="">Todas</option>
+                            {% for categoria in categorias %}
+                            <option value="{{ categoria.id }}" {% if categoria.id|stringformat:"s" == categoria_id %}selected{% endif %}>
+                                {{ categoria.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                <!-- Marca -->
-                <div class="col-md-2">
-                    <label class="form-label">
-                        <i class="fas fa-trademark me-1"></i>Marca
-                    </label>
-                    <select class="form-select" name="marca" id="marca-select">
-                        <option value="">Todas</option>
-                        {% for marca in marcas %}
-                        <option value="{{ marca.id }}" {% if marca.id|stringformat:"s" == marca_id %}selected{% endif %}>
-                            {{ marca.nombre }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
+                    <!-- Marca -->
+                    <div class="col-md-2">
+                        <label class="form-label">
+                            <i class="fas fa-trademark me-1"></i>Marca
+                        </label>
+                        <select class="form-select" name="marca" id="marca-select">
+                            <option value="">Todas</option>
+                            {% for marca in marcas %}
+                            <option value="{{ marca.id }}" {% if marca.id|stringformat:"s" == marca_id %}selected{% endif %}>
+                                {{ marca.nombre }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-                <!-- Estado -->
-                <div class="col-md-2">
-                    <label class="form-label">
-                        <i class="fas fa-toggle-on me-1"></i>Estado
-                    </label>
-                    <select class="form-select" name="estado" id="estado-select">
-                        <option value="">Todos</option>
-                        <option value="Activo" {% if estado == 'Activo' %}selected{% endif %}>Activo</option>
-                        <option value="Inactivo" {% if estado == 'Inactivo' %}selected{% endif %}>Inactivo</option>
-                        <option value="Descontinuado" {% if estado == 'Descontinuado' %}selected{% endif %}>Descontinuado</option>
-                        <option value="En Desarrollo" {% if estado == 'En Desarrollo' %}selected{% endif %}>En Desarrollo</option>
-                    </select>
-                </div>
+                    <!-- Estado -->
+                    <div class="col-md-2">
+                        <label class="form-label">
+                            <i class="fas fa-toggle-on me-1"></i>Estado
+                        </label>
+                        <select class="form-select" name="estado" id="estado-select">
+                            <option value="">Todos</option>
+                            <option value="Activo" {% if estado == 'Activo' %}selected{% endif %}>Activo</option>
+                            <option value="Inactivo" {% if estado == 'Inactivo' %}selected{% endif %}>Inactivo</option>
+                            <option value="Descontinuado" {% if estado == 'Descontinuado' %}selected{% endif %}>Descontinuado</option>
+                            <option value="En Desarrollo" {% if estado == 'En Desarrollo' %}selected{% endif %}>En Desarrollo</option>
+                        </select>
+                    </div>
 
-                <!-- Botones -->
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-light me-2">
-                        <i class="fas fa-filter me-1"></i>Filtrar
-                    </button>
-                    <a href="{% url 'producto_listar' %}" class="btn btn-outline-light">
-                        <i class="fas fa-times me-1"></i>Limpiar
-                    </a>
-                </div>
-            </div>
-
-            <!-- Controles adicionales -->
-            <div class="row g-3 mt-2 pt-3 border-top border-light border-opacity-25">
-                <div class="col-md-3">
-                    <label class="form-label">
-                        <i class="fas fa-sort me-1"></i>Ordenar por
-                    </label>
-                    <select class="form-select" name="orden" id="orden-select">
-                        {% for valor, texto in orden_options %}
-                        <option value="{{ valor }}" {% if orden == valor %}selected{% endif %}>
-                            {{ texto }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label">
-                        <i class="fas fa-list me-1"></i>Mostrar
-                    </label>
-                    <select class="form-select" name="items_per_page" id="items-select">
-                        {% for option in items_per_page_options %}
-                        <option value="{{ option }}" {% if items_per_page == option %}selected{% endif %}>
-                            {{ option }} items
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <div class="col-md-7 d-flex align-items-end">
-                    <div class="text-light">
-                        <small>
-                            <i class="fas fa-info-circle me-1"></i>
-                            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-                            ({{ page_obj.start_index }}-{{ page_obj.end_index }} de {{ page_obj.paginator.count }} productos)
-                        </small>
+                    <!-- Botones -->
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="fas fa-filter me-1"></i>Filtrar
+                        </button>
+                        <a href="{% url 'producto_listar' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>Limpiar
+                        </a>
                     </div>
                 </div>
-            </div>
-        </form>
-    </div>
+
+                <!-- Controles adicionales -->
+                <div class="row g-3 mt-2 pt-3 border-top">
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-sort me-1"></i>Ordenar por
+                        </label>
+                        <select class="form-select" name="orden" id="orden-select">
+                            {% for valor, texto in orden_options %}
+                            <option value="{{ valor }}" {% if orden == valor %}selected{% endif %}>
+                                {{ texto }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label">
+                            <i class="fas fa-list me-1"></i>Mostrar
+                        </label>
+                        <select class="form-select" name="items_per_page" id="items-select">
+                            {% for option in items_per_page_options %}
+                            <option value="{{ option }}" {% if items_per_page == option %}selected{% endif %}>
+                                {{ option }} items
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="col-md-7 d-flex align-items-end">
+                        <div class="text-muted">
+                            <small>
+                                <i class="fas fa-info-circle me-1"></i>
+                                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                                ({{ page_obj.start_index }}-{{ page_obj.end_index }} de {{ page_obj.paginator.count }} productos)
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 
     <!-- Tabla de Productos -->
-    <div class="card product-card">
+    <div class="card">
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
                     <thead class="table-dark">
                         <tr>
                             <th width="80">Imagen</th>
-                            <th>SKU</th>
-                            <th>Producto</th>
-                            <th>Categoría</th>
-                            <th>Marca</th>
-                            <th>Precio Venta</th>
-                            <th>Stock Mín.</th>
+                            <th class="sortable" data-field="sku" onclick="ordenarPor('sku')" style="cursor: pointer;">
+                                SKU
+                                {% if orden == 'sku' %}
+                                    <i class="fas fa-sort-up ms-1"></i>
+                                {% elif orden == 'sku_desc' %}
+                                    <i class="fas fa-sort-down ms-1"></i>
+                                {% else %}
+                                    <i class="fas fa-sort ms-1 text-muted"></i>
+                                {% endif %}
+                            </th>
+                            <th class="sortable" data-field="nombre" onclick="ordenarPor('nombre')" style="cursor: pointer;">
+                                Producto
+                                {% if orden == 'nombre' %}
+                                    <i class="fas fa-sort-up ms-1"></i>
+                                {% elif orden == 'nombre_desc' %}
+                                    <i class="fas fa-sort-down ms-1"></i>
+                                {% else %}
+                                    <i class="fas fa-sort ms-1 text-muted"></i>
+                                {% endif %}
+                            </th>
+                            <th class="sortable" data-field="categoria" onclick="ordenarPor('categoria')" style="cursor: pointer;">
+                                Categoría
+                                {% if orden == 'categoria' %}
+                                    <i class="fas fa-sort-up ms-1"></i>
+                                {% elif orden == 'categoria_desc' %}
+                                    <i class="fas fa-sort-down ms-1"></i>
+                                {% else %}
+                                    <i class="fas fa-sort ms-1 text-muted"></i>
+                                {% endif %}
+                            </th>
+                            <th class="sortable" data-field="marca" onclick="ordenarPor('marca')" style="cursor: pointer;">
+                                Marca
+                                {% if orden == 'marca' %}
+                                    <i class="fas fa-sort-up ms-1"></i>
+                                {% elif orden == 'marca_desc' %}
+                                    <i class="fas fa-sort-down ms-1"></i>
+                                {% else %}
+                                    <i class="fas fa-sort ms-1 text-muted"></i>
+                                {% endif %}
+                            </th>
+                            <th class="sortable" data-field="precio" onclick="ordenarPor('precio')" style="cursor: pointer;">
+                                Precio Venta
+                                {% if orden == 'precio' %}
+                                    <i class="fas fa-sort-up ms-1"></i>
+                                {% elif orden == 'precio_desc' %}
+                                    <i class="fas fa-sort-down ms-1"></i>
+                                {% else %}
+                                    <i class="fas fa-sort ms-1 text-muted"></i>
+                                {% endif %}
+                            </th>
+                            <th class="sortable" data-field="stock" onclick="ordenarPor('stock')" style="cursor: pointer;">
+                                Stock Mín.
+                                {% if orden == 'stock' %}
+                                    <i class="fas fa-sort-up ms-1"></i>
+                                {% elif orden == 'stock_desc' %}
+                                    <i class="fas fa-sort-down ms-1"></i>
+                                {% else %}
+                                    <i class="fas fa-sort ms-1 text-muted"></i>
+                                {% endif %}
+                            </th>
                             <th>Estado</th>
                             <th width="150">Acciones</th>
                         </tr>
@@ -281,7 +307,8 @@
                                        title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <button onclick="confirmarEliminar({{ producto.pk }}, '{{ producto.nombre|escapejs }}')" 
+                                    <button type="button"
+                                            onclick="confirmarEliminar({{ producto.pk }}, '{{ producto.nombre|escapejs }}')" 
                                             class="btn btn-outline-danger" 
                                             title="Eliminar">
                                         <i class="fas fa-trash"></i>
@@ -312,7 +339,7 @@
     <!-- Paginación -->
     {% if page_obj.has_other_pages %}
     <nav aria-label="Paginación de productos" class="mt-4">
-        <ul class="pagination">
+        <ul class="pagination justify-content-center">
             {% if page_obj.has_previous %}
             <li class="page-item">
                 <a class="page-link" href="?{% if query %}query={{ query }}&{% endif %}{% if categoria_id %}categoria={{ categoria_id }}&{% endif %}{% if marca_id %}marca={{ marca_id }}&{% endif %}{% if estado %}estado={{ estado }}&{% endif %}orden={{ orden }}&items_per_page={{ items_per_page }}&page=1">
@@ -355,10 +382,7 @@
     {% endif %}
 </div>
 
-<!-- Botón flotante para crear -->
-<a href="{% url 'producto_crear' %}" class="btn btn-primary btn-floating" title="Nuevo Producto">
-    <i class="fas fa-plus"></i>
-</a>
+
 {% endblock %}
 
 {% block extra_js %}
@@ -367,11 +391,35 @@
 <script>
 console.log('🔍 Verificando jQuery en lista:', typeof $ !== 'undefined' ? '✅' : '❌');
 console.log('🔍 Verificando SweetAlert2 en lista:', typeof Swal !== 'undefined' ? '✅' : '❌');
+
+// Test de ordenamiento después de cargar la página
+setTimeout(function() {
+    console.log('🧪 Ejecutando test de ordenamiento...');
+    console.log('Headers ordenables:', $('.sortable').length);
+    $('.sortable').each(function(index) {
+        const field = $(this).data('field');
+        console.log(`Header ${index + 1}: Campo "${field}"`);
+    });
+    
+    // Test del select de ordenamiento
+    const ordenSelect = $('#orden-select');
+    console.log('Select de ordenamiento encontrado:', ordenSelect.length > 0);
+    if (ordenSelect.length > 0) {
+        console.log('Opciones disponibles:');
+        ordenSelect.find('option').each(function() {
+            console.log(`- ${$(this).val()}: ${$(this).text()}`);
+        });
+    }
+}, 1000);
 </script>
 <script>
 $(document).ready(function() {
+    console.log('🔧 Inicializando controles de productos...');
+    console.log('🔍 Headers ordenables encontrados:', $('.sortable').length);
+    
     // Auto-submit en cambios de select
     $('#categoria-select, #marca-select, #estado-select, #orden-select, #items-select').change(function() {
+        console.log('📝 Cambio en select:', $(this).attr('id'), 'Valor:', $(this).val());
         $('#filtros-form').submit();
     });
 
@@ -379,11 +427,119 @@ $(document).ready(function() {
     let searchTimeout;
     $('#search-input').on('input', function() {
         clearTimeout(searchTimeout);
+        const query = $(this).val();
+        console.log('🔍 Búsqueda:', query);
         searchTimeout = setTimeout(function() {
             $('#filtros-form').submit();
         }, 500);
     });
+    
+    // Ordenamiento por click en encabezados
+    $('.sortable').click(function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const $this = $(this);
+        const field = $this.data('field');
+        const currentOrder = '{{ orden }}';
+        let newOrder = field;
+        
+        console.log('🔄 Click en ordenamiento - Campo:', field, 'Orden actual:', currentOrder);
+        
+        if (!field) {
+            console.error('❌ Campo no definido para el header clickeado');
+            return;
+        }
+        
+        // Lógica de ordenamiento
+        if (currentOrder === field) {
+            newOrder = field + '_desc';
+            console.log('🔽 Cambiando a descendente');
+        } else if (currentOrder === field + '_desc') {
+            newOrder = field;
+            console.log('🔼 Cambiando a ascendente');
+        } else {
+            newOrder = field;
+            console.log('🆕 Primer ordenamiento por este campo');
+        }
+        
+        console.log('📋 Nuevo orden:', newOrder);
+        
+        // Verificar que el select existe y tiene la opción
+        const $ordenSelect = $('#orden-select');
+        if ($ordenSelect.length === 0) {
+            console.error('❌ Select de ordenamiento no encontrado');
+            return;
+        }
+        
+        // Verificar que la opción existe en el select
+        const optionExists = $ordenSelect.find(`option[value="${newOrder}"]`).length > 0;
+        console.log('🔍 Opción existe en select:', optionExists);
+        
+        if (!optionExists) {
+            console.warn('⚠️ Opción no existe, usando ordenamiento directo por URL');
+            // Si la opción no existe en el select, navegar directamente
+            const currentUrl = new URL(window.location);
+            currentUrl.searchParams.set('orden', newOrder);
+            window.location.href = currentUrl.toString();
+            return;
+        }
+        
+        // Cambiar el valor del select
+        $ordenSelect.val(newOrder);
+        console.log('🔍 Valor del select después del cambio:', $ordenSelect.val());
+        
+        // Enviar formulario
+        $('#filtros-form').submit();
+    });
 });
+
+// Función simplificada para ordenamiento directo por URL
+function ordenarPor(campo) {
+    console.log('🔄 CLICK EN ORDENAMIENTO - Campo:', campo);
+    
+    // Feedback visual inmediato
+    const header = $(`[data-field="${campo}"]`);
+    if (header.length > 0) {
+        header.css('background-color', 'rgba(255, 255, 255, 0.2)');
+        setTimeout(() => {
+            header.css('background-color', '');
+        }, 200);
+    }
+    
+    const currentOrder = '{{ orden }}';
+    let newOrder = campo;
+    
+    console.log('📊 Estado actual del ordenamiento:', currentOrder);
+    
+    // Lógica de toggle para el ordenamiento
+    if (currentOrder === campo) {
+        newOrder = campo + '_desc';
+        console.log('🔽 Cambiando a orden descendente');
+    } else if (currentOrder === campo + '_desc') {
+        newOrder = campo;
+        console.log('🔼 Cambiando a orden ascendente');
+    } else {
+        newOrder = campo;
+        console.log('🆕 Estableciendo orden ascendente inicial');
+    }
+    
+    console.log('📋 Nuevo orden determinado:', newOrder);
+    
+    // Construir URL manteniendo todos los parámetros actuales
+    const currentUrl = new URL(window.location.href);
+    currentUrl.searchParams.set('orden', newOrder);
+    
+    // Asegurar que se mantenga en la página 1 al cambiar orden
+    currentUrl.searchParams.set('page', '1');
+    
+    const finalUrl = currentUrl.toString();
+    console.log('🔗 URL final para navegación:', finalUrl);
+    
+    // Mostrar loading breve y navegar
+    console.log('🚀 Navegando a nueva URL...');
+    window.location.href = finalUrl;
+}
 
 function confirmarEliminar(id, nombre) {
     console.log('🔔 Confirmación de eliminación para producto:', id, nombre);
@@ -476,6 +632,49 @@ function eliminarProducto(id) {
             });
         }
     });
+}
+
+function exportarExcel() {
+    console.log('📊 Iniciando exportación a Excel...');
+    
+    // Mostrar mensaje de carga
+    Swal.fire({
+        title: 'Exportando datos...',
+        text: 'Por favor espera mientras preparamos tu archivo Excel',
+        icon: 'info',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        willOpen: () => {
+            Swal.showLoading();
+        }
+    });
+    
+    // Construir URL con los filtros actuales
+    const urlParams = new URLSearchParams(window.location.search);
+    const exportUrl = '{% url "productos_exportar_excel" %}?' + urlParams.toString();
+    
+    console.log('🔗 URL de exportación:', exportUrl);
+    
+    // Crear elemento de descarga invisible
+    const link = document.createElement('a');
+    link.href = exportUrl;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    
+    // Simular click para descargar
+    link.click();
+    document.body.removeChild(link);
+    
+    // Cerrar mensaje de carga después de un momento
+    setTimeout(() => {
+        Swal.fire({
+            title: '¡Exportación completada!',
+            text: 'El archivo Excel se ha descargado correctamente',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }, 1500);
 }
 </script>
 {% endblock %}

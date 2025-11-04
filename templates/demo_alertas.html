@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Demo de Alertas - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .demo-section {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .demo-button {
+        margin: 8px;
+        min-width: 150px;
+    }
+    
+    .demo-form {
+        max-width: 500px;
+        margin: 0 auto;
+    }
+    
+    .page-title {
+        color: #2d3748;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .section-title {
+        color: #dc2626;
+        font-weight: 600;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #fee2e2;
+        padding-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h1 class="page-title">
+        <i class="fas fa-bell me-3"></i>
+        Demo del Sistema de Alertas
+    </h1>
+    
+    <!-- Alertas SweetAlert2 -->
+    <div class="demo-section">
+        <h3 class="section-title">
+            <i class="fas fa-magic me-2"></i>
+            Alertas SweetAlert2
+        </h3>
+        <p class="text-muted mb-4">Alertas modales con estilos personalizados</p>
+        
+        <div class="text-center">
+            <button class="btn btn-success demo-button" onclick="showSuccess('¡Producto creado!', 'El producto se ha guardado correctamente en el sistema.')">
+                <i class="fas fa-check me-2"></i>Éxito
+            </button>
+            
+            <button class="btn btn-danger demo-button" onclick="showError('Error de validación', ['El SKU es requerido', 'El precio debe ser mayor a 0', 'Selecciona una categoría'])">
+                <i class="fas fa-exclamation-circle me-2"></i>Error
+            </button>
+            
+            <button class="btn btn-warning demo-button" onclick="showWarning('Stock bajo', 'El producto tiene menos de 5 unidades en stock.')">
+                <i class="fas fa-exclamation-triangle me-2"></i>Advertencia
+            </button>
+            
+            <button class="btn btn-info demo-button" onclick="showInfo('Nueva actualización', 'Se ha actualizado el sistema a la versión 2.1.0')">
+                <i class="fas fa-info-circle me-2"></i>Información
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="demo-section">
+        <h3 class="section-title">
+            <i class="fas fa-toast me-2"></i>
+            Notificaciones Toast
+        </h3>
+        <p class="text-muted mb-4">Notificaciones flotantes en la esquina</p>
+        
+        <div class="text-center">
+            <button class="btn btn-success demo-button" onclick="showSuccess('¡Guardado!', 'Los cambios se guardaron exitosamente.', true)">
+                <i class="fas fa-check me-2"></i>Toast Éxito
+            </button>
+            
+            <button class="btn btn-danger demo-button" onclick="showError('¡Error!', 'No se pudo conectar con el servidor.', true)">
+                <i class="fas fa-times me-2"></i>Toast Error
+            </button>
+            
+            <button class="btn btn-warning demo-button" onclick="showWarning('¡Atención!', 'La sesión expirará en 5 minutos.', true)">
+                <i class="fas fa-clock me-2"></i>Toast Advertencia
+            </button>
+            
+            <button class="btn btn-info demo-button" onclick="showInfo('¡Novedad!', 'Tienes 3 notificaciones nuevas.', true)">
+                <i class="fas fa-bell me-2"></i>Toast Info
+            </button>
+        </div>
+    </div>
+
+    <!-- Confirmaciones -->
+    <div class="demo-section">
+        <h3 class="section-title">
+            <i class="fas fa-question-circle me-2"></i>
+            Confirmaciones
+        </h3>
+        <p class="text-muted mb-4">Dialogs de confirmación para acciones importantes</p>
+        
+        <div class="text-center">
+            <button class="btn btn-danger demo-button" onclick="demoEliminar()">
+                <i class="fas fa-trash me-2"></i>Confirmar Eliminación
+            </button>
+            
+            <button class="btn btn-secondary demo-button" onclick="demoGuardar()">
+                <i class="fas fa-save me-2"></i>Confirmar Guardar
+            </button>
+            
+            <button class="btn btn-primary demo-button" onclick="demoLoading()">
+                <i class="fas fa-spinner me-2"></i>Mostrar Loading
+            </button>
+        </div>
+    </div>
+
+    <!-- Formulario con Validación -->
+    <div class="demo-section">
+        <h3 class="section-title">
+            <i class="fas fa-form me-2"></i>
+            Validación de Formularios
+        </h3>
+        <p class="text-muted mb-4">Validación en tiempo real con feedback visual</p>
+        
+        <form class="demo-form needs-validation" novalidate>
+            <div class="mb-3">
+                <label for="demoNombre" class="form-label">Nombre *</label>
+                <input type="text" class="form-control" id="demoNombre" name="nombre" required minlength="3">
+            </div>
+            
+            <div class="mb-3">
+                <label for="demoEmail" class="form-label">Email *</label>
+                <input type="email" class="form-control" id="demoEmail" name="email" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="demoPrecio" class="form-label">Precio *</label>
+                <input type="number" class="form-control" id="demoPrecio" name="precio" required min="0" step="0.01">
+            </div>
+            
+            <div class="mb-3">
+                <label for="demoTelefono" class="form-label">Teléfono</label>
+                <input type="tel" class="form-control" id="demoTelefono" name="telefono">
+            </div>
+            
+            <div class="mb-3">
+                <label for="demoDescripcion" class="form-label">Descripción</label>
+                <textarea class="form-control" id="demoDescripcion" name="descripcion" rows="3" maxlength="200"></textarea>
+            </div>
+            
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane me-2"></i>Enviar Formulario
+                </button>
+                <button type="button" class="btn btn-secondary ms-2" onclick="limpiarFormulario()">
+                    <i class="fas fa-broom me-2"></i>Limpiar
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Ejemplos de Alertas en Página -->
+    <div class="demo-section">
+        <h3 class="section-title">
+            <i class="fas fa-exclamation me-2"></i>
+            Alertas en Página
+        </h3>
+        <p class="text-muted mb-4">Alertas incrustadas en la página</p>
+        
+        <div class="validation-alert success">
+            <div class="alert-content">
+                <div class="alert-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="alert-body">
+                    <div class="alert-title">¡Operación exitosa!</div>
+                    <div class="alert-message">El producto se ha guardado correctamente en el sistema.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="validation-alert error">
+            <div class="alert-content">
+                <div class="alert-icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="alert-body">
+                    <div class="alert-title">Errores de validación</div>
+                    <div class="alert-message">
+                        Se encontraron los siguientes errores:
+                        <ul class="alert-errors">
+                            <li>El campo SKU es requerido</li>
+                            <li>El precio debe ser mayor a 0</li>
+                            <li>Debe seleccionar una categoría</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="validation-alert warning">
+            <div class="alert-content">
+                <div class="alert-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="alert-body">
+                    <div class="alert-title">Stock bajo</div>
+                    <div class="alert-message">Algunos productos tienen stock por debajo del mínimo recomendado.</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="validation-alert info">
+            <div class="alert-content">
+                <div class="alert-icon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <div class="alert-body">
+                    <div class="alert-title">Información importante</div>
+                    <div class="alert-message">El sistema se actualizará automáticamente esta noche a las 02:00.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Funciones para demos
+function demoEliminar() {
+    showConfirm({
+        title: '¿Eliminar producto?',
+        text: 'Esta acción no se puede deshacer',
+        icon: 'warning',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            showSuccess('¡Eliminado!', 'El producto ha sido eliminado correctamente.');
+        }
+    });
+}
+
+function demoGuardar() {
+    showConfirm({
+        title: '¿Guardar cambios?',
+        text: 'Se guardarán todos los cambios realizados',
+        icon: 'question',
+        confirmButtonText: 'Sí, guardar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            showLoading('Guardando cambios...');
+            setTimeout(() => {
+                hideLoading();
+                showSuccess('¡Guardado!', 'Los cambios se han guardado correctamente.');
+            }, 2000);
+        }
+    });
+}
+
+function demoLoading() {
+    showLoading('Procesando datos...');
+    setTimeout(() => {
+        hideLoading();
+        showInfo('¡Completado!', 'El proceso ha terminado exitosamente.');
+    }, 3000);
+}
+
+function limpiarFormulario() {
+    const form = document.querySelector('.demo-form');
+    form.reset();
+    
+    // Limpiar validaciones
+    const inputs = form.querySelectorAll('input, textarea');
+    inputs.forEach(input => {
+        input.classList.remove('is-valid', 'is-invalid');
+        const feedback = input.parentElement.querySelector('.invalid-feedback, .valid-feedback');
+        if (feedback) {
+            feedback.remove();
+        }
+    });
+    
+    showInfo('Formulario limpiado', 'Se han limpiado todos los campos del formulario.');
+}
+
+// Interceptar envío de formulario demo
+document.addEventListener('DOMContentLoaded', function() {
+    const demoForm = document.querySelector('.demo-form');
+    if (demoForm) {
+        demoForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            showLoading('Validando formulario...');
+            
+            setTimeout(() => {
+                hideLoading();
+                showSuccess('¡Formulario válido!', 'Todos los campos han sido validados correctamente.');
+            }, 1500);
+        });
+    }
+});
+</script>
+{% endblock %}

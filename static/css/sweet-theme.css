@@ -1,0 +1,186 @@
+/* CSS adicional para iconos y elementos de dulcería */
+
+/* Iconos personalizados para dulcería */
+.candy-icon::before {
+    content: '🍭';
+    font-size: 1.2em;
+    margin-right: 8px;
+}
+
+.lollipop-icon::before {
+    content: '🍭';
+    font-size: 1.5em;
+    margin-right: 10px;
+}
+
+.sweet-icon::before {
+    content: '🧁';
+    font-size: 1.2em;
+    margin-right: 8px;
+}
+
+.candy-bg {
+    background: linear-gradient(135deg, 
+        #ff6b9d 0%, 
+        #ffc3a0 25%, 
+        #ff9a9e 50%, 
+        #fecfef 75%, 
+        #ffeef4 100%);
+}
+
+/* Animación de flotación para elementos dulces */
+.float-animation {
+    animation: sweetFloat 6s ease-in-out infinite;
+}
+
+@keyframes sweetFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    25% { transform: translateY(-10px) rotate(2deg); }
+    50% { transform: translateY(-5px) rotate(-1deg); }
+    75% { transform: translateY(-15px) rotate(1deg); }
+}
+
+/* Partículas de azúcar en el fondo */
+.sugar-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.sugar-particles::before,
+.sugar-particles::after {
+    content: '✨';
+    position: absolute;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    animation: sparkle 4s infinite linear;
+}
+
+.sugar-particles::before {
+    top: 20%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.sugar-particles::after {
+    top: 60%;
+    right: 15%;
+    animation-delay: 2s;
+}
+
+@keyframes sparkle {
+    0% { 
+        opacity: 0;
+        transform: translateY(0px) scale(0.5);
+    }
+    50% { 
+        opacity: 1;
+        transform: translateY(-20px) scale(1);
+    }
+    100% { 
+        opacity: 0;
+        transform: translateY(-40px) scale(0.5);
+    }
+}
+
+/* Mejoras al header con tema dulce */
+.auth-header.sweet-theme {
+    background: linear-gradient(135deg, 
+        #ff6b9d 0%, 
+        #ff8a80 50%, 
+        #ffc3a0 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-header.sweet-theme::after {
+    content: '🍭 🧁 🍬 🍪 🎂';
+    position: absolute;
+    top: 5px;
+    right: 20px;
+    font-size: 14px;
+    opacity: 0.3;
+    animation: sweetScroll 20s linear infinite;
+}
+
+@keyframes sweetScroll {
+    0% { transform: translateX(100px); }
+    100% { transform: translateX(-300px); }
+}
+
+/* Botones con tema dulce */
+.btn-sweet {
+    background: linear-gradient(135deg, #ff6b9d 0%, #ff8a80 100%);
+    border: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-sweet::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.3), 
+        transparent);
+    transition: left 0.6s;
+}
+
+.btn-sweet:hover::before {
+    left: 100%;
+}
+
+/* Cards con bordes dulces */
+.sweet-card {
+    border: 3px solid transparent;
+    background: linear-gradient(white, white) padding-box,
+                linear-gradient(135deg, #ff6b9d, #ffc3a0, #ff9a9e) border-box;
+}
+
+/* Input fields con tema dulce */
+.sweet-input {
+    border: 2px solid #ffb3ba;
+    background: linear-gradient(135deg, #fff 0%, #fff5f8 100%);
+}
+
+.sweet-input:focus {
+    border-color: #ff6b9d;
+    box-shadow: 0 0 0 3px rgba(255, 107, 157, 0.2);
+    background: white;
+}
+
+/* Efectos de hover mejorados */
+.auth-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 
+        0 30px 60px rgba(255, 107, 157, 0.15),
+        0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+    transition: all 0.4s ease;
+}
+
+/* Decoraciones adicionales */
+.sweet-decoration {
+    position: absolute;
+    font-size: 20px;
+    opacity: 0.1;
+    pointer-events: none;
+    animation: gentleFloat 8s ease-in-out infinite;
+}
+
+.sweet-decoration:nth-child(1) { top: 10%; left: 5%; animation-delay: 0s; }
+.sweet-decoration:nth-child(2) { top: 20%; right: 10%; animation-delay: 2s; }
+.sweet-decoration:nth-child(3) { bottom: 30%; left: 8%; animation-delay: 4s; }
+.sweet-decoration:nth-child(4) { bottom: 10%; right: 5%; animation-delay: 6s; }
+
+@keyframes gentleFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    25% { transform: translateY(-15px) rotate(-2deg); }
+    50% { transform: translateY(-10px) rotate(2deg); }
+    75% { transform: translateY(-20px) rotate(-1deg); }
+}

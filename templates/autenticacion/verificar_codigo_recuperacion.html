@@ -1,0 +1,391 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Código - Dulcería Lilis</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <!-- Estilos personalizados -->
+    <link href="{% static 'css/auth-styles.css' %}" rel="stylesheet">
+    <link href="{% static 'css/sweet-theme.css' %}" rel="stylesheet">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="sweet-decoration">🍭</div>
+        <div class="sweet-decoration">🧁</div>
+        <div class="sweet-decoration">🍬</div>
+        <div class="sweet-decoration">🍪</div>
+        <div class="auth-card sweet-card fade-in">
+            <div class="auth-header sweet-theme">
+                <div class="sugar-particles"></div>
+                <h1>
+                    <span class="sweet-icon"></span>
+                    Verificar Código
+                </h1>
+                <p class="mb-0 mt-2 opacity-75">🍭 Dulcería Lilis 🧁</p>
+            </div>
+            
+            <div class="auth-body">
+                <!-- Información del usuario -->
+                <div class="user-info">
+                    <h5>
+                        <i class="fas fa-user-check"></i>
+                        Verificación de Identidad
+                    </h5>
+                    <p><strong>Email:</strong> {{ email }}</p>
+                    <p><strong>Tiempo restante:</strong> <span class="countdown-timer" id="countdown">10:00</span></p>
+                </div>
+                
+                <form id="formVerificarCodigo" method="post" action="{% url 'verificar_codigo_recuperacion' %}">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="codigo" class="form-label">
+                            <i class="fas fa-key"></i>
+                            Código de Verificación
+                        </label>
+                        <input type="text" 
+                               class="form-control codigo-input" 
+                               id="codigo" 
+                               name="codigo" 
+                               required 
+                               maxlength="6"
+                               pattern="[0-9]{6}"
+                               placeholder="000000"
+                               autocomplete="one-time-code">
+                    </div>
+                    
+                    <div class="help-box">
+                        <h6>
+                            <i class="fas fa-info-circle"></i>
+                            Instrucciones
+                        </h6>
+                        <ul class="mb-0">
+                            <li>Revisa tu bandeja de entrada y spam</li>
+                            <li>El código tiene 6 dígitos numéricos</li>
+                            <li>Es válido por 10 minutos solamente</li>
+                            <li>Solo puedes usarlo una vez</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Nuevas contraseñas -->
+                    <div class="form-group">
+                        <label for="new_password1" class="form-label">
+                            <i class="fas fa-lock"></i>
+                            Nueva Contraseña
+                        </label>
+                        <div style="position: relative;">
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="new_password1" 
+                                   name="new_password1" 
+                                   required 
+                                   placeholder="Ingresa tu nueva contraseña">
+                            <span class="show-password" onclick="togglePassword('new_password1')">
+                                <i class="fas fa-eye" id="eye-new_password1"></i>
+                            </span>
+                        </div>
+                        <div class="password-strength" id="strength-bar"></div>
+                        <div class="password-requirements" id="password-requirements">
+                            <div class="requirement" id="length-req">
+                                <i class="fas fa-times-circle"></i>
+                                Al menos 8 caracteres
+                            </div>
+                            <div class="requirement" id="upper-req">
+                                <i class="fas fa-times-circle"></i>
+                                Una letra mayúscula
+                            </div>
+                            <div class="requirement" id="lower-req">
+                                <i class="fas fa-times-circle"></i>
+                                Una letra minúscula
+                            </div>
+                            <div class="requirement" id="number-req">
+                                <i class="fas fa-times-circle"></i>
+                                Un número
+                            </div>
+                            <div class="requirement" id="special-req">
+                                <i class="fas fa-times-circle"></i>
+                                Un carácter especial (@$!%*?&)
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="new_password2" class="form-label">
+                            <i class="fas fa-lock"></i>
+                            Confirmar Nueva Contraseña
+                        </label>
+                        <div style="position: relative;">
+                            <input type="password" 
+                                   class="form-control" 
+                                   id="new_password2" 
+                                   name="new_password2" 
+                                   required 
+                                   placeholder="Confirma tu nueva contraseña">
+                            <span class="show-password" onclick="togglePassword('new_password2')">
+                                <i class="fas fa-eye" id="eye-new_password2"></i>
+                            </span>
+                        </div>
+                        <div class="invalid-feedback" id="password-match-feedback" style="display: none;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            Las contraseñas no coinciden
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-sweet mb-3" id="submitBtn">
+                        <span class="sweet-icon"></span>
+                        Cambiar Contraseña
+                    </button>
+                    
+                    <a href="{% url 'recuperar_password' %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>
+                        Solicitar Nuevo Código
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configuración inicial
+        const form = document.getElementById('formVerificarCodigo');
+        const submitBtn = document.getElementById('submitBtn');
+        const originalText = submitBtn.innerHTML;
+        
+        // Countdown timer
+        let timeLeft = 600; // 10 minutos en segundos
+        const countdownElement = document.getElementById('countdown');
+        
+        function updateCountdown() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            countdownElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                clearInterval(countdownInterval);
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Código Expirado',
+                    text: 'El código ha expirado. Solicita uno nuevo.',
+                    confirmButtonText: 'Solicitar Nuevo Código'
+                }).then(() => {
+                    window.location.href = '{% url "recuperar_password" %}';
+                });
+            }
+            timeLeft--;
+        }
+        
+        const countdownInterval = setInterval(updateCountdown, 1000);
+        updateCountdown();
+        
+        // Validación del código en tiempo real
+        const codigoInput = document.getElementById('codigo');
+        codigoInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            if (this.value.length === 6) {
+                this.classList.add('is-valid');
+                this.classList.remove('is-invalid');
+            } else if (this.value.length > 0) {
+                this.classList.add('is-invalid');
+                this.classList.remove('is-valid');
+            } else {
+                this.classList.remove('is-valid', 'is-invalid');
+            }
+        });
+        
+        // Validación de contraseña
+        const passwordInput = document.getElementById('new_password1');
+        const confirmPasswordInput = document.getElementById('new_password2');
+        const strengthBar = document.getElementById('strength-bar');
+        
+        function checkPasswordStrength(password) {
+            const requirements = {
+                length: password.length >= 8,
+                upper: /[A-Z]/.test(password),
+                lower: /[a-z]/.test(password),
+                number: /[0-9]/.test(password),
+                special: /[@$!%*?&]/.test(password)
+            };
+            
+            // Actualizar indicadores visuales
+            Object.keys(requirements).forEach(req => {
+                const element = document.getElementById(req + '-req');
+                const icon = element.querySelector('i');
+                if (requirements[req]) {
+                    element.classList.add('valid');
+                    element.classList.remove('invalid');
+                    icon.className = 'fas fa-check-circle';
+                } else {
+                    element.classList.add('invalid');
+                    element.classList.remove('valid');
+                    icon.className = 'fas fa-times-circle';
+                }
+            });
+            
+            // Calcular fortaleza
+            const score = Object.values(requirements).filter(Boolean).length;
+            if (score < 3) {
+                strengthBar.className = 'password-strength weak';
+            } else if (score < 5) {
+                strengthBar.className = 'password-strength medium';
+            } else {
+                strengthBar.className = 'password-strength strong';
+            }
+            
+            return score >= 4; // Requiere al menos 4 de 5 criterios
+        }
+        
+        passwordInput.addEventListener('input', function() {
+            const isStrong = checkPasswordStrength(this.value);
+            if (this.value && isStrong) {
+                this.classList.add('is-valid');
+                this.classList.remove('is-invalid');
+            } else if (this.value) {
+                this.classList.add('is-invalid');
+                this.classList.remove('is-valid');
+            } else {
+                this.classList.remove('is-valid', 'is-invalid');
+                strengthBar.className = 'password-strength';
+            }
+            
+            // Revalidar confirmación
+            if (confirmPasswordInput.value) {
+                checkPasswordMatch();
+            }
+        });
+        
+        function checkPasswordMatch() {
+            const feedback = document.getElementById('password-match-feedback');
+            if (confirmPasswordInput.value === passwordInput.value && passwordInput.value) {
+                confirmPasswordInput.classList.add('is-valid');
+                confirmPasswordInput.classList.remove('is-invalid');
+                feedback.style.display = 'none';
+                return true;
+            } else if (confirmPasswordInput.value) {
+                confirmPasswordInput.classList.add('is-invalid');
+                confirmPasswordInput.classList.remove('is-valid');
+                feedback.style.display = 'block';
+                return false;
+            } else {
+                confirmPasswordInput.classList.remove('is-valid', 'is-invalid');
+                feedback.style.display = 'none';
+                return false;
+            }
+        }
+        
+        confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+        
+        // Envío del formulario
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validaciones finales
+            const codigo = codigoInput.value.trim();
+            const nuevaPassword = passwordInput.value;
+            const confirmarPassword = confirmPasswordInput.value;
+            
+            if (codigo.length !== 6) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Código inválido',
+                    text: 'El código debe tener exactamente 6 dígitos'
+                });
+                return;
+            }
+            
+            if (!checkPasswordStrength(nuevaPassword)) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Contraseña débil',
+                    text: 'La contraseña debe cumplir con los requisitos de seguridad'
+                });
+                return;
+            }
+            
+            if (nuevaPassword !== confirmarPassword) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Las contraseñas no coinciden'
+                });
+                return;
+            }
+            
+            // Mostrar estado de carga
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Cambiando contraseña...';
+            submitBtn.disabled = true;
+            
+            // Envío AJAX
+            fetch(form.action, {
+                method: 'POST',
+                body: new FormData(form),
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    clearInterval(countdownInterval);
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Contraseña cambiada!',
+                        text: data.message,
+                        confirmButtonText: 'Ir al Login',
+                        allowOutsideClick: false,
+                        timer: 5000
+                    }).then(() => {
+                        window.location.href = data.redirect_url || '/auth/login/';
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'No se pudo cambiar la contraseña'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de conexión',
+                    text: 'No se pudo conectar con el servidor. Inténtalo nuevamente.'
+                });
+            })
+            .finally(() => {
+                // Restaurar botón
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+    });
+    
+    // Función para mostrar/ocultar contraseñas
+    function togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        const icon = document.getElementById('eye-' + fieldId);
+        
+        if (field.type === 'password') {
+            field.type = 'text';
+            icon.className = 'fas fa-eye-slash';
+        } else {
+            field.type = 'password';
+            icon.className = 'fas fa-eye';
+        }
+    }
+    </script>
+</body>
+</html>

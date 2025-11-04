@@ -128,6 +128,8 @@ class Producto(models.Model):
     control_por_serie = models.BooleanField(default=False)
     
     # Archivos
+    imagen = models.ImageField(upload_to='productos/', null=True, blank=True, 
+                              help_text='Imagen del producto (JPG, PNG, máx 5MB)')
     imagen_url = models.URLField(max_length=500, null=True, blank=True)
     ficha_tecnica_url = models.URLField(max_length=500, null=True, blank=True)
     

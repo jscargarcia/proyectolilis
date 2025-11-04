@@ -1,0 +1,564 @@
+/* Estilos personalizados para páginas de autenticación */
+/* Dulcería Lilis - Sistema de Autenticación */
+
+:root {
+    --primary-color: #dc2626;
+    --primary-hover: #b91c1c;
+    --secondary-color: #6b7280;
+    --success-color: #059669;
+    --warning-color: #d97706;
+    --danger-color: #dc2626;
+    --light-bg: #f8fafc;
+    --card-bg: rgba(255, 255, 255, 0.95);
+    --shadow-primary: rgba(220, 38, 38, 0.3);
+    --gradient-primary: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+    --gradient-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Reset y configuración base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--gradient-bg);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* Contenedor principal de autenticación */
+.auth-container {
+    min-height: 100vh;
+    background: var(--gradient-bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="rgba(255,255,255,0.1)"/></svg>') repeat;
+    animation: float 20s infinite linear;
+}
+
+@keyframes float {
+    0% { transform: translateY(0px) translateX(0px); }
+    33% { transform: translateY(-10px) translateX(5px); }
+    66% { transform: translateY(-5px) translateX(-5px); }
+    100% { transform: translateY(0px) translateX(0px); }
+}
+
+/* Tarjeta de autenticación */
+.auth-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(15px);
+    border-radius: 25px;
+    box-shadow: 
+        0 25px 50px rgba(0, 0, 0, 0.15),
+        0 0 0 1px rgba(255, 255, 255, 0.3) inset;
+    overflow: hidden;
+    max-width: 600px;
+    width: 100%;
+    margin: 20px;
+    position: relative;
+    z-index: 10;
+    animation: cardEnter 0.8s ease-out;
+}
+
+@keyframes cardEnter {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Header de la tarjeta */
+.auth-header {
+    background: var(--gradient-primary);
+    color: white;
+    padding: 35px 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+    );
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+.auth-header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.auth-header i {
+    font-size: 2rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+/* Cuerpo de la tarjeta */
+.auth-body {
+    padding: 40px 30px;
+    background: var(--light-bg);
+    position: relative;
+}
+
+/* Información del usuario */
+.user-info {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 1px solid #93c5fd;
+    border-radius: 15px;
+    padding: 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.user-info::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #1d4ed8, #3b82f6);
+    background-size: 200% 100%;
+    animation: gradientShift 3s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.user-info h5 {
+    color: #1e40af;
+    margin-bottom: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.1rem;
+}
+
+.user-info p {
+    margin: 8px 0;
+    color: #374151;
+    font-weight: 500;
+}
+
+.user-info strong {
+    color: #1e40af;
+}
+
+/* Grupos de formulario */
+.form-group {
+    margin-bottom: 25px;
+    position: relative;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+}
+
+.form-label i {
+    color: var(--primary-color);
+    width: 16px;
+    text-align: center;
+}
+
+/* Controles de formulario */
+.form-control {
+    border: 2px solid #e5e7eb;
+    border-radius: 15px;
+    padding: 15px 18px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    width: 100%;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 
+        0 0 0 3px rgba(220, 38, 38, 0.1),
+        0 4px 12px rgba(220, 38, 38, 0.15);
+    outline: none;
+    transform: translateY(-1px);
+}
+
+.form-control::placeholder {
+    color: #9ca3af;
+    font-weight: 400;
+}
+
+/* Campo de código especial */
+.codigo-input {
+    text-align: center;
+    font-size: 1.8rem;
+    letter-spacing: 0.8rem;
+    font-weight: bold;
+    font-family: 'Courier New', monospace;
+    background: linear-gradient(135deg, #fff 0%, #f8fafc 100%);
+    border: 3px solid #e5e7eb;
+    padding: 20px 15px;
+}
+
+.codigo-input:focus {
+    border-color: var(--primary-color);
+    background: white;
+    box-shadow: 
+        0 0 0 3px rgba(220, 38, 38, 0.1),
+        0 8px 25px rgba(220, 38, 38, 0.2);
+}
+
+/* Botones */
+.btn-primary {
+    background: var(--gradient-primary);
+    border: none;
+    border-radius: 15px;
+    padding: 16px 30px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px var(--shadow-primary);
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: all 0.6s ease;
+}
+
+.btn-primary:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px var(--shadow-primary);
+    background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+}
+
+.btn-primary:active {
+    transform: translateY(-1px);
+}
+
+.btn-outline-secondary {
+    border: 2px solid var(--secondary-color);
+    color: var(--secondary-color);
+    background: transparent;
+    border-radius: 15px;
+    padding: 16px 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    width: 100%;
+}
+
+.btn-outline-secondary:hover {
+    background: var(--secondary-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(107, 114, 128, 0.3);
+}
+
+/* Cajas de información */
+.info-box, .alert {
+    border-radius: 15px;
+    padding: 20px;
+    margin: 25px 0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    position: relative;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+    border: 1px solid #f59e0b;
+}
+
+.alert-warning .alert-heading {
+    color: var(--warning-color);
+    margin-bottom: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.alert-warning ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #92400e;
+}
+
+.alert-warning li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+.help-box {
+    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+    border: 1px solid #3b82f6;
+}
+
+.help-box h6 {
+    color: #1d4ed8;
+    margin-bottom: 15px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.help-box ul {
+    margin: 0;
+    padding-left: 20px;
+    color: #1e40af;
+}
+
+.help-box li {
+    margin-bottom: 8px;
+    line-height: 1.5;
+}
+
+/* Timer de cuenta regresiva */
+.countdown-timer {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--danger-color);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* Fuerza de contraseña */
+.password-strength {
+    height: 6px;
+    border-radius: 3px;
+    margin-top: 8px;
+    transition: all 0.3s ease;
+    background: #e5e7eb;
+    overflow: hidden;
+    position: relative;
+}
+
+.password-strength::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+.password-strength.weak::before {
+    background: linear-gradient(90deg, #dc3545, #e74c3c);
+    width: 33%;
+}
+
+.password-strength.medium::before {
+    background: linear-gradient(90deg, #ffc107, #f39c12);
+    width: 66%;
+}
+
+.password-strength.strong::before {
+    background: linear-gradient(90deg, #28a745, #2ecc71);
+    width: 100%;
+}
+
+/* Requisitos de contraseña */
+.password-requirements {
+    font-size: 0.875rem;
+    margin-top: 12px;
+    background: #f8fafc;
+    border-radius: 10px;
+    padding: 15px;
+    border: 1px solid #e5e7eb;
+}
+
+.password-requirements .requirement {
+    padding: 4px 0;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.password-requirements .requirement.valid {
+    color: var(--success-color);
+}
+
+.password-requirements .requirement.invalid {
+    color: var(--danger-color);
+}
+
+.password-requirements .requirement i {
+    width: 16px;
+    text-align: center;
+}
+
+/* Mostrar contraseña */
+.show-password {
+    cursor: pointer;
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7280;
+    padding: 5px;
+    border-radius: 5px;
+    transition: all 0.3s ease;
+}
+
+.show-password:hover {
+    color: var(--primary-color);
+    background: rgba(220, 38, 38, 0.1);
+}
+
+/* Animaciones adicionales */
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+.loading {
+    animation: pulse 1.5s infinite;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .auth-container {
+        padding: 10px;
+    }
+    
+    .auth-card {
+        margin: 10px;
+        border-radius: 20px;
+    }
+    
+    .auth-body {
+        padding: 25px 20px;
+    }
+    
+    .codigo-input {
+        font-size: 1.5rem;
+        letter-spacing: 0.5rem;
+    }
+    
+    .auth-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .btn-primary,
+    .btn-outline-secondary {
+        padding: 14px 25px;
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .codigo-input {
+        font-size: 1.3rem;
+        letter-spacing: 0.3rem;
+        padding: 15px 10px;
+    }
+}
+
+/* Efectos de entrada */
+.fade-in {
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Estados de validación */
+.is-valid {
+    border-color: var(--success-color) !important;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1) !important;
+}
+
+.is-invalid {
+    border-color: var(--danger-color) !important;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.invalid-feedback {
+    color: var(--danger-color);
+    font-size: 0.875rem;
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.invalid-feedback i {
+    font-size: 0.8rem;
+}

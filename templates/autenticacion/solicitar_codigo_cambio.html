@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Solicitar Código de Verificación - Lilis System{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
+                <div class="card-header text-white" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);">
+                    <h4 class="mb-0">
+                        <i class="fas fa-shield-alt"></i> Verificación de Identidad
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <i class="fas fa-user-shield fa-3x text-danger mb-3"></i>
+                        <h5>Cambio de Contraseña Seguro</h5>
+                        <p class="text-muted">
+                            Para cambiar tu contraseña, primero necesitamos verificar tu identidad.
+                        </p>
+                    </div>
+                    
+                    <form method="post" id="solicitarCodigoForm">
+                        {% csrf_token %}
+                        
+                        <!-- Información del usuario -->
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-info-circle"></i> Usuario actual:</h6>
+                            <strong>{{ usuario.get_full_name }}</strong> ({{ usuario.username }})<br>
+                            <small>Email: {{ usuario.email }}</small>
+                        </div>
+                        
+                        <!-- Contraseña Actual -->
+                        <div class="mb-4">
+                            <label for="{{ form.password_actual.id_for_label }}" class="form-label">
+                                <i class="fas fa-lock text-danger"></i> {{ form.password_actual.label }}
+                            </label>
+                            <div class="position-relative">
+                                {{ form.password_actual }}
+                                <i class="fas fa-eye show-password" onclick="togglePassword('{{ form.password_actual.id_for_label }}', this)" style="cursor: pointer; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: #6c757d;"></i>
+                            </div>
+                            {% if form.password_actual.help_text %}
+                                <div class="form-text">{{ form.password_actual.help_text }}</div>
+                            {% endif %}
+                            {% if form.password_actual.errors %}
+                                <div class="text-danger mt-2">
+                                    {% for error in form.password_actual.errors %}
+                                        <small><i class="fas fa-exclamation-circle"></i> {{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Información del proceso -->
+                        <div class="alert alert-warning">
+                            <h6><i class="fas fa-clock"></i> ¿Qué sucederá después?</h6>
+                            <ul class="small mb-0">
+                                <li>Enviaremos un código de 6 dígitos a tu email</li>
+                                <li>El código será válido por 10 minutos</li>
+                                <li>Tendrás que ingresar el código para cambiar tu contraseña</li>
+                                <li>Este proceso garantiza que solo tú puedas cambiar tu contraseña</li>
+                            </ul>
+                        </div>
+                        
+                        <!-- Botones -->
+                        <div class="d-flex gap-2 justify-content-between">
+                            <a href="{% url 'perfil_usuario' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-danger" id="submitBtn">
+                                <i class="fas fa-paper-plane"></i> Enviar Código
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Envío del formulario con AJAX
+    $('#solicitarCodigoForm').submit(function(e) {
+        e.preventDefault();
+        
+        const submitBtn = $('#submitBtn');
+        const formData = $(this).serialize();
+        
+        // Deshabilitar botón
+        submitBtn.prop('disabled', true);
+        submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Enviando...');
+        
+        $.ajax({
+            url: '{% url "solicitar_codigo_cambio" %}',
+            type: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        title: '¡Código Enviado!',
+                        text: response.message,
+                        icon: 'success',
+                        confirmButtonColor: '#dc2626',
+                        confirmButtonText: 'Continuar'
+                    }).then(() => {
+                        window.location.href = response.redirect_url;
+                    });
+                } else {
+                    let errorText = response.message || 'Error enviando el código';
+                    
+                    if (response.errors) {
+                        errorText = 'Por favor corrige los siguientes errores:\n';
+                        for (let field in response.errors) {
+                            errorText += `\n• ${response.errors[field].join(', ')}`;
+                        }
+                    }
+                    
+                    Swal.fire({
+                        title: 'Error',
+                        text: errorText,
+                        icon: 'error',
+                        confirmButtonColor: '#dc2626'
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Hubo un problema procesando tu solicitud. Inténtalo nuevamente.',
+                    icon: 'error',
+                    confirmButtonColor: '#dc2626'
+                });
+            },
+            complete: function() {
+                // Rehabilitar botón
+                submitBtn.prop('disabled', false);
+                submitBtn.html('<i class="fas fa-paper-plane"></i> Enviar Código');
+            }
+        });
+    });
+});
+
+// Función para mostrar/ocultar contraseña
+function togglePassword(fieldId, icon) {
+    const field = $('#' + fieldId);
+    const type = field.attr('type') === 'password' ? 'text' : 'password';
+    field.attr('type', type);
+    
+    $(icon).removeClass('fa-eye fa-eye-slash').addClass(
+        type === 'password' ? 'fa-eye' : 'fa-eye-slash'
+    );
+}
+</script>
+{% endblock %}

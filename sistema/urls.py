@@ -1,7 +1,12 @@
 from django.urls import path
 from . import views
 
+app_name = 'api'
+
 urlpatterns = [
+    # Dashboard
+    path('dashboard/', views.dashboard, name='dashboard'),
+    
     # Carrito
     path('carrito/', views.carrito_listar, name='carrito_listar'),
     path('carrito/agregar/', views.carrito_agregar, name='carrito_agregar'),

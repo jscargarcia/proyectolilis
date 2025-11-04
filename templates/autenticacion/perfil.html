@@ -25,57 +25,86 @@
                 </div>
                 <div class="card-body">
                     <div class="row">
-                        <div class="col-md-6">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <th width="40%">
-                                        <i class="fas fa-id-card text-danger"></i> Nombre Completo:
-                                    </th>
-                                    <td class="fw-bold">{{ usuario.get_full_name }}</td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        <i class="fas fa-user text-danger"></i> Usuario:
-                                    </th>
-                                    <td><code class="bg-light px-2 py-1 rounded">{{ usuario.username }}</code></td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        <i class="fas fa-envelope text-danger"></i> Email:
-                                    </th>
-                                    <td>{{ usuario.email }}</td>
-                                </tr>
-                            </table>
+                        <div class="col-md-3 text-center mb-3">
+                            <!-- Avatar del usuario -->
+                            {% if usuario.avatar %}
+                                <img src="{{ usuario.avatar.url }}" alt="Avatar" class="rounded-circle border border-danger" style="width: 120px; height: 120px; object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle border border-danger d-flex align-items-center justify-content-center" style="width: 120px; height: 120px; background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; font-size: 2.5rem; margin: 0 auto;">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            {% endif %}
+                            <div class="mt-2">
+                                <small class="text-muted">Foto de Perfil</small>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <th width="40%">
-                                        <i class="fas fa-user-tag text-danger"></i> Rol:
-                                    </th>
-                                    <td>
-                                        <span class="badge" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; font-size: 0.9em;">
-                                            {{ usuario.rol.nombre }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        <i class="fas fa-toggle-on text-danger"></i> Estado:
-                                    </th>
-                                    <td>
-                                        <span class="badge {% if usuario.estado == 'ACTIVO' %}bg-success{% elif usuario.estado == 'BLOQUEADO' %}bg-danger{% else %}bg-secondary{% endif %}">
-                                            {{ usuario.estado }}
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th>
-                                        <i class="fas fa-clock text-danger"></i> Último Acceso:
-                                    </th>
-                                    <td>{{ usuario.ultimo_acceso|date:"d/m/Y H:i" }}</td>
-                                </tr>
-                            </table>
+                        <div class="col-md-9">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <th width="40%">
+                                                <i class="fas fa-id-card text-danger"></i> Nombre Completo:
+                                            </th>
+                                            <td class="fw-bold">{{ usuario.get_full_name }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <i class="fas fa-user text-danger"></i> Usuario:
+                                            </th>
+                                            <td><code class="bg-light px-2 py-1 rounded">{{ usuario.username }}</code></td>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <i class="fas fa-envelope text-danger"></i> Email:
+                                            </th>
+                                            <td>{{ usuario.email|default:"No registrado" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <i class="fas fa-phone text-danger"></i> Teléfono:
+                                            </th>
+                                            <td>{{ usuario.telefono|default:"No registrado" }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-borderless">
+                                        <tr>
+                                            <th width="40%">
+                                                <i class="fas fa-user-tag text-danger"></i> Rol:
+                                            </th>
+                                            <td>
+                                                <span class="badge" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: white; font-size: 0.9em;">
+                                                    {{ usuario.rol.nombre }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <i class="fas fa-toggle-on text-danger"></i> Estado:
+                                            </th>
+                                            <td>
+                                                <span class="badge {% if usuario.estado == 'ACTIVO' %}bg-success{% elif usuario.estado == 'BLOQUEADO' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                                    {{ usuario.estado }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <i class="fas fa-clock text-danger"></i> Último Acceso:
+                                            </th>
+                                            <td>{{ usuario.ultimo_acceso|date:"d/m/Y H:i"|default:"Nunca" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                <i class="fas fa-calendar text-danger"></i> Miembro desde:
+                                            </th>
+                                            <td>{{ usuario.created_at|date:"d/m/Y" }}</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -201,12 +230,12 @@
                         <div class="col-md-6">
                             <h6 class="mb-3">Configuración de Cuenta</h6>
                             <div class="d-grid gap-2">
-                                <button class="btn btn-outline-primary" onclick="editarPerfil()">
+                                <a href="{% url 'editar_perfil' %}" class="btn btn-outline-primary">
                                     <i class="fas fa-edit"></i> Editar Perfil
-                                </button>
-                                <button class="btn btn-outline-warning" onclick="cambiarPassword()">
+                                </a>
+                                <a href="{% url 'solicitar_codigo_cambio' %}" class="btn btn-outline-warning">
                                     <i class="fas fa-key"></i> Cambiar Contraseña
-                                </button>
+                                </a>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -230,25 +259,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    // Función para editar perfil
-    function editarPerfil() {
-        Swal.fire({
-            title: 'Editar Perfil',
-            text: 'Esta funcionalidad estará disponible próximamente.',
-            icon: 'info',
-            confirmButtonColor: '#dc2626'
-        });
-    }
-    
-    // Función para cambiar contraseña
-    function cambiarPassword() {
-        Swal.fire({
-            title: 'Cambiar Contraseña',
-            text: 'Esta funcionalidad estará disponible próximamente.',
-            icon: 'info',
-            confirmButtonColor: '#dc2626'
-        });
-    }
-</script>
+<!-- JavaScript funcional ya incluido en las páginas correspondientes -->
 {% endblock %}

@@ -38,6 +38,12 @@ class Usuario(AbstractUser):
     nombres = models.CharField(max_length=120)
     apellidos = models.CharField(max_length=120)
     telefono = models.CharField(max_length=30, null=True, blank=True)
+    avatar = models.ImageField(
+        upload_to='avatars/', 
+        null=True, 
+        blank=True, 
+        help_text='Imagen de perfil (máximo 2MB, formatos: JPG, PNG, WEBP)'
+    )
     rol = models.ForeignKey(Rol, on_delete=models.PROTECT, related_name='usuarios')
     estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='ACTIVO')
     ultimo_acceso = models.DateTimeField(null=True, blank=True)
@@ -71,6 +77,31 @@ class PasswordResetToken(models.Model):
 
     def __str__(self):
         return f"Token para {self.usuario.username}"
+
+
+class PasswordChangeCode(models.Model):
+    """
+    Códigos de verificación para cambio de contraseña
+    """
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name='password_change_codes')
+    codigo = models.CharField(max_length=6)  # Código de 6 dígitos
+    expira_en = models.DateTimeField()
+    usado = models.BooleanField(default=False)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        db_table = 'password_change_codes'
+        indexes = [
+            models.Index(fields=['codigo', 'usado', 'expira_en'], name='idx_codigo_activo'),
+        ]
+
+    def __str__(self):
+        return f"Código para {self.usuario.username} - {self.codigo}"
+
+    def is_valid(self):
+        """Verificar si el código sigue siendo válido"""
+        return not self.usado and self.expira_en > timezone.now()
 
 
 class Sesion(models.Model):
