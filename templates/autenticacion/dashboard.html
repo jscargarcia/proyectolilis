@@ -3,13 +3,109 @@
 
 {% block title %}Dashboard - Lilis System{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Fondo de la página completa */
+    .dashboard-container {
+        background-image: url("{% static 'img/backgrounds/background-conitos.jpg' %}");
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        background-repeat: no-repeat;
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+    
+    /* Overlay sutil para mejorar legibilidad */
+    .dashboard-container::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 248, 240, 0.7);
+        z-index: 0;
+    }
+    
+    /* Asegurar que el contenido esté sobre el overlay */
+    .dashboard-container > * {
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Tarjetas con fondo semi-transparente */
+    .card {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(220, 38, 38, 0.2);
+    }
+    
+    /* Carrusel con sombra más pronunciada */
+    .carousel-inner {
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+    }
+    
+    /* Botón de gestión de productos */
+    .alert-info {
+        background: rgba(220, 38, 38, 0.95) !important;
+        backdrop-filter: blur(10px);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
+<div class="dashboard-container" style="position: relative;">
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="mb-4">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </h2>
+            </div>
+        </div>
+    
+    <!-- Carrusel de Imágenes - Productos Lilis -->
+    <div class="row mb-4">
         <div class="col-12">
-            <h2 class="mb-4">
-                <i class="fas fa-tachometer-alt"></i> Dashboard
-            </h2>
+            <div id="carouselExample" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="1" aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#carouselExample" data-bs-slide-to="2" aria-label="Slide 3"></button>
+                </div>
+                <div class="carousel-inner" style="border-radius: 15px; overflow: hidden; box-shadow: 0 8px 20px rgba(220, 38, 38, 0.3);">
+                    <div class="carousel-item active">
+                        <img src="{% static 'img/carousel/lilis-productos-1.jpg' %}" class="d-block w-100" alt="Productos Lilis - Galletas y Conitos" style="height: 450px; object-fit: cover;">
+                        <div class="carousel-caption d-none d-md-block" style="background: linear-gradient(to top, rgba(220, 38, 38, 0.9), rgba(220, 38, 38, 0.7)); border-radius: 10px; padding: 20px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);">
+                            <h3 class="fw-bold"><i class="fas fa-cookie-bite"></i> Nuestros Productos Artesanales</h3>
+                            <p class="mb-0">Galletas Trio, Conitos de Higo y Galletones de Papaya - Hechos a Mano</p>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="{% static 'img/carousel/lilis-productos-2.jpg' %}" class="d-block w-100" alt="Alfajores Lilis" style="height: 450px; object-fit: cover;">
+                        <div class="carousel-caption d-none d-md-block" style="background: linear-gradient(to top, rgba(220, 38, 38, 0.9), rgba(220, 38, 38, 0.7)); border-radius: 10px; padding: 20px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);">
+                            <h3 class="fw-bold"><i class="fas fa-heart"></i> Alfajores Premium</h3>
+                            <p class="mb-0">Dulzura tradicional chilena con ingredientes de calidad</p>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="{% static 'img/carousel/lilis-productos-3.jpg' %}" class="d-block w-100" alt="Variedad Lilis" style="height: 450px; object-fit: cover;">
+                        <div class="carousel-caption d-none d-md-block" style="background: linear-gradient(to top, rgba(220, 38, 38, 0.9), rgba(220, 38, 38, 0.7)); border-radius: 10px; padding: 20px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);">
+                            <h3 class="fw-bold"><i class="fas fa-star"></i> Variedad de Sabores</h3>
+                            <p class="mb-0">Desde galletas rellenas hasta deliciosos conitos bañados en chocolate</p>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Anterior</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Siguiente</span>
+                </button>
+            </div>
         </div>
     </div>
     
@@ -84,6 +180,76 @@
                         <div>
                             <i class="fas fa-user-tag fa-3x opacity-50"></i>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sección de Cards de Módulos Principales -->
+    <div class="row mb-4 justify-content-center">
+        <div class="col-12 mb-3">
+            <h4 class="text-center"><i class="fas fa-th-large"></i> Módulos del Sistema</h4>
+        </div>
+        
+        <!-- Tarjeta 1: Ver Productos -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm" style="border-top: 4px solid #dc2626; border-radius: 10px;">
+                <img src="https://images.unsplash.com/photo-1516594915697-87eb3b1c14ea?w=400&h=200&fit=crop" 
+                     class="card-img-top" alt="Productos" style="height: 200px; object-fit: cover; border-radius: 10px 10px 0 0;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-center">
+                        <i class="fas fa-boxes text-danger"></i> Productos
+                    </h5>
+                    <p class="card-text text-center flex-grow-1">
+                        Gestiona el catálogo completo de productos, inventario, precios y categorías.
+                    </p>
+                    <div class="d-grid gap-2 mt-auto">
+                        <a href="{% url 'producto_listar' %}" class="btn btn-danger btn-lg">
+                            <i class="fas fa-eye"></i> Ver Productos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tarjeta 2: Ir a Ventas -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm" style="border-top: 4px solid #dc2626; border-radius: 10px;">
+                <img src="https://images.unsplash.com/photo-1556742111-a301076d9d18?w=400&h=200&fit=crop" 
+                     class="card-img-top" alt="Ventas" style="height: 200px; object-fit: cover; border-radius: 10px 10px 0 0;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-center">
+                        <i class="fas fa-shopping-cart text-danger"></i> Ventas
+                    </h5>
+                    <p class="card-text text-center flex-grow-1">
+                        Registra y controla todas las ventas, facturas y transacciones del negocio.
+                    </p>
+                    <div class="d-grid gap-2 mt-auto">
+                        <a href="#" class="btn btn-danger btn-lg">
+                            <i class="fas fa-cash-register"></i> Ir a Ventas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tarjeta 3: Configurar -->
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm" style="border-top: 4px solid #dc2626; border-radius: 10px;">
+                <img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=400&h=200&fit=crop" 
+                     class="card-img-top" alt="Configuración" style="height: 200px; object-fit: cover; border-radius: 10px 10px 0 0;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-center">
+                        <i class="fas fa-cog text-danger"></i> Configuración
+                    </h5>
+                    <p class="card-text text-center flex-grow-1">
+                        Ajustes del sistema, usuarios, permisos y parámetros generales.
+                    </p>
+                    <div class="d-grid gap-2 mt-auto">
+                        <a href="{% url 'perfil_usuario' %}" class="btn btn-danger btn-lg">
+                            <i class="fas fa-sliders-h"></i> Configurar
+                        </a>
                     </div>
                 </div>
             </div>
@@ -198,7 +364,8 @@
             </div>
         </div>
     </div>
-</div>
+    </div> <!-- Cierre container -->
+</div> <!-- Cierre dashboard-container -->
 
 {% endblock %}
 

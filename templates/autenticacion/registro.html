@@ -1,0 +1,618 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro - Dulcería Lilis</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- SweetAlert2 -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <!-- Estilos personalizados -->
+    <link href="{% static 'css/auth-styles.css' %}" rel="stylesheet">
+    <link href="{% static 'css/sweet-theme.css' %}" rel="stylesheet">
+    
+    <style>
+        .password-strength {
+            height: 5px;
+            border-radius: 3px;
+            margin-top: 5px;
+            transition: all 0.3s ease;
+            background: #e5e7eb;
+        }
+        .password-strength.weak {
+            background: linear-gradient(to right, #ef4444 33%, #e5e7eb 33%);
+        }
+        .password-strength.medium {
+            background: linear-gradient(to right, #f59e0b 66%, #e5e7eb 66%);
+        }
+        .password-strength.strong {
+            background: linear-gradient(to right, #10b981 100%, #e5e7eb 100%);
+        }
+        
+        .password-requirements {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f9fafb;
+            border-radius: 8px;
+            font-size: 0.85rem;
+        }
+        
+        .requirement {
+            margin: 5px 0;
+            color: #6b7280;
+            transition: color 0.3s ease;
+        }
+        
+        .requirement.valid {
+            color: #10b981;
+        }
+        
+        .requirement.valid i {
+            color: #10b981;
+        }
+        
+        .requirement.invalid i {
+            color: #ef4444;
+        }
+        
+        .show-password {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: #6b7280;
+            transition: color 0.3s ease;
+        }
+        
+        .show-password:hover {
+            color: #dc2626;
+        }
+        
+        .field-valid {
+            border-color: #10b981 !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2310b981' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+            padding-right: calc(1.5em + 0.75rem);
+        }
+        
+        .field-invalid {
+            border-color: #ef4444 !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23ef4444'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23ef4444' stroke='none'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right calc(0.375em + 0.1875rem) center;
+            background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem);
+            padding-right: calc(1.5em + 0.75rem);
+        }
+        
+        .form-check-input:checked {
+            background-color: #dc2626;
+            border-color: #dc2626;
+        }
+        
+        .username-hint {
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+        
+        .auth-body {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="sweet-decoration">🍭</div>
+        <div class="sweet-decoration">🧁</div>
+        <div class="sweet-decoration">🍬</div>
+        <div class="sweet-decoration">🍪</div>
+        
+        <div class="auth-card sweet-card fade-in">
+            <div class="auth-header sweet-theme">
+                <div class="sugar-particles"></div>
+                <h1>
+                    <span class="sweet-icon"></span>
+                    Crear Cuenta
+                </h1>
+                <p class="mb-0 mt-2 opacity-75">🍭 Dulcería Lilis 🧁</p>
+            </div>
+            
+            <div class="auth-body">
+                <form method="post" id="registroForm" novalidate>
+                    {% csrf_token %}
+                    
+                    <!-- Nombre de usuario -->
+                    <div class="form-group mb-3">
+                        <label for="{{ form.username.id_for_label }}" class="form-label">
+                            <i class="fas fa-user"></i>
+                            Nombre de usuario
+                        </label>
+                        {{ form.username }}
+                        <div class="username-hint">
+                            <i class="fas fa-info-circle"></i>
+                            Mínimo 3 caracteres. Solo letras minúsculas, números, guiones y guiones bajos.
+                        </div>
+                        <div class="invalid-feedback" id="username-error"></div>
+                    </div>
+                    
+                    <!-- Email -->
+                    <div class="form-group mb-3">
+                        <label for="{{ form.email.id_for_label }}" class="form-label">
+                            <i class="fas fa-envelope"></i>
+                            Correo electrónico
+                        </label>
+                        {{ form.email }}
+                        <div class="invalid-feedback" id="email-error"></div>
+                    </div>
+                    
+                    <!-- Nombres -->
+                    <div class="form-group mb-3">
+                        <label for="{{ form.nombres.id_for_label }}" class="form-label">
+                            <i class="fas fa-id-card"></i>
+                            Nombres
+                        </label>
+                        {{ form.nombres }}
+                        <div class="invalid-feedback" id="nombres-error"></div>
+                    </div>
+                    
+                    <!-- Apellidos -->
+                    <div class="form-group mb-3">
+                        <label for="{{ form.apellidos.id_for_label }}" class="form-label">
+                            <i class="fas fa-id-card"></i>
+                            Apellidos
+                        </label>
+                        {{ form.apellidos }}
+                        <div class="invalid-feedback" id="apellidos-error"></div>
+                    </div>
+                    
+                    <!-- Teléfono -->
+                    <div class="form-group mb-3">
+                        <label for="{{ form.telefono.id_for_label }}" class="form-label">
+                            <i class="fas fa-phone"></i>
+                            Teléfono (opcional)
+                        </label>
+                        {{ form.telefono }}
+                        <div class="invalid-feedback" id="telefono-error"></div>
+                    </div>
+                    
+                    <!-- Contraseña -->
+                    <div class="form-group mb-3">
+                        <label for="password1" class="form-label">
+                            <i class="fas fa-lock"></i>
+                            Contraseña
+                        </label>
+                        <div style="position: relative;">
+                            {{ form.password1 }}
+                            <span class="show-password" onclick="togglePassword('password1')">
+                                <i class="fas fa-eye" id="eye-password1"></i>
+                            </span>
+                        </div>
+                        <div class="password-strength" id="strength-bar"></div>
+                        <div class="password-requirements" id="password-requirements">
+                            <div class="requirement" id="length-req">
+                                <i class="fas fa-times-circle"></i>
+                                Al menos 8 caracteres
+                            </div>
+                            <div class="requirement" id="upper-req">
+                                <i class="fas fa-times-circle"></i>
+                                Una letra mayúscula
+                            </div>
+                            <div class="requirement" id="lower-req">
+                                <i class="fas fa-times-circle"></i>
+                                Una letra minúscula
+                            </div>
+                            <div class="requirement" id="number-req">
+                                <i class="fas fa-times-circle"></i>
+                                Un número
+                            </div>
+                            <div class="requirement" id="special-req">
+                                <i class="fas fa-times-circle"></i>
+                                Un carácter especial (@$!%*?&#.,;:-_)
+                            </div>
+                        </div>
+                        <div class="invalid-feedback" id="password1-error"></div>
+                    </div>
+                    
+                    <!-- Confirmar contraseña -->
+                    <div class="form-group mb-3">
+                        <label for="password2" class="form-label">
+                            <i class="fas fa-lock"></i>
+                            Confirmar contraseña
+                        </label>
+                        <div style="position: relative;">
+                            {{ form.password2 }}
+                            <span class="show-password" onclick="togglePassword('password2')">
+                                <i class="fas fa-eye" id="eye-password2"></i>
+                            </span>
+                        </div>
+                        <div class="invalid-feedback" id="password2-error"></div>
+                    </div>
+                    
+                    <!-- Términos y condiciones -->
+                    <div class="form-check mb-4">
+                        <input class="form-check-input" type="checkbox" id="terminos" name="terminos" required>
+                        <label class="form-check-label" for="terminos">
+                            Acepto los <a href="#" id="terminosLink" style="color: #dc2626;">términos y condiciones</a>
+                        </label>
+                        <div class="invalid-feedback" id="terminos-error"></div>
+                    </div>
+                    
+                    <!-- Botón de registro -->
+                    <button type="submit" class="btn btn-primary btn-sweet w-100 mb-3" id="submitBtn">
+                        <span class="sweet-icon"></span>
+                        Crear Cuenta
+                    </button>
+                    
+                    <!-- Link a login -->
+                    <div class="text-center">
+                        <p class="mb-0">
+                            ¿Ya tienes cuenta? 
+                            <a href="{% url 'login' %}" style="color: #dc2626; font-weight: 600;">
+                                Inicia sesión
+                            </a>
+                        </p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+    $(document).ready(function() {
+        const form = $('#registroForm');
+        const submitBtn = $('#submitBtn');
+        const originalText = submitBtn.html();
+        
+        // Referencias a campos
+        const usernameInput = $('#{{ form.username.id_for_label }}');
+        const emailInput = $('#{{ form.email.id_for_label }}');
+        const nombresInput = $('#{{ form.nombres.id_for_label }}');
+        const apellidosInput = $('#{{ form.apellidos.id_for_label }}');
+        const telefonoInput = $('#{{ form.telefono.id_for_label }}');
+        const password1Input = $('#password1');
+        const password2Input = $('#password2');
+        const terminosInput = $('#terminos');
+        
+        // Validación de username en tiempo real
+        usernameInput.on('input', function() {
+            let value = $(this).val().toLowerCase();
+            $(this).val(value);
+            
+            if (value.length > 0) {
+                if (value.length < 3) {
+                    showFieldError($(this), 'Mínimo 3 caracteres');
+                } else if (!/^[a-z0-9_-]+$/.test(value)) {
+                    showFieldError($(this), 'Solo letras minúsculas, números, - y _');
+                } else {
+                    showFieldSuccess($(this));
+                }
+            } else {
+                clearFieldValidation($(this));
+            }
+        });
+        
+        // Validación de email en tiempo real
+        emailInput.on('input', function() {
+            let value = $(this).val().toLowerCase();
+            $(this).val(value);
+            
+            if (value.length > 0) {
+                const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                if (!emailRegex.test(value)) {
+                    showFieldError($(this), 'Email inválido');
+                } else {
+                    showFieldSuccess($(this));
+                }
+            } else {
+                clearFieldValidation($(this));
+            }
+        });
+        
+        // Validación de nombres
+        nombresInput.on('input', function() {
+            let value = $(this).val();
+            
+            if (value.length > 0) {
+                if (value.length < 2) {
+                    showFieldError($(this), 'Mínimo 2 caracteres');
+                } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+                    showFieldError($(this), 'Solo se permiten letras');
+                } else {
+                    showFieldSuccess($(this));
+                }
+            } else {
+                clearFieldValidation($(this));
+            }
+        });
+        
+        // Validación de apellidos
+        apellidosInput.on('input', function() {
+            let value = $(this).val();
+            
+            if (value.length > 0) {
+                if (value.length < 2) {
+                    showFieldError($(this), 'Mínimo 2 caracteres');
+                } else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value)) {
+                    showFieldError($(this), 'Solo se permiten letras');
+                } else {
+                    showFieldSuccess($(this));
+                }
+            } else {
+                clearFieldValidation($(this));
+            }
+        });
+        
+        // Validación de teléfono
+        telefonoInput.on('input', function() {
+            let value = $(this).val();
+            
+            if (value.length > 0) {
+                const digitos = value.replace(/[^\d]/g, '');
+                if (digitos.length < 8) {
+                    showFieldError($(this), 'Mínimo 8 dígitos');
+                } else if (digitos.length > 15) {
+                    showFieldError($(this), 'Máximo 15 dígitos');
+                } else {
+                    showFieldSuccess($(this));
+                }
+            } else {
+                clearFieldValidation($(this));
+            }
+        });
+        
+        // Validación de contraseña en tiempo real
+        password1Input.on('input', function() {
+            const password = $(this).val();
+            checkPasswordStrength(password);
+            
+            // Revalidar confirmación si tiene contenido
+            if (password2Input.val().length > 0) {
+                checkPasswordMatch();
+            }
+        });
+        
+        // Validación de confirmación de contraseña
+        password2Input.on('input', function() {
+            checkPasswordMatch();
+        });
+        
+        function checkPasswordStrength(password) {
+            const requirements = {
+                length: password.length >= 8,
+                upper: /[A-Z]/.test(password),
+                lower: /[a-z]/.test(password),
+                number: /[0-9]/.test(password),
+                special: /[@$!%*?&#.,;:\-_+=()\[\]{}]/.test(password)
+            };
+            
+            // Actualizar indicadores visuales
+            updateRequirement('length', requirements.length);
+            updateRequirement('upper', requirements.upper);
+            updateRequirement('lower', requirements.lower);
+            updateRequirement('number', requirements.number);
+            updateRequirement('special', requirements.special);
+            
+            // Calcular fortaleza
+            const score = Object.values(requirements).filter(Boolean).length;
+            const strengthBar = $('#strength-bar');
+            
+            if (password.length === 0) {
+                strengthBar.removeClass('weak medium strong');
+            } else if (score < 3) {
+                strengthBar.removeClass('medium strong').addClass('weak');
+            } else if (score < 5) {
+                strengthBar.removeClass('weak strong').addClass('medium');
+            } else {
+                strengthBar.removeClass('weak medium').addClass('strong');
+            }
+            
+            // Validar campo
+            if (password.length > 0) {
+                if (score >= 5) {
+                    showFieldSuccess(password1Input);
+                } else {
+                    showFieldError(password1Input, 'Contraseña no cumple todos los requisitos');
+                }
+            } else {
+                clearFieldValidation(password1Input);
+            }
+            
+            return score >= 5;
+        }
+        
+        function updateRequirement(id, isValid) {
+            const element = $(`#${id}-req`);
+            const icon = element.find('i');
+            
+            if (isValid) {
+                element.removeClass('invalid').addClass('valid');
+                icon.removeClass('fa-times-circle').addClass('fa-check-circle');
+            } else {
+                element.removeClass('valid').addClass('invalid');
+                icon.removeClass('fa-check-circle').addClass('fa-times-circle');
+            }
+        }
+        
+        function checkPasswordMatch() {
+            const password1 = password1Input.val();
+            const password2 = password2Input.val();
+            
+            if (password2.length > 0) {
+                if (password1 === password2) {
+                    showFieldSuccess(password2Input);
+                    return true;
+                } else {
+                    showFieldError(password2Input, 'Las contraseñas no coinciden');
+                    return false;
+                }
+            } else {
+                clearFieldValidation(password2Input);
+                return false;
+            }
+        }
+        
+        function showFieldError(field, message) {
+            field.removeClass('field-valid').addClass('field-invalid');
+            field.siblings('.invalid-feedback').text(message).show();
+        }
+        
+        function showFieldSuccess(field) {
+            field.removeClass('field-invalid').addClass('field-valid');
+            field.siblings('.invalid-feedback').hide();
+        }
+        
+        function clearFieldValidation(field) {
+            field.removeClass('field-valid field-invalid');
+            field.siblings('.invalid-feedback').hide();
+        }
+        
+        // Mostrar/ocultar contraseña
+        window.togglePassword = function(fieldId) {
+            const field = $('#' + fieldId);
+            const icon = $('#eye-' + fieldId);
+            
+            if (field.attr('type') === 'password') {
+                field.attr('type', 'text');
+                icon.removeClass('fa-eye').addClass('fa-eye-slash');
+            } else {
+                field.attr('type', 'password');
+                icon.removeClass('fa-eye-slash').addClass('fa-eye');
+            }
+        };
+        
+        // Modal de términos y condiciones
+        $('#terminosLink').on('click', function(e) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Términos y Condiciones',
+                html: `
+                    <div style="text-align: left; max-height: 400px; overflow-y: auto;">
+                        <h6>1. Uso del Servicio</h6>
+                        <p>Al registrarte, aceptas usar este servicio de manera responsable.</p>
+                        
+                        <h6>2. Privacidad de Datos</h6>
+                        <p>Tus datos personales serán protegidos según nuestra política de privacidad.</p>
+                        
+                        <h6>3. Seguridad de la Cuenta</h6>
+                        <p>Eres responsable de mantener la seguridad de tu contraseña.</p>
+                        
+                        <h6>4. Conducta del Usuario</h6>
+                        <p>No se permite el uso indebido o fraudulento del sistema.</p>
+                        
+                        <h6>5. Modificaciones</h6>
+                        <p>Nos reservamos el derecho de modificar estos términos en cualquier momento.</p>
+                    </div>
+                `,
+                icon: 'info',
+                confirmButtonColor: '#dc2626',
+                confirmButtonText: 'Entendido',
+                width: '600px'
+            });
+        });
+        
+        // Envío del formulario
+        form.on('submit', function(e) {
+            e.preventDefault();
+            
+            // Validar términos
+            if (!terminosInput.is(':checked')) {
+                Swal.fire({
+                    title: 'Términos requeridos',
+                    text: 'Debes aceptar los términos y condiciones para continuar.',
+                    icon: 'warning',
+                    confirmButtonColor: '#dc2626'
+                });
+                return;
+            }
+            
+            // Deshabilitar botón
+            submitBtn.prop('disabled', true);
+            submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Creando cuenta...');
+            
+            // Enviar formulario
+            $.ajax({
+                url: '{% url "registro" %}',
+                type: 'POST',
+                data: form.serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        Swal.fire({
+                            title: '¡Cuenta Creada!',
+                            text: response.message,
+                            icon: 'success',
+                            confirmButtonColor: '#dc2626',
+                            confirmButtonText: 'Iniciar Sesión',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = response.redirect_url;
+                        });
+                    } else {
+                        // Mostrar errores
+                        let errorHtml = '<div style="text-align: left;">';
+                        for (let field in response.errors) {
+                            errorHtml += '<strong>' + getFieldLabel(field) + ':</strong><br>';
+                            response.errors[field].forEach(function(error) {
+                                errorHtml += '• ' + error + '<br>';
+                            });
+                            errorHtml += '<br>';
+                        }
+                        errorHtml += '</div>';
+                        
+                        Swal.fire({
+                            title: 'Errores en el formulario',
+                            html: errorHtml,
+                            icon: 'error',
+                            confirmButtonColor: '#dc2626'
+                        });
+                        
+                        // Restaurar botón
+                        submitBtn.prop('disabled', false);
+                        submitBtn.html(originalText);
+                    }
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error de conexión',
+                        text: 'No se pudo conectar con el servidor. Inténtalo nuevamente.',
+                        icon: 'error',
+                        confirmButtonColor: '#dc2626'
+                    });
+                    
+                    // Restaurar botón
+                    submitBtn.prop('disabled', false);
+                    submitBtn.html(originalText);
+                }
+            });
+        });
+        
+        function getFieldLabel(field) {
+            const labels = {
+                'username': 'Nombre de usuario',
+                'email': 'Email',
+                'nombres': 'Nombres',
+                'apellidos': 'Apellidos',
+                'telefono': 'Teléfono',
+                'password1': 'Contraseña',
+                'password2': 'Confirmar contraseña',
+                'terminos': 'Términos y condiciones'
+            };
+            return labels[field] || field;
+        }
+    });
+    </script>
+</body>
+</html>

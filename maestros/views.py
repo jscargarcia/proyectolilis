@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.urls import reverse
 from django.db import transaction
 from decimal import Decimal, InvalidOperation
-from autenticacion.decorators import login_required_custom, permission_required, estado_usuario_activo
+from autenticacion.decorators import login_required_custom, permission_required, estado_usuario_activo, permiso_requerido
 # Importar modelos desde maestros donde están definidos
 from .models import Producto, Proveedor, Categoria, Marca, UnidadMedida
 # Para exportación a Excel
@@ -161,6 +161,7 @@ def producto_listar(request):
 
 @login_required_custom
 @estado_usuario_activo
+@permiso_requerido('productos', 'crear')
 def producto_crear(request):
     """Crear nuevo producto con validaciones simplificadas para el modelo productos"""
     if request.method == 'POST':
@@ -397,6 +398,7 @@ def producto_detalle(request, pk):
 
 @login_required_custom
 @estado_usuario_activo
+@permiso_requerido('productos', 'editar')
 def producto_editar(request, pk):
     """Editar producto - Versión simplificada para modelo productos"""
     producto = get_object_or_404(Producto, pk=pk)
@@ -635,6 +637,7 @@ def producto_test_estado(request, pk):
 
 @login_required_custom
 @estado_usuario_activo
+@permiso_requerido('productos', 'eliminar')
 def producto_eliminar(request, pk):
     """Eliminar producto con confirmación"""
     producto = get_object_or_404(Producto, pk=pk)

@@ -7,8 +7,62 @@ from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
 from .models import Usuario, PasswordResetToken, PasswordChangeCode
-from .forms import EditarPerfilForm, CambiarPasswordForm, RecuperarPasswordForm, ResetearPasswordForm, SolicitarCodigoCambioForm, VerificarCodigoCambioForm
+from .forms import (
+    EditarPerfilForm, CambiarPasswordForm, RecuperarPasswordForm, 
+    ResetearPasswordForm, SolicitarCodigoCambioForm, VerificarCodigoCambioForm,
+    RegistroUsuarioForm
+)
 from .utils import crear_token_reset, enviar_email_reset_password, validar_token_reset, marcar_token_usado, procesar_avatar, crear_codigo_cambio_password, enviar_email_codigo_cambio, validar_codigo_cambio_password, marcar_codigo_usado
+
+
+@csrf_protect
+def registro_view(request):
+    """Vista de registro de nuevos usuarios"""
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        form = RegistroUsuarioForm(request.POST)
+        if form.is_valid():
+            # Guardar nuevo usuario
+            user = form.save()
+            
+            # Mensaje de éxito
+            messages.success(
+                request,
+                f'¡Cuenta creada exitosamente! Bienvenido, {user.get_full_name()}. '
+                'Ya puedes iniciar sesión.'
+            )
+            
+            # Respuesta AJAX
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Cuenta creada exitosamente',
+                    'redirect_url': '/auth/login/'
+                })
+            
+            return redirect('login')
+        else:
+            # Respuesta AJAX con errores
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors
+                })
+            
+            # Mostrar errores en mensajes
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
+    else:
+        form = RegistroUsuarioForm()
+    
+    context = {
+        'form': form,
+    }
+    
+    return render(request, 'autenticacion/registro.html', context)
 
 
 def login_view(request):

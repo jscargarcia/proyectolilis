@@ -1,8 +1,79 @@
 from functools import wraps
 from django.shortcuts import redirect
 from django.contrib import messages
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, JsonResponse
 from django.conf import settings
+
+
+def tiene_permiso(usuario, modulo, accion):
+    """
+    Función auxiliar para verificar permisos en templates y vistas
+    Retorna True si el usuario tiene el permiso especificado
+    """
+    if not usuario.is_authenticated:
+        return False
+    
+    # Administrador tiene todos los permisos
+    if usuario.rol.nombre == 'Administrador':
+        return True
+    
+    if not usuario.rol.permisos:
+        return False
+    
+    permisos_modulo = usuario.rol.permisos.get(modulo, [])
+    return accion in permisos_modulo
+
+
+def permiso_requerido(modulo, accion):
+    """
+    Decorador para verificar que el usuario tenga un permiso específico
+    Uso: @permiso_requerido('productos', 'crear')
+    """
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapper(request, *args, **kwargs):
+            if not request.user.is_authenticated:
+                messages.error(request, 'Debes iniciar sesión para acceder a esta página.')
+                return redirect('login')
+            
+            # Admin siempre tiene acceso
+            if request.user.rol.nombre == 'Administrador':
+                return view_func(request, *args, **kwargs)
+            
+            # Verificar si el rol tiene permisos definidos
+            if not request.user.rol.permisos:
+                messages.error(request, 'Tu rol no tiene permisos configurados.')
+                
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'No tienes permisos configurados.'
+                    }, status=403)
+                
+                return redirect('dashboard')
+            
+            # Verificar si el módulo existe en los permisos
+            permisos_modulo = request.user.rol.permisos.get(modulo, [])
+            
+            # Verificar si tiene el permiso específico
+            if accion not in permisos_modulo:
+                messages.error(
+                    request,
+                    f'No tienes permiso para {accion} {modulo}. '
+                    f'Contacta al administrador si necesitas este acceso.'
+                )
+                
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'message': f'No tienes permiso para {accion} {modulo}.'
+                    }, status=403)
+                
+                return redirect('dashboard')
+            
+            return view_func(request, *args, **kwargs)
+        return wrapper
+    return decorator
 
 
 def login_required_custom(view_func):
