@@ -19,6 +19,7 @@ from datetime import datetime
 # Para manejo de imágenes
 from PIL import Image
 import os
+import re
 
 
 # ==================== PRODUCTOS ====================
@@ -345,7 +346,7 @@ def producto_crear(request):
                     return JsonResponse({
                         'success': True,
                         'message': f'Producto "{producto.nombre}" creado exitosamente.',
-                        'redirect_url': reverse('producto_listar')
+                        'redirect_url': reverse('maestros:producto_listar')
                     })
             except Exception as e:
                 messages.error(request, f'Error al crear producto: {str(e)}')
@@ -578,7 +579,7 @@ def producto_editar(request, pk):
                     return JsonResponse({
                         'success': True,
                         'message': f'Producto "{producto.nombre}" actualizado exitosamente. Estado: {producto.get_estado_display()}',
-                        'redirect_url': reverse('producto_detalle', kwargs={'pk': producto.pk}),
+                        'redirect_url': reverse('maestros:producto_detalle', kwargs={'pk': producto.pk}),
                         'nuevo_estado': producto.estado,
                         'estado_display': producto.get_estado_display()
                     })
@@ -598,13 +599,13 @@ def producto_editar(request, pk):
     # GET request - mostrar formulario
     categorias = Categoria.objects.filter(activo=True).order_by('nombre')
     marcas = Marca.objects.filter(activo=True).order_by('nombre')
-    unidades = UnidadMedida.objects.filter(activo=True).order_by('nombre')
+    unidades_medida = UnidadMedida.objects.filter(activo=True).order_by('tipo', 'nombre')
     
     context = {
         'producto': producto,
         'categorias': categorias,
         'marcas': marcas,
-        'unidades': unidades,
+        'unidades_medida': unidades_medida,
         'estados_producto': Producto.ESTADO_CHOICES,
     }
     return render(request, 'maestros/producto_editar.html', context)
@@ -626,7 +627,7 @@ def producto_test_estado(request, pk):
         
         print(f"🧪 TEST: Estado después de guardar: '{producto.estado}'")
         messages.success(request, f'Estado cambiado a {nuevo_estado}')
-        return redirect('producto_test_estado', pk=pk)
+        return redirect('maestros:producto_test_estado', pk=pk)
     
     context = {
         'producto': producto,
@@ -658,7 +659,7 @@ def producto_eliminar(request, pk):
             response_data = {
                 'success': True,
                 'message': f'Producto "{nombre_producto}" eliminado exitosamente.',
-                'redirect_url': reverse('producto_listar')
+                'redirect_url': reverse('maestros:producto_listar')
             }
             print(f"[DEBUG] Respuesta JSON: {response_data}")
             return JsonResponse(response_data)
@@ -765,21 +766,137 @@ def proveedor_listar(request):
 def proveedor_crear(request):
     """Crear nuevo proveedor"""
     if request.method == 'POST':
+        errores = {}
+        datos = {}
+        
         try:
-            proveedor = Proveedor.objects.create(
-                rut_nif=request.POST['rut_nif'],
-                razon_social=request.POST['razon_social'],
-                email=request.POST.get('email') or None,
-                pais=request.POST.get('pais', 'Chile'),
-                condiciones_pago=request.POST.get('condiciones_pago') or None,
-                estado=request.POST.get('estado', 'Activo'),
-            )
-            messages.success(request, f'Proveedor "{proveedor.razon_social}" creado exitosamente.')
-            return redirect('proveedor_detalle', pk=proveedor.pk)
+            # Capturar todos los datos del formulario
+            datos = {
+                'rut_nif': request.POST.get('rut_nif', '').strip(),
+                'razon_social': request.POST.get('razon_social', '').strip(),
+                'nombre_fantasia': request.POST.get('nombre_fantasia', '').strip(),
+                'email': request.POST.get('email', '').strip(),
+                'telefono': request.POST.get('telefono', '').strip(),
+                'sitio_web': request.POST.get('sitio_web', '').strip(),
+                'direccion': request.POST.get('direccion', '').strip(),
+                'ciudad': request.POST.get('ciudad', '').strip(),
+                'pais': request.POST.get('pais', 'Chile').strip(),
+                'condiciones_pago': request.POST.get('condiciones_pago', '').strip(),
+                'condiciones_pago_detalle': request.POST.get('condiciones_pago_detalle', '').strip(),
+                'moneda': request.POST.get('moneda', 'CLP').strip(),
+                'contacto_principal_nombre': request.POST.get('contacto_principal_nombre', '').strip(),
+                'contacto_principal_email': request.POST.get('contacto_principal_email', '').strip(),
+                'contacto_principal_telefono': request.POST.get('contacto_principal_telefono', '').strip(),
+                'estado': request.POST.get('estado', 'ACTIVO').strip(),
+                'observaciones': request.POST.get('observaciones', '').strip(),
+            }
+            
+            # Validaciones
+            if not datos['rut_nif']:
+                errores['rut_nif'] = 'El RUT/NIF es obligatorio'
+            else:
+                # Validar formato de RUT si parece ser chileno (contiene guión)
+                if '-' in datos['rut_nif']:
+                    from .utils import validar_rut
+                    es_valido, rut_formateado, mensaje_error = validar_rut(datos['rut_nif'])
+                    if not es_valido:
+                        errores['rut_nif'] = mensaje_error
+                    else:
+                        datos['rut_nif'] = rut_formateado  # Usar RUT formateado
+                
+                # Verificar unicidad
+                if 'rut_nif' not in errores and Proveedor.objects.filter(rut_nif=datos['rut_nif']).exists():
+                    errores['rut_nif'] = 'Ya existe un proveedor con este RUT/NIF'
+                
+            if not datos['razon_social']:
+                errores['razon_social'] = 'La razón social es obligatoria'
+                
+            if not datos['email']:
+                errores['email'] = 'El email es obligatorio'
+            elif not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', datos['email']):
+                errores['email'] = 'Email inválido'
+            elif Proveedor.objects.filter(email=datos['email']).exists():
+                errores['email'] = 'Ya existe un proveedor con este email'
+                
+            if not datos['condiciones_pago']:
+                errores['condiciones_pago'] = 'Las condiciones de pago son obligatorias'
+                
+            # Validar sitio web si se proporciona
+            if datos['sitio_web'] and not datos['sitio_web'].startswith(('http://', 'https://')):
+                datos['sitio_web'] = 'https://' + datos['sitio_web']
+                
+            # Validar email de contacto principal si se proporciona
+            if datos['contacto_principal_email'] and not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', datos['contacto_principal_email']):
+                errores['contacto_principal_email'] = 'Email del contacto principal inválido'
+            
+            if errores:
+                # Si es una petición AJAX, devolver JSON con errores
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Por favor corrija los errores en el formulario',
+                        'errores': errores
+                    })
+                
+                messages.error(request, 'Por favor corrija los errores en el formulario')
+                context = {
+                    'errores': errores,
+                    'datos': datos,
+                    'CONDICIONES_PAGO_CHOICES': Proveedor.CONDICIONES_PAGO_CHOICES,
+                    'ESTADO_CHOICES': Proveedor.ESTADO_CHOICES,
+                }
+                return render(request, 'maestros/proveedor_crear.html', context)
+            
+            # Crear el proveedor
+            proveedor_data = {
+                'rut_nif': datos['rut_nif'],
+                'razon_social': datos['razon_social'],
+                'email': datos['email'],
+                'pais': datos['pais'],
+                'condiciones_pago': datos['condiciones_pago'],
+                'estado': datos['estado'],
+            }
+            
+            # Agregar campos opcionales solo si tienen valor
+            campos_opcionales = [
+                'nombre_fantasia', 'telefono', 'sitio_web', 'direccion', 'ciudad',
+                'condiciones_pago_detalle', 'moneda', 'contacto_principal_nombre',
+                'contacto_principal_email', 'contacto_principal_telefono', 'observaciones'
+            ]
+            
+            for campo in campos_opcionales:
+                if datos[campo]:
+                    proveedor_data[campo] = datos[campo]
+            
+            proveedor = Proveedor.objects.create(**proveedor_data)
+            
+            # Si es una petición AJAX, devolver JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Proveedor "{proveedor.razon_social}" creado exitosamente',
+                    'redirect_url': reverse('maestros:proveedor_detalle', args=[proveedor.pk])
+                })
+            
+            messages.success(request, f'Proveedor "{proveedor.razon_social}" creado exitosamente')
+            return redirect('maestros:proveedor_detalle', pk=proveedor.pk)
+            
         except Exception as e:
             messages.error(request, f'Error al crear proveedor: {str(e)}')
+            context = {
+                'errores': errores,
+                'datos': datos,
+                'CONDICIONES_PAGO_CHOICES': Proveedor.CONDICIONES_PAGO_CHOICES,
+                'ESTADO_CHOICES': Proveedor.ESTADO_CHOICES,
+            }
+            return render(request, 'maestros/proveedor_crear.html', context)
     
-    return render(request, 'maestros/proveedor_crear.html')
+    # GET request
+    context = {
+        'CONDICIONES_PAGO_CHOICES': Proveedor.CONDICIONES_PAGO_CHOICES,
+        'ESTADO_CHOICES': Proveedor.ESTADO_CHOICES,
+    }
+    return render(request, 'maestros/proveedor_crear.html', context)
 
 
 @login_required_custom
@@ -999,4 +1116,147 @@ def productos_exportar_excel(request):
     wb.save(response)
     
     return response
+
+
+@login_required_custom
+@estado_usuario_activo
+def proveedor_editar(request, pk):
+    """Editar proveedor existente"""
+    proveedor = get_object_or_404(Proveedor, pk=pk)
+    
+    if request.method == 'POST':
+        errores = {}
+        datos = {}
+        
+        try:
+            # Capturar todos los datos del formulario
+            datos = {
+                'rut_nif': request.POST.get('rut_nif', '').strip(),
+                'razon_social': request.POST.get('razon_social', '').strip(),
+                'nombre_fantasia': request.POST.get('nombre_fantasia', '').strip(),
+                'email': request.POST.get('email', '').strip(),
+                'telefono': request.POST.get('telefono', '').strip(),
+                'sitio_web': request.POST.get('sitio_web', '').strip(),
+                'direccion': request.POST.get('direccion', '').strip(),
+                'ciudad': request.POST.get('ciudad', '').strip(),
+                'pais': request.POST.get('pais', 'Chile').strip(),
+                'condiciones_pago': request.POST.get('condiciones_pago', '').strip(),
+                'condiciones_pago_detalle': request.POST.get('condiciones_pago_detalle', '').strip(),
+                'moneda': request.POST.get('moneda', 'CLP').strip(),
+                'contacto_principal_nombre': request.POST.get('contacto_principal_nombre', '').strip(),
+                'contacto_principal_email': request.POST.get('contacto_principal_email', '').strip(),
+                'contacto_principal_telefono': request.POST.get('contacto_principal_telefono', '').strip(),
+                'estado': request.POST.get('estado', 'ACTIVO').strip(),
+                'observaciones': request.POST.get('observaciones', '').strip(),
+            }
+            
+            # Validaciones
+            if not datos['rut_nif']:
+                errores['rut_nif'] = 'El RUT/NIF es obligatorio'
+            else:
+                # Validar formato de RUT si parece ser chileno (contiene guión)
+                if '-' in datos['rut_nif']:
+                    from .utils import validar_rut
+                    es_valido, rut_formateado, mensaje_error = validar_rut(datos['rut_nif'])
+                    if not es_valido:
+                        errores['rut_nif'] = mensaje_error
+                    else:
+                        datos['rut_nif'] = rut_formateado  # Usar RUT formateado
+                
+                # Verificar unicidad
+                if 'rut_nif' not in errores and Proveedor.objects.filter(rut_nif=datos['rut_nif']).exclude(pk=proveedor.pk).exists():
+                    errores['rut_nif'] = 'Ya existe un proveedor con este RUT/NIF'
+                
+            if not datos['razon_social']:
+                errores['razon_social'] = 'La razón social es obligatoria'
+                
+            if not datos['email']:
+                errores['email'] = 'El email es obligatorio'
+            elif '@' not in datos['email']:
+                errores['email'] = 'Ingrese un email válido'
+            elif Proveedor.objects.filter(email=datos['email']).exclude(pk=proveedor.pk).exists():
+                errores['email'] = 'Ya existe un proveedor con este email'
+                
+            if not datos['condiciones_pago']:
+                errores['condiciones_pago'] = 'Las condiciones de pago son obligatorias'
+            
+            # Si hay errores, devolver respuesta con errores
+            if errores:
+                return JsonResponse({
+                    'success': False,
+                    'errors': errores,
+                    'message': 'Por favor corrija los errores indicados'
+                })
+            
+            # Actualizar proveedor
+            for field, value in datos.items():
+                if value or field in ['observaciones', 'nombre_fantasia', 'telefono', 'sitio_web', 'direccion', 'ciudad', 'condiciones_pago_detalle', 'contacto_principal_nombre', 'contacto_principal_email', 'contacto_principal_telefono']:
+                    setattr(proveedor, field, value)
+            
+            proveedor.save()
+            
+            messages.success(request, f'Proveedor "{proveedor.razon_social}" actualizado exitosamente.')
+            return JsonResponse({
+                'success': True,
+                'message': f'Proveedor "{proveedor.razon_social}" actualizado exitosamente.',
+                'redirect_url': reverse('maestros:proveedor_detalle', kwargs={'pk': proveedor.pk})
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al actualizar proveedor: {str(e)}'
+            })
+    
+    # GET request - mostrar formulario de edición
+    context = {
+        'proveedor': proveedor,
+        'condiciones_pago_choices': Proveedor.CONDICIONES_PAGO_CHOICES,
+        'estado_choices': Proveedor.ESTADO_CHOICES,
+    }
+    return render(request, 'maestros/proveedor_editar.html', context)
+
+
+@login_required_custom
+@estado_usuario_activo
+def proveedor_eliminar(request, pk):
+    """Eliminar proveedor con confirmación"""
+    proveedor = get_object_or_404(Proveedor, pk=pk)
+    
+    if request.method == 'POST':
+        try:
+            # Verificar si el proveedor tiene productos asociados
+            productos_asociados = proveedor.productos.count()
+            
+            if productos_asociados > 0:
+                return JsonResponse({
+                    'success': False,
+                    'message': f'No se puede eliminar el proveedor porque tiene {productos_asociados} productos asociados. Primero debe eliminar o reasignar estos productos.'
+                })
+            
+            nombre_proveedor = proveedor.razon_social
+            proveedor.delete()
+            
+            messages.success(request, f'Proveedor "{nombre_proveedor}" eliminado exitosamente.')
+            return JsonResponse({
+                'success': True,
+                'message': f'Proveedor "{nombre_proveedor}" eliminado exitosamente.',
+                'redirect_url': reverse('maestros:proveedor_listar')
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al eliminar proveedor: {str(e)}'
+            })
+    
+    # GET request - mostrar confirmación
+    # Verificar productos asociados para mostrar advertencia
+    productos_asociados = proveedor.productos.count()
+    
+    context = {
+        'proveedor': proveedor,
+        'productos_asociados': productos_asociados,
+    }
+    return render(request, 'maestros/proveedor_eliminar.html', context)
 

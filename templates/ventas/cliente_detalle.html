@@ -129,11 +129,11 @@
                 <div class="card-body">
                     <h6 class="mb-3">Acciones Rápidas</h6>
                     {% if perms.ventas.crear_ventas or user.rol.nombre == 'ADMIN' %}
-                    <a href="{% url 'venta_crear' %}?cliente={{ cliente.pk }}" class="btn btn-primary w-100 mb-2">
+                    <a href="{% url 'ventas:venta_crear' %}?cliente={{ cliente.pk }}" class="btn btn-primary w-100 mb-2">
                         <i class="fas fa-shopping-cart"></i> Nueva Venta
                     </a>
                     {% endif %}
-                    <a href="{% url 'cliente_listar' %}" class="btn btn-secondary w-100">
+                    <a href="{% url 'ventas:cliente_listar' %}" class="btn btn-secondary w-100">
                         <i class="fas fa-list"></i> Volver a Lista
                     </a>
                 </div>

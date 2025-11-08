@@ -3,7 +3,7 @@ from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.core.exceptions import ValidationError
 from PIL import Image
 import re
-from .models import Usuario
+from .models import Usuario, Rol
 
 
 class RegistroUsuarioForm(forms.ModelForm):

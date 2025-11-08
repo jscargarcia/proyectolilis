@@ -2,6 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q, Sum
+from django.http import JsonResponse
+from django.urls import reverse
+from django.views.decorators.http import require_http_methods
 from autenticacion.decorators import login_required_custom, permission_required, estado_usuario_activo
 from .models import Cliente, Venta, VentaDetalle
 from maestros.models import Producto
@@ -52,11 +55,43 @@ def cliente_listar(request):
 def cliente_crear(request):
     """Crear nuevo cliente"""
     if request.method == 'POST':
+        errores = {}
+        
         try:
+            # Validaciones básicas
+            rut_nif = request.POST.get('rut_nif', '').strip()
+            nombre = request.POST.get('nombre', '').strip()
+            tipo = request.POST.get('tipo', '').strip()
+            
+            if not rut_nif:
+                errores['rut_nif'] = 'El RUT/NIF es obligatorio'
+            elif Cliente.objects.filter(rut_nif=rut_nif).exists():
+                errores['rut_nif'] = 'Ya existe un cliente con este RUT/NIF'
+                
+            if not nombre:
+                errores['nombre'] = 'El nombre es obligatorio'
+                
+            if not tipo:
+                errores['tipo'] = 'El tipo es obligatorio'
+            
+            # Si hay errores de validación
+            if errores:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Por favor corrija los errores en el formulario',
+                        'errores': errores
+                    })
+                
+                for campo, mensaje in errores.items():
+                    messages.error(request, mensaje)
+                return render(request, 'ventas/cliente_crear.html')
+            
+            # Crear el cliente
             cliente = Cliente.objects.create(
-                rut_nif=request.POST['rut_nif'],
-                tipo=request.POST['tipo'],
-                nombre=request.POST['nombre'],
+                rut_nif=rut_nif,
+                tipo=tipo,
+                nombre=nombre,
                 email=request.POST.get('email') or None,
                 telefono=request.POST.get('telefono') or None,
                 direccion=request.POST.get('direccion') or None,
@@ -64,9 +99,24 @@ def cliente_crear(request):
                 observaciones=request.POST.get('observaciones') or None,
                 activo=request.POST.get('activo') == 'on',
             )
+            
+            # Si es una petición AJAX, devolver JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Cliente "{cliente.nombre}" creado exitosamente',
+                    'redirect_url': reverse('ventas:cliente_detalle', args=[cliente.pk])
+                })
+            
             messages.success(request, f'Cliente "{cliente.nombre}" creado exitosamente.')
-            return redirect('cliente_detalle', pk=cliente.pk)
+            return redirect('ventas:cliente_detalle', pk=cliente.pk)
+            
         except Exception as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Error al crear cliente: {str(e)}'
+                })
             messages.error(request, f'Error al crear cliente: {str(e)}')
     
     return render(request, 'ventas/cliente_crear.html')
@@ -95,10 +145,43 @@ def cliente_editar(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
     
     if request.method == 'POST':
+        errores = {}
+        
         try:
-            cliente.rut_nif = request.POST['rut_nif']
-            cliente.tipo = request.POST['tipo']
-            cliente.nombre = request.POST['nombre']
+            # Validaciones básicas
+            rut_nif = request.POST.get('rut_nif', '').strip()
+            nombre = request.POST.get('nombre', '').strip()
+            tipo = request.POST.get('tipo', '').strip()
+            
+            if not rut_nif:
+                errores['rut_nif'] = 'El RUT/NIF es obligatorio'
+            elif Cliente.objects.filter(rut_nif=rut_nif).exclude(pk=cliente.pk).exists():
+                errores['rut_nif'] = 'Ya existe un cliente con este RUT/NIF'
+                
+            if not nombre:
+                errores['nombre'] = 'El nombre es obligatorio'
+                
+            if not tipo:
+                errores['tipo'] = 'El tipo es obligatorio'
+            
+            # Si hay errores de validación
+            if errores:
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Por favor corrija los errores en el formulario',
+                        'errores': errores
+                    })
+                
+                for campo, mensaje in errores.items():
+                    messages.error(request, mensaje)
+                context = {'cliente': cliente}
+                return render(request, 'ventas/cliente_editar.html', context)
+            
+            # Actualizar el cliente
+            cliente.rut_nif = rut_nif
+            cliente.tipo = tipo
+            cliente.nombre = nombre
             cliente.email = request.POST.get('email') or None
             cliente.telefono = request.POST.get('telefono') or None
             cliente.direccion = request.POST.get('direccion') or None
@@ -107,9 +190,23 @@ def cliente_editar(request, pk):
             cliente.activo = request.POST.get('activo') == 'on'
             cliente.save()
             
+            # Si es una petición AJAX, devolver JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Cliente "{cliente.nombre}" actualizado exitosamente',
+                    'redirect_url': reverse('ventas:cliente_detalle', args=[cliente.pk])
+                })
+            
             messages.success(request, f'Cliente "{cliente.nombre}" actualizado exitosamente.')
-            return redirect('cliente_detalle', pk=cliente.pk)
+            return redirect('ventas:cliente_detalle', pk=cliente.pk)
+            
         except Exception as e:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Error al actualizar cliente: {str(e)}'
+                })
             messages.error(request, f'Error al actualizar cliente: {str(e)}')
     
     context = {'cliente': cliente}
@@ -124,12 +221,48 @@ def cliente_eliminar(request, pk):
     cliente = get_object_or_404(Cliente, pk=pk)
     
     if request.method == 'POST':
-        nombre = cliente.nombre
-        cliente.delete()
-        messages.success(request, f'Cliente "{nombre}" eliminado exitosamente.')
-        return redirect('cliente_listar')
+        try:
+            # Verificar si el cliente tiene ventas asociadas
+            ventas_asociadas = cliente.ventas.count()
+            
+            if ventas_asociadas > 0:
+                mensaje_error = f'No se puede eliminar el cliente porque tiene {ventas_asociadas} venta(s) asociada(s).'
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({'success': False, 'message': mensaje_error})
+                else:
+                    messages.error(request, mensaje_error)
+                    return render(request, 'ventas/cliente_eliminar.html', {
+                        'cliente': cliente,
+                        'ventas_asociadas': ventas_asociadas
+                    })
+            
+            nombre = cliente.nombre
+            cliente.delete()
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Cliente "{nombre}" eliminado exitosamente.',
+                    'redirect_url': reverse('ventas:cliente_listar')
+                })
+            
+            messages.success(request, f'Cliente "{nombre}" eliminado exitosamente.')
+            return redirect('ventas:cliente_listar')
+            
+        except Exception as e:
+            mensaje_error = f'Error al eliminar cliente: {str(e)}'
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({'success': False, 'message': mensaje_error})
+            else:
+                messages.error(request, mensaje_error)
+                return render(request, 'ventas/cliente_eliminar.html', {'cliente': cliente})
     
-    context = {'cliente': cliente}
+    # GET request - mostrar página de confirmación
+    ventas_asociadas = cliente.ventas.count()
+    context = {
+        'cliente': cliente,
+        'ventas_asociadas': ventas_asociadas,
+    }
     return render(request, 'ventas/cliente_eliminar.html', context)
 
 

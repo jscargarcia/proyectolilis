@@ -11,7 +11,7 @@
     <div class="card mt-3">
         <div class="card-body">
             <h5>Formulario Simple (sin JavaScript)</h5>
-            <form method="POST" action="{% url 'producto_editar' producto.pk %}">
+            <form method="POST" action="{% url 'maestros:producto_editar' producto.pk %}">
                 {% csrf_token %}
                 
                 <!-- Campos mínimos requeridos -->
@@ -32,7 +32,7 @@
                 </div>
                 
                 <button type="submit" class="btn btn-primary">Actualizar Estado</button>
-                <a href="{% url 'producto_detalle' producto.pk %}" class="btn btn-secondary">Cancelar</a>
+                <a href="{% url 'maestros:producto_detalle' producto.pk %}" class="btn btn-secondary">Cancelar</a>
             </form>
         </div>
     </div>

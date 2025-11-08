@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load permisos_tags %}
 
 {% block title %}Dashboard - Lilis System{% endblock %}
 
@@ -7,7 +8,7 @@
 <style>
     /* Fondo de la página completa */
     .dashboard-container {
-        background-image: url("{% static 'img/backgrounds/background-conitos.jpg' %}");
+        background: linear-gradient(135deg, #fff8e1 0%, #fee2e2 30%, #f3e5f5 70%, #fce7f3 100%);
         background-size: cover;
         background-position: center;
         background-attachment: fixed;
@@ -16,22 +17,95 @@
         padding: 20px 0;
     }
     
-    /* Overlay sutil para mejorar legibilidad */
+    /* Overlay sutil para mejorar legibilidad - sin interferencias */
     .dashboard-container::before {
         content: "";
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
         background: rgba(255, 248, 240, 0.7);
-        z-index: 0;
+        z-index: -999;
+        pointer-events: none;
     }
     
     /* Asegurar que el contenido esté sobre el overlay */
     .dashboard-container > * {
         position: relative;
         z-index: 1;
+    }
+    
+    /* Asegurar que los dropdowns tengan z-index alto */
+    .dropdown-menu {
+        z-index: 1050 !important;
+        position: absolute !important;
+    }
+    
+    .navbar-nav .dropdown-menu {
+        z-index: 1060 !important;
+        position: absolute !important;
+    }
+    
+    /* Estilos específicos para el dropdown del navbar en dashboard */
+    .navbar .dropdown {
+        z-index: 1070 !important;
+        position: relative !important;
+    }
+    
+    .navbar .dropdown-menu {
+        z-index: 1080 !important;
+        position: absolute !important;
+        background: white !important;
+        border: 1px solid rgba(0,0,0,0.15) !important;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.175) !important;
+    }
+    
+    /* Forzar que el navbar tenga prioridad máxima */
+    .navbar {
+        z-index: 1100 !important;
+        position: relative !important;
+    }
+    
+    .navbar-nav {
+        z-index: 1101 !important;
+        position: relative !important;
+    }
+    
+    /* Específico para el dropdown del usuario */
+    .dropdown-menu-end {
+        z-index: 1200 !important;
+        position: absolute !important;
+        background: white !important;
+        border: 1px solid rgba(0,0,0,0.15) !important;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.175) !important;
+        right: 0 !important;
+        left: auto !important;
+        top: 100% !important;
+        transform: none !important;
+    }
+    
+    /* Asegurar que el contenedor del dashboard no interfiera */
+    .dashboard-container {
+        position: relative;
+        z-index: auto;
+    }
+    
+    /* Forzar todos los elementos del navbar a estar siempre encima */
+    nav.navbar,
+    nav.navbar *,
+    .navbar-nav,
+    .navbar-nav *,
+    .dropdown,
+    .dropdown *,
+    .dropdown-menu,
+    .dropdown-menu * {
+        z-index: 9999 !important;
+        position: relative !important;
+    }
+    
+    .dropdown-menu {
+        position: absolute !important;
     }
     
     /* Tarjetas con fondo semi-transparente */
@@ -50,6 +124,30 @@
     .alert-info {
         background: rgba(220, 38, 38, 0.95) !important;
         backdrop-filter: blur(10px);
+    }
+    
+    /* Asegurar que todos los elementos interactivos tengan z-index apropiado */
+    .btn, .card, .alert, .carousel {
+        position: relative;
+        z-index: 10;
+    }
+    
+    /* Modales y overlays */
+    .modal {
+        z-index: 1070 !important;
+    }
+    
+    .modal-backdrop {
+        z-index: 1060 !important;
+    }
+    
+    /* Tooltips y popovers */
+    .tooltip {
+        z-index: 1080 !important;
+    }
+    
+    .popover {
+        z-index: 1080 !important;
     }
 </style>
 {% endblock %}
@@ -121,11 +219,11 @@
                         <p class="mb-0">Accede al sistema completo de gestión de productos con todos tus datos de la base de datos</p>
                     </div>
                     <div>
-                        <a href="{% url 'producto_listar' %}" class="btn btn-light btn-lg px-4 py-2 me-2" style="font-weight: bold;">
+                        <a href="{% url 'maestros:producto_listar' %}" class="btn btn-light btn-lg px-4 py-2 me-2" style="font-weight: bold;">
                             <i class="fas fa-list"></i> Ver Productos
                         </a>
-                        {% if usuario.rol.nombre == 'ADMIN' or usuario.rol.nombre == 'GERENTE' %}
-                        <a href="{% url 'producto_crear' %}" class="btn btn-outline-light btn-lg px-4 py-2" style="border: 2px solid white; font-weight: bold;">
+                        {% if user|can_manage_products %}
+                        <a href="{% url 'maestros:producto_crear' %}" class="btn btn-outline-light btn-lg px-4 py-2" style="border: 2px solid white; font-weight: bold;">
                             <i class="fas fa-plus"></i> Nuevo
                         </a>
                         {% endif %}
@@ -205,7 +303,7 @@
                         Gestiona el catálogo completo de productos, inventario, precios y categorías.
                     </p>
                     <div class="d-grid gap-2 mt-auto">
-                        <a href="{% url 'producto_listar' %}" class="btn btn-danger btn-lg">
+                        <a href="{% url 'maestros:producto_listar' %}" class="btn btn-danger btn-lg">
                             <i class="fas fa-eye"></i> Ver Productos
                         </a>
                     </div>
@@ -247,13 +345,82 @@
                         Ajustes del sistema, usuarios, permisos y parámetros generales.
                     </p>
                     <div class="d-grid gap-2 mt-auto">
-                        <a href="{% url 'perfil_usuario' %}" class="btn btn-danger btn-lg">
+                        <a href="{% url 'autenticacion:usuario_detalle' usuario.pk %}" class="btn btn-danger btn-lg">
                             <i class="fas fa-sliders-h"></i> Configurar
                         </a>
                     </div>
                 </div>
             </div>
         </div>
+        
+        <!-- Tarjeta 4: Inventario -->
+        {% if user|can_manage_inventory %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm" style="border-top: 4px solid #dc2626; border-radius: 10px;">
+                <img src="https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400&h=200&fit=crop" 
+                     class="card-img-top" alt="Inventario" style="height: 200px; object-fit: cover; border-radius: 10px 10px 0 0;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-center">
+                        <i class="fas fa-warehouse text-danger"></i> Inventario
+                    </h5>
+                    <p class="card-text text-center flex-grow-1">
+                        Control de stock, movimientos, alertas y trazabilidad completa.
+                    </p>
+                    <div class="d-grid gap-2 mt-auto">
+                        <a href="{% url 'inventario:stock_listar' %}" class="btn btn-danger btn-lg">
+                            <i class="fas fa-boxes"></i> Ver Stock
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Tarjeta 5: Usuarios (Solo Admin) -->
+        {% if user|is_admin %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm" style="border-top: 4px solid #dc2626; border-radius: 10px;">
+                <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?w=400&h=200&fit=crop" 
+                     class="card-img-top" alt="Usuarios" style="height: 200px; object-fit: cover; border-radius: 10px 10px 0 0;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-center">
+                        <i class="fas fa-users text-danger"></i> Usuarios
+                    </h5>
+                    <p class="card-text text-center flex-grow-1">
+                        Gestión de usuarios, roles, permisos y auditoría del sistema.
+                    </p>
+                    <div class="d-grid gap-2 mt-auto">
+                        <a href="{% url 'autenticacion:usuario_listar' %}" class="btn btn-danger btn-lg">
+                            <i class="fas fa-users"></i> Gestionar Usuarios
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Tarjeta 6: Proveedores -->
+        {% if user|can_manage_suppliers %}
+        <div class="col-lg-4 col-md-6 mb-4">
+            <div class="card h-100 shadow-sm" style="border-top: 4px solid #dc2626; border-radius: 10px;">
+                <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=200&fit=crop" 
+                     class="card-img-top" alt="Proveedores" style="height: 200px; object-fit: cover; border-radius: 10px 10px 0 0;">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title text-center">
+                        <i class="fas fa-truck text-danger"></i> Proveedores
+                    </h5>
+                    <p class="card-text text-center flex-grow-1">
+                        Gestión de proveedores, contratos y relaciones comerciales.
+                    </p>
+                    <div class="d-grid gap-2 mt-auto">
+                        <a href="{% url 'maestros:proveedor_listar' %}" class="btn btn-danger btn-lg">
+                            <i class="fas fa-truck"></i> Ver Proveedores
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
     
     <!-- Información del usuario -->
@@ -269,7 +436,7 @@
                         <p class="text-muted mb-0">{{ usuario.rol.nombre }}</p>
                     </div>
                     <div class="d-grid">
-                        <a href="{% url 'perfil_usuario' %}" class="btn text-white" style="background-color: #dc2626;">
+                        <a href="{% url 'autenticacion:usuario_detalle' usuario.pk %}" class="btn text-white" style="background-color: #dc2626;">
                             <i class="fas fa-eye"></i> Ver Mi Perfil Completo
                         </a>
                     </div>
@@ -284,36 +451,63 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        {% if usuario.rol.nombre == 'ADMIN' or usuario.rol.nombre == 'SUPERVISOR' %}
-                            <a href="{% url 'catalogo_listar' %}" class="btn btn-info">
+                        {% if user|can_supervise %}
+                            <a href="{% url 'catalogo:catalogo_listar' %}" class="btn btn-info">
                                 <i class="fas fa-list"></i> Ver Catálogo
                             </a>
                             
-                            {% if usuario.rol.permisos.catalogo.crear %}
-                                <a href="{% url 'catalogo_crear' %}" class="btn btn-success">
-                                    <i class="fas fa-plus"></i> Crear Producto Catálogo
-                                </a>
-                            {% endif %}
+                            <a href="{% url 'catalogo:catalogo_crear' %}" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Crear Producto Catálogo
+                            </a>
                         {% endif %}
                         
                         <!-- Accesos rápidos para Maestros -->
-                        {% if usuario.rol.nombre == 'ADMIN' or usuario.rol.nombre == 'GERENTE' or usuario.rol.nombre == 'BODEGUERO' %}
+                        {% if user|can_manage_inventory %}
                             <hr>
                             <h6 class="fw-bold">
                                 <i class="fas fa-crown"></i> Gestión de Maestros
                             </h6>
-                            <a href="{% url 'producto_listar' %}" class="btn btn-primary mb-2">
+                            <a href="{% url 'maestros:producto_listar' %}" class="btn btn-primary mb-2">
                                 <i class="fas fa-boxes"></i> Gestión de Productos
                             </a>
                             
-                            {% if usuario.rol.nombre == 'ADMIN' or usuario.rol.nombre == 'GERENTE' %}
-                            <a href="{% url 'producto_crear' %}" class="btn btn-primary mb-2">
+                            {% if user|can_manage_products %}
+                            <a href="{% url 'maestros:producto_crear' %}" class="btn btn-primary mb-2">
                                 <i class="fas fa-plus"></i> Nuevo Producto
                             </a>
                             {% endif %}
                             
-                            <a href="{% url 'proveedor_listar' %}" class="btn btn-warning">
+                            <a href="{% url 'maestros:proveedor_listar' %}" class="btn btn-warning">
                                 <i class="fas fa-truck"></i> Proveedores
+                            </a>
+                            
+                            <!-- Accesos rápidos para Inventario -->
+                            <hr>
+                            <h6 class="fw-bold">
+                                <i class="fas fa-warehouse"></i> Inventario
+                            </h6>
+                            <a href="{% url 'inventario:stock_listar' %}" class="btn btn-success mb-2">
+                                <i class="fas fa-boxes"></i> Ver Stock
+                            </a>
+                            <a href="{% url 'inventario:movimiento_listar' %}" class="btn btn-info mb-2">
+                                <i class="fas fa-exchange-alt"></i> Movimientos
+                            </a>
+                            <a href="{% url 'inventario:alerta_listar' %}" class="btn btn-warning mb-2">
+                                <i class="fas fa-exclamation-triangle"></i> Alertas
+                            </a>
+                        {% endif %}
+                        
+                        <!-- Accesos rápidos para Administración -->
+                        {% if user|is_admin %}
+                            <hr>
+                            <h6 class="fw-bold">
+                                <i class="fas fa-users-cog"></i> Administración
+                            </h6>
+                            <a href="{% url 'autenticacion:usuario_listar' %}" class="btn btn-primary mb-2">
+                                <i class="fas fa-users"></i> Gestionar Usuarios
+                            </a>
+                            <a href="{% url 'autenticacion:rol_listar' %}" class="btn btn-secondary mb-2">
+                                <i class="fas fa-shield-alt"></i> Roles y Permisos
                             </a>
                         {% endif %}
                         

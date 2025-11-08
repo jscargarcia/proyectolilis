@@ -31,7 +31,7 @@
             </div>
             
             <div class="login-body">
-                <form method="POST" action="{% url 'login' %}" class="login-form">
+                <form method="POST" action="{% url 'autenticacion:login' %}" class="login-form">
                     {% csrf_token %}
                     
                     <div class="form-group">
@@ -67,7 +67,7 @@
                 </form>
                 
                 <div class="text-center mt-3">
-                    <a href="{% url 'recuperar_password' %}" class="text-decoration-none" 
+                    <a href="{% url 'autenticacion:recuperar_password' %}" class="text-decoration-none" 
                        style="color: #dc2626; font-size: 0.9rem;">
                         <i class="fas fa-key"></i> ¿Olvidaste tu contraseña?
                     </a>
@@ -76,7 +76,7 @@
                 <div class="text-center mt-2">
                     <p class="mb-0" style="font-size: 0.9rem;">
                         ¿No tienes cuenta? 
-                        <a href="{% url 'registro' %}" style="color: #dc2626; font-weight: 600;">
+                        <a href="{% url 'autenticacion:registro' %}" style="color: #dc2626; font-weight: 600;">
                             Regístrate aquí
                         </a>
                     </p>

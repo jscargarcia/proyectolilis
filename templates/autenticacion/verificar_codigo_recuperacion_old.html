@@ -368,7 +368,7 @@
                         Cambiar Contraseña
                     </button>
                     
-                    <a href="{% url 'recuperar_password' %}" class="btn btn-outline-secondary">
+                    <a href="{% url 'autenticacion:recuperar_password' %}" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left"></i>
                         Solicitar Nuevo Código
                     </a>
@@ -384,7 +384,7 @@
                 <ul>
                     <li>Revisa tu carpeta de spam o correo no deseado</li>
                     <li>El código puede tardar unos minutos en llegar</li>
-                    <li>Si no lo recibes, <a href="{% url 'recuperar_password' %}">solicita un nuevo código</a></li>
+                    <li>Si no lo recibes, <a href="{% url 'autenticacion:recuperar_password' %}">solicita un nuevo código</a></li>
                     <li>El código tiene una validez de 10 minutos</li>
                 </ul>
             </div>

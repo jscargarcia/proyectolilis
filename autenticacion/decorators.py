@@ -13,11 +13,15 @@ def tiene_permiso(usuario, modulo, accion):
     if not usuario.is_authenticated:
         return False
     
-    # Administrador tiene todos los permisos
-    if usuario.rol.nombre == 'Administrador':
+    # Superuser siempre tiene todos los permisos
+    if usuario.is_superuser:
         return True
     
-    if not usuario.rol.permisos:
+    # Administrador tiene todos los permisos
+    if hasattr(usuario, 'rol') and usuario.rol and usuario.rol.nombre in ['ADMIN', 'Administrador']:
+        return True
+    
+    if not hasattr(usuario, 'rol') or not usuario.rol or not usuario.rol.permisos:
         return False
     
     permisos_modulo = usuario.rol.permisos.get(modulo, [])
@@ -34,14 +38,17 @@ def permiso_requerido(modulo, accion):
         def wrapper(request, *args, **kwargs):
             if not request.user.is_authenticated:
                 messages.error(request, 'Debes iniciar sesión para acceder a esta página.')
-                return redirect('login')
+                return redirect('autenticacion:login')
             
-            # Admin siempre tiene acceso
-            if request.user.rol.nombre == 'Administrador':
+            # Superuser y Admin siempre tienen acceso
+            if request.user.is_superuser:
+                return view_func(request, *args, **kwargs)
+            
+            if hasattr(request.user, 'rol') and request.user.rol and request.user.rol.nombre in ['ADMIN', 'Administrador']:
                 return view_func(request, *args, **kwargs)
             
             # Verificar si el rol tiene permisos definidos
-            if not request.user.rol.permisos:
+            if not hasattr(request.user, 'rol') or not request.user.rol or not request.user.rol.permisos:
                 messages.error(request, 'Tu rol no tiene permisos configurados.')
                 
                 if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -50,7 +57,7 @@ def permiso_requerido(modulo, accion):
                         'message': 'No tienes permisos configurados.'
                     }, status=403)
                 
-                return redirect('dashboard')
+                return redirect('autenticacion:dashboard')
             
             # Verificar si el módulo existe en los permisos
             permisos_modulo = request.user.rol.permisos.get(modulo, [])
@@ -69,7 +76,7 @@ def permiso_requerido(modulo, accion):
                         'message': f'No tienes permiso para {accion} {modulo}.'
                     }, status=403)
                 
-                return redirect('dashboard')
+                return redirect('autenticacion:dashboard')
             
             return view_func(request, *args, **kwargs)
         return wrapper
@@ -84,7 +91,7 @@ def login_required_custom(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             messages.warning(request, 'Debes iniciar sesión para acceder a esta página.')
-            return redirect('login')
+            return redirect('autenticacion:login')
         return view_func(request, *args, **kwargs)
     return wrapper
 
@@ -99,7 +106,7 @@ def role_required(*roles):
         def wrapper(request, *args, **kwargs):
             if not request.user.is_authenticated:
                 messages.warning(request, 'Debes iniciar sesión para acceder a esta página.')
-                return redirect('login')
+                return redirect('autenticacion:login')
             
             # Verificar si el usuario tiene el rol requerido
             user_role = getattr(request.user, 'rol', None)
@@ -123,13 +130,17 @@ def permission_required(permission_name):
         def wrapper(request, *args, **kwargs):
             if not request.user.is_authenticated:
                 messages.warning(request, 'Debes iniciar sesión para acceder a esta página.')
-                return redirect('login')
+                return redirect('autenticacion:login')
+            
+            # Superuser siempre tiene acceso
+            if request.user.is_superuser:
+                return view_func(request, *args, **kwargs)
             
             # Verificar permisos en el JSON del rol
             user_role = getattr(request.user, 'rol', None)
             if user_role:
                 # Los administradores tienen acceso completo
-                if user_role.nombre == 'Administrador':
+                if user_role.nombre in ['ADMIN', 'Administrador']:
                     return view_func(request, *args, **kwargs)
                 
                 if user_role.permisos:
@@ -160,11 +171,11 @@ def estado_usuario_activo(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             messages.warning(request, 'Debes iniciar sesión para acceder a esta página.')
-            return redirect('login')
+            return redirect('autenticacion:login')
         
         if request.user.estado != 'ACTIVO':
             messages.error(request, 'Tu cuenta no está activa. Contacta al administrador.')
-            return redirect('login')
+            return redirect('autenticacion:login')
         
         return view_func(request, *args, **kwargs)
     
@@ -179,7 +190,7 @@ def admin_only(view_func):
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             messages.warning(request, 'Debes iniciar sesión para acceder a esta página.')
-            return redirect('login')
+            return redirect('autenticacion:login')
         
         if not request.user.is_superuser:
             user_role = getattr(request.user, 'rol', None)
@@ -202,7 +213,7 @@ def multiple_permissions_required(*permissions):
         def wrapper(request, *args, **kwargs):
             if not request.user.is_authenticated:
                 messages.warning(request, 'Debes iniciar sesión para acceder a esta página.')
-                return redirect('login')
+                return redirect('autenticacion:login')
             
             user_role = getattr(request.user, 'rol', None)
             if not user_role or not user_role.permisos:
@@ -240,7 +251,7 @@ def any_permission_required(*permissions):
         def wrapper(request, *args, **kwargs):
             if not request.user.is_authenticated:
                 messages.warning(request, 'Debes iniciar sesión para acceder a esta página.')
-                return redirect('login')
+                return redirect('autenticacion:login')
             
             user_role = getattr(request.user, 'rol', None)
             if not user_role:
@@ -248,7 +259,7 @@ def any_permission_required(*permissions):
                 return HttpResponseForbidden('Acceso denegado: No tienes permisos asignados.')
             
             # Los administradores tienen acceso completo
-            if user_role.nombre == 'Administrador':
+            if user_role.nombre in ['ADMIN', 'Administrador']:
                 return view_func(request, *args, **kwargs)
             
             if not user_role.permisos:

@@ -311,7 +311,7 @@
                     </div>
                     <div class="card-body">
                         <div class="d-grid gap-2">
-                            <a href="{% url 'producto_editar' producto.pk %}" class="btn btn-warning btn-action">
+                            <a href="{% url 'maestros:producto_editar' producto.pk %}" class="btn btn-warning btn-action">
                                 <i class="fas fa-edit me-2"></i>
                                 Editar Producto
                             </a>
@@ -323,7 +323,7 @@
                             
                             <hr>
                             
-                            <a href="{% url 'producto_listar' %}" class="btn btn-secondary btn-action">
+                            <a href="{% url 'maestros:producto_listar' %}" class="btn btn-secondary btn-action">
                                 <i class="fas fa-arrow-left me-2"></i>
                                 Volver a Lista
                             </a>

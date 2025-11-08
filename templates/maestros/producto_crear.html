@@ -63,24 +63,6 @@
 .invalid-feedback {
     display: block;
 }
-
-.loading-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    z-index: 9999;
-}
-
-.loading-spinner {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-}
 </style>
 {% endblock %}
 
@@ -93,7 +75,7 @@
                 <h2><i class="fas fa-plus-circle me-2"></i>Crear Nuevo Producto</h2>
                 <p class="mb-0">Complete la información del producto</p>
             </div>
-            <a href="{% url 'producto_listar' %}" class="btn btn-light">
+            <a href="{% url 'maestros:producto_listar' %}" class="btn btn-light">
                 <i class="fas fa-arrow-left me-2"></i>Volver a Lista
             </a>
         </div>
@@ -207,7 +189,7 @@
                         <label for="uom_compra" class="form-label required">Unidad de Compra</label>
                         <select class="form-select" id="uom_compra" name="uom_compra" required>
                             <option value="">Seleccionar...</option>
-                            {% for unidad in unidades %}
+                            {% for unidad in unidades_medida %}
                             <option value="{{ unidad.id }}">{{ unidad.codigo }} - {{ unidad.nombre }}</option>
                             {% endfor %}
                         </select>
@@ -218,7 +200,7 @@
                         <label for="uom_venta" class="form-label required">Unidad de Venta</label>
                         <select class="form-select" id="uom_venta" name="uom_venta" required>
                             <option value="">Seleccionar...</option>
-                            {% for unidad in unidades %}
+                            {% for unidad in unidades_medida %}
                             <option value="{{ unidad.id }}">{{ unidad.codigo }} - {{ unidad.nombre }}</option>
                             {% endfor %}
                         </select>
@@ -229,7 +211,7 @@
                         <label for="uom_stock" class="form-label required">Unidad de Stock</label>
                         <select class="form-select" id="uom_stock" name="uom_stock" required>
                             <option value="">Seleccionar...</option>
-                            {% for unidad in unidades %}
+                            {% for unidad in unidades_medida %}
                             <option value="{{ unidad.id }}">{{ unidad.codigo }} - {{ unidad.nombre }}</option>
                             {% endfor %}
                         </select>
@@ -412,7 +394,7 @@
             <div class="row">
                 <div class="col-12">
                     <div class="d-flex justify-content-between">
-                        <a href="{% url 'producto_listar' %}" class="btn btn-secondary">
+                        <a href="{% url 'maestros:producto_listar' %}" class="btn btn-secondary">
                             <i class="fas fa-times me-2"></i>Cancelar
                         </a>
                         
@@ -420,7 +402,7 @@
                             <button type="button" class="btn btn-outline-primary" onclick="guardarBorrador()">
                                 <i class="fas fa-save me-2"></i>Guardar Borrador
                             </button>
-                            <button type="button" class="btn btn-primary" onclick="console.log('🔥 BOTÓN CLICKEADO'); guardarProducto();">
+                            <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-check me-2"></i>Crear Producto
                             </button>
                         </div>
@@ -431,296 +413,80 @@
     </div>
 </div>
 
-<!-- Loading overlay -->
-<div class="loading-overlay" id="loading-overlay">
-    <div class="loading-spinner">
-        <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Guardando...</span>
-        </div>
-        <p class="text-white mt-2">Creando producto...</p>
-    </div>
-</div>
+
 {% endblock %}
 
 {% block extra_js %}
-<!-- jQuery específico para este template -->
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script>
-$(document).ready(function() {
-    // Verificar librerías necesarias
-    console.log('🔍 Verificando librerías...');
-    console.log('jQuery:', typeof $ !== 'undefined' ? '✅' : '❌');
-    console.log('SweetAlert2:', typeof Swal !== 'undefined' ? '✅' : '❌');
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Iniciando JavaScript del formulario de productos...');
     
-    // Validación en tiempo real
-    $('#sku').on('blur', function() {
-        validateSKU();
-    });
-    
-    $('#ean_upc').on('blur', function() {
-        validateEANUPC();
-    });
-    
-    // Formulario principal
-    $('#producto-form').on('submit', function(e) {
-        e.preventDefault();
-        console.log('🚀 Formulario interceptado - usando AJAX');
-        guardarProducto();
-        return false; // Asegurar que no se envíe normalmente
-    });
-    
-    // Auto-completar unidades de medida similares
-    $('#uom_compra').on('change', function() {
-        const selectedValue = $(this).val();
-        if (selectedValue && !$('#uom_venta').val()) {
-            $('#uom_venta').val(selectedValue);
-        }
-        if (selectedValue && !$('#uom_stock').val()) {
-            $('#uom_stock').val(selectedValue);
-        }
-    });
-    
-    // Validación en tiempo real
-    $('#precio_venta').on('input', function() {
-        const valor = parseFloat($(this).val()) || 0;
-        if (valor > 0) {
-            $(this).removeClass('is-invalid').addClass('is-valid');
-            $('#precio_venta-error').text('');
-        }
-    });
-    
-    $('#stock_maximo').on('input', function() {
-        const stockMinimo = parseFloat($('#stock_minimo').val()) || 0;
-        const stockMaximo = parseFloat($(this).val()) || 0;
-        
-        if (stockMaximo >= stockMinimo) {
-            $(this).removeClass('is-invalid').addClass('is-valid');
-            $('#stock_maximo-error').text('');
-        }
-    });
-    
-    // Limpiar errores al escribir en campos requeridos
-    $('input[required], select[required]').on('input change', function() {
-        if ($(this).val() && $(this).val().trim() !== '') {
-            $(this).removeClass('is-invalid').addClass('is-valid');
-            $(`#${$(this).attr('id')}-error`).text('');
-        }
-    });
-});
-
-function validateSKU() {
-    const sku = $('#sku').val().trim();
-    const $skuField = $('#sku');
-    const $error = $('#sku-error');
-    
-    if (!sku) {
-        $skuField.addClass('is-invalid');
-        $error.text('El SKU es requerido.');
-        return false;
-    }
-    
-    if (sku.length < 3) {
-        $skuField.addClass('is-invalid');
-        $error.text('El SKU debe tener al menos 3 caracteres.');
-        return false;
-    }
-    
-    $skuField.removeClass('is-invalid').addClass('is-valid');
-    $error.text('');
-    return true;
-}
-
-function validateEANUPC() {
-    const ean = $('#ean_upc').val().trim();
-    const $eanField = $('#ean_upc');
-    const $error = $('#ean_upc-error');
-    
-    if (ean) {
-        if (!/^\d+$/.test(ean)) {
-            $eanField.addClass('is-invalid');
-            $error.text('El código EAN/UPC solo debe contener números.');
-            return false;
-        }
-        
-        if (![8, 12, 13].includes(ean.length)) {
-            $eanField.addClass('is-invalid');
-            $error.text('El código EAN/UPC debe tener 8, 12 o 13 dígitos.');
-            return false;
-        }
-    }
-    
-    $eanField.removeClass('is-invalid').addClass('is-valid');
-    $error.text('');
-    return true;
-}
-
-function validarFormulario() {
-    console.log('🔍 Validando formulario...');
-    let isValid = true;
-    
-    // Validar precio de venta
-    const precioVenta = parseFloat($('#precio_venta').val()) || 0;
-    if (precioVenta <= 0) {
-        $('#precio_venta').addClass('is-invalid');
-        $('#precio_venta-error').text('El precio de venta debe ser mayor a 0');
-        isValid = false;
-    }
-    
-    // Validar stock mínimo y máximo
-    const stockMinimo = parseFloat($('#stock_minimo').val()) || 0;
-    const stockMaximo = parseFloat($('#stock_maximo').val()) || 0;
-    
-    if (stockMaximo < stockMinimo) {
-        $('#stock_maximo').addClass('is-invalid');
-        $('#stock_maximo-error').text('El stock máximo debe ser mayor o igual al mínimo');
-        isValid = false;
-    }
-    
-    // Validar campos requeridos
-    const camposRequeridos = ['sku', 'nombre', 'categoria', 'uom_compra', 'uom_venta', 'uom_stock'];
-    
-    camposRequeridos.forEach(campo => {
-        const valor = $(`#${campo}`).val();
-        if (!valor || valor.trim() === '') {
-            $(`#${campo}`).addClass('is-invalid');
-            $(`#${campo}-error`).text('Este campo es requerido');
-            isValid = false;
-        }
-    });
-    
-    console.log(isValid ? '✅ Validación exitosa' : '❌ Errores de validación encontrados');
-    return isValid;
-}
-
-function guardarProducto() {
-    console.log('💾 FUNCIÓN GUARDAR PRODUCTO EJECUTADA');
-    
-    // Verificar jQuery
-    if (typeof $ === 'undefined') {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error de Sistema',
-            text: 'jQuery no está cargado. Recarga la página.'
-        });
-        return;
-    }
-    
-    // Verificar SweetAlert2
-    if (typeof Swal === 'undefined') {
-        alert('ERROR: SweetAlert2 no está cargado');
-        return;
-    }
-    
-    console.log('✅ Librerías verificadas, continuando...');
-    
-    // Mostrar loading
-    $('#loading-overlay').show();
-    
-    // Limpiar errores previos
-    $('.is-invalid').removeClass('is-invalid');
-    $('.invalid-feedback').text('');
-    
-    const formData = new FormData($('#producto-form')[0]);
-    console.log('📦 FormData creado');
-    
-    $.ajax({
-        url: '{% url "producto_crear" %}',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(response) {
-            $('#loading-overlay').hide();
+    // Validación básica del formulario
+    const form = document.getElementById('producto-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            console.log('Enviando formulario de producto...');
             
-            if (response.success) {
-                Swal.fire({
-                    title: '¡Producto Creado!',
-                    text: response.message,
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => {
-                    window.location.href = response.redirect_url;
-                });
-            } else {
-                if (response.errors) {
-                    response.errors.forEach(error => {
-                        Swal.fire({
-                            title: 'Error de Validación',
-                            text: error,
-                            icon: 'error'
-                        });
+            // Validaciones simples
+            const sku = document.getElementById('sku').value.trim();
+            const nombre = document.getElementById('nombre').value.trim();
+            const categoria = document.getElementById('categoria').value;
+            const marca = document.getElementById('marca').value;
+            const precio = document.getElementById('precio_venta').value;
+            
+            if (!sku || !nombre || !categoria || !marca || !precio) {
+                e.preventDefault();
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Datos incompletos',
+                        text: 'Por favor, complete todos los campos obligatorios.',
+                        confirmButtonColor: '#667eea'
                     });
                 } else {
+                    alert('Por favor, complete todos los campos obligatorios.');
+                }
+                return false;
+            }
+            
+            // Validar precio
+            if (parseFloat(precio) <= 0) {
+                e.preventDefault();
+                if (typeof Swal !== 'undefined') {
                     Swal.fire({
-                        title: 'Error',
-                        text: response.message || 'Error al crear el producto',
-                        icon: 'error'
+                        icon: 'warning',
+                        title: 'Precio inválido',
+                        text: 'El precio debe ser mayor a 0.',
+                        confirmButtonColor: '#667eea'
                     });
+                } else {
+                    alert('El precio debe ser mayor a 0.');
                 }
+                return false;
             }
-        },
-        error: function(xhr) {
-            $('#loading-overlay').hide();
             
-            if (xhr.status === 400) {
-                const response = xhr.responseJSON;
-                if (response && response.errors) {
-                    response.errors.forEach(error => {
-                        Swal.fire({
-                            title: 'Error de Validación',
-                            text: error,
-                            icon: 'error'
-                        });
-                    });
-                }
-            } else {
-                Swal.fire({
-                    title: 'Error',
-                    text: 'Error de conexión. Inténtalo de nuevo.',
-                    icon: 'error'
-                });
-            }
-        }
-    });
-}
-
-function guardarBorrador() {
-    const formData = new FormData($('#producto-form')[0]);
-    formData.set('estado', 'INACTIVO'); // Guardar como borrador
+            console.log('Formulario válido, enviando...');
+        });
+    }
     
-    $('#loading-overlay').show();
+    // Auto-completar unidades de medida similares
+    const uomCompra = document.getElementById('uom_compra');
+    const uomVenta = document.getElementById('uom_venta');
+    const uomStock = document.getElementById('uom_stock');
     
-    $.ajax({
-        url: '{% url "producto_crear" %}',
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function(response) {
-            $('#loading-overlay').hide();
-            
-            if (response.success) {
-                Swal.fire({
-                    title: '¡Borrador Guardado!',
-                    text: 'Producto guardado como borrador',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => {
-                    window.location.href = response.redirect_url;
-                });
+    if (uomCompra) {
+        uomCompra.addEventListener('change', function() {
+            const selectedValue = this.value;
+            if (selectedValue && !uomVenta.value) {
+                uomVenta.value = selectedValue;
             }
-        },
-        error: function() {
-            $('#loading-overlay').hide();
-            Swal.fire({
-                title: 'Error',
-                text: 'Error al guardar borrador',
-                icon: 'error'
-            });
-        }
-    });
-}
+            if (selectedValue && !uomStock.value) {
+                uomStock.value = selectedValue;
+            }
+        });
+    }
+    
+    console.log('JavaScript de productos cargado correctamente');
+});
 </script>
 {% endblock %}

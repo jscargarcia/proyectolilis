@@ -256,7 +256,7 @@
                     <div class="text-center">
                         <p class="mb-0">
                             ¿Ya tienes cuenta? 
-                            <a href="{% url 'login' %}" style="color: #dc2626; font-weight: 600;">
+                            <a href="{% url 'autenticacion:login' %}" style="color: #dc2626; font-weight: 600;">
                                 Inicia sesión
                             </a>
                         </p>
@@ -545,7 +545,7 @@
             
             // Enviar formulario
             $.ajax({
-                url: '{% url "registro" %}',
+                url: '{% url "autenticacion:registro" %}',
                 type: 'POST',
                 data: form.serialize(),
                 success: function(response) {

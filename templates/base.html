@@ -1,4 +1,5 @@
 {% load static %}
+{% load permisos_tags %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -100,6 +101,18 @@
             background: linear-gradient(135deg, var(--secondary-pink) 0%, var(--primary-pink) 100%) !important;
             box-shadow: 0 4px 20px rgba(233, 30, 99, 0.3);
             backdrop-filter: blur(10px);
+            z-index: 1030 !important;
+            position: relative;
+        }
+        
+        /* Asegurar que los dropdowns del navbar tengan el z-index más alto */
+        .navbar .dropdown-menu {
+            z-index: 1040 !important;
+            position: absolute;
+        }
+        
+        .navbar .dropdown-toggle::after {
+            z-index: 1041 !important;
         }
         
         .main-content {
@@ -595,6 +608,40 @@
             border: 1px solid rgba(255, 255, 255, 0.18);
             border-radius: 16px;
         }
+        
+        /* Loading Overlay */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(5px);
+        }
+        
+        .loading-content {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 16px 64px rgba(233, 30, 99, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .loading-content p {
+            margin: 0;
+            color: var(--dark-text);
+            font-weight: 600;
+        }
+        
+        .loading-content .spinner-border {
+            color: var(--primary-pink);
+        }
     </style>
 </head>
 <body>
@@ -615,69 +662,111 @@
                 <ul class="navbar-nav me-auto">
                     {% if user.is_authenticated %}
                         <!-- Menú dinámico según roles -->
-                        {% if user.rol.nombre == 'ADMIN' or user.rol.nombre == 'SUPERVISOR' %}
+                        {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' or user.rol and user.rol.nombre == 'SUPERVISOR' %}
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                     <i class="fas fa-book"></i> Catálogo
                                 </a>
                                 <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'catalogo_listar' %}">
+                                    <li><a class="dropdown-item" href="{% url 'catalogo:catalogo_listar' %}">
                                         <i class="fas fa-list"></i> Listar
                                     </a></li>
-                                    {% if user.rol.permisos.catalogo.crear %}
-                                        <li><a class="dropdown-item" href="{% url 'catalogo_crear' %}">
-                                            <i class="fas fa-plus"></i> Crear
-                                        </a></li>
-                                    {% endif %}
+                                    <li><a class="dropdown-item" href="{% url 'catalogo:catalogo_crear' %}">
+                                        <i class="fas fa-plus"></i> Crear
+                                    </a></li>
                                 </ul>
                             </li>
                         {% endif %}
                         
                         <!-- Menú Maestros -->
-                        {% if user.rol.nombre == 'ADMIN' or user.rol.nombre == 'GERENTE' or user.rol.nombre == 'BODEGUERO' %}
+                        {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' or user.rol and user.rol.nombre == 'GERENTE' or user.rol and user.rol.nombre == 'BODEGUERO' %}
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                     <i class="fas fa-boxes"></i> Maestros
                                 </a>
                                 <ul class="dropdown-menu">
                                     <li><h6 class="dropdown-header">Productos</h6></li>
-                                    <li><a class="dropdown-item" href="{% url 'producto_listar' %}">
+                                    <li><a class="dropdown-item" href="{% url 'maestros:producto_listar' %}">
                                         <i class="fas fa-box"></i> Lista de Productos
                                     </a></li>
-                                    {% if user.rol.nombre == 'ADMIN' or user.rol.nombre == 'GERENTE' %}
-                                    <li><a class="dropdown-item" href="{% url 'producto_crear' %}">
+                                    {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' or user.rol and user.rol.nombre == 'GERENTE' %}
+                                    <li><a class="dropdown-item" href="{% url 'maestros:producto_crear' %}">
                                         <i class="fas fa-plus"></i> Nuevo Producto
                                     </a></li>
                                     {% endif %}
                                     
                                     <li><hr class="dropdown-divider"></li>
                                     <li><h6 class="dropdown-header">Proveedores</h6></li>
-                                    <li><a class="dropdown-item" href="{% url 'proveedor_listar' %}">
+                                    <li><a class="dropdown-item" href="{% url 'maestros:proveedor_listar' %}">
                                         <i class="fas fa-truck"></i> Lista de Proveedores
                                     </a></li>
-                                    {% if user.rol.nombre == 'ADMIN' or user.rol.nombre == 'GERENTE' %}
-                                    <li><a class="dropdown-item" href="{% url 'proveedor_crear' %}">
+                                    {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' or user.rol and user.rol.nombre == 'GERENTE' %}
+                                    <li><a class="dropdown-item" href="{% url 'maestros:proveedor_crear' %}">
                                         <i class="fas fa-plus"></i> Nuevo Proveedor
                                     </a></li>
                                     {% endif %}
                                     
                                     <li><hr class="dropdown-divider"></li>
                                     <li><h6 class="dropdown-header">Configuración</h6></li>
-                                    <li><a class="dropdown-item" href="{% url 'categoria_listar' %}">
+                                    <li><a class="dropdown-item" href="{% url 'maestros:categoria_listar' %}">
                                         <i class="fas fa-tags"></i> Categorías
                                     </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'marca_listar' %}">
+                                    <li><a class="dropdown-item" href="{% url 'maestros:marca_listar' %}">
                                         <i class="fas fa-trademark"></i> Marcas
                                     </a></li>
                                 </ul>
                             </li>
                         {% endif %}
                         
-                        {% if user.rol.nombre == 'ADMIN' %}
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
+                        <!-- Menú Inventario -->
+                        {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' or user.rol and user.rol.nombre == 'GERENTE' or user.rol and user.rol.nombre == 'BODEGUERO' %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-warehouse"></i> Inventario
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><h6 class="dropdown-header">Movimientos</h6></li>
+                                    <li><a class="dropdown-item" href="{% url 'inventario:movimiento_listar' %}">
+                                        <i class="fas fa-list"></i> Lista de Movimientos
+                                    </a></li>
+                                    {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' or user.rol and user.rol.nombre == 'GERENTE' %}
+                                    <li><a class="dropdown-item" href="{% url 'inventario:movimiento_crear' %}">
+                                        <i class="fas fa-plus"></i> Nuevo Movimiento
+                                    </a></li>
+                                    {% endif %}
+                                    
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Stock</h6></li>
+                                    <li><a class="dropdown-item" href="{% url 'inventario:stock_listar' %}">
+                                        <i class="fas fa-boxes"></i> Stock Actual
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'inventario:alerta_listar' %}">
+                                        <i class="fas fa-exclamation-triangle"></i> Alertas de Stock
+                                    </a></li>
+                                </ul>
+                            </li>
+                        {% endif %}
+                        
+                        {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                     <i class="fas fa-users"></i> Usuarios
                                 </a>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="{% url 'autenticacion:usuario_listar' %}">
+                                        <i class="fas fa-list"></i> Lista de Usuarios
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'autenticacion:usuario_crear' %}">
+                                        <i class="fas fa-plus"></i> Nuevo Usuario
+                                    </a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{% url 'autenticacion:rol_listar' %}">
+                                        <i class="fas fa-shield-alt"></i> Roles y Permisos
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'autenticacion:rol_crear' %}">
+                                        <i class="fas fa-plus"></i> Nuevo Rol
+                                    </a></li>
+                                </ul>
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link" href="#">
@@ -711,21 +800,21 @@
                                 <i class="fas fa-user"></i> {{ user.get_full_name }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{% url 'perfil_usuario' %}">
+                                <li><a class="dropdown-item" href="{% url 'autenticacion:usuario_detalle' user.pk %}">
                                     <i class="fas fa-user-circle"></i> Mi Perfil
                                 </a></li>
                                 <li><a class="dropdown-item" href="#">
                                     <i class="fas fa-cog"></i> Configuración
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{% url 'logout' %}">
+                                <li><a class="dropdown-item" href="{% url 'autenticacion:logout' %}">
                                     <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
                                 </a></li>
                             </ul>
                         </li>
                     {% else %}
                         <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">
+                            <a class="nav-link" href="{% url 'autenticacion:login' %}">
                                 <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
                             </a>
                         </li>
@@ -752,9 +841,9 @@
     </div>
 
     <!-- Botón flotante CRUD Productos -->
-    {% if user.rol.nombre == 'ADMIN' or user.rol.nombre == 'GERENTE' or user.rol.nombre == 'BODEGUERO' %}
+    {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' or user.rol and user.rol.nombre == 'GERENTE' or user.rol and user.rol.nombre == 'BODEGUERO' %}
     <div class="floating-crud-btn">
-        <a href="{% url 'producto_listar' %}" title="Gestión de Productos">
+        <a href="{% url 'maestros:producto_listar' %}" title="Gestión de Productos">
             <i class="fas fa-boxes"></i>
         </a>
     </div>
@@ -963,6 +1052,48 @@
         
         // Ejecutar al cargar la página
         document.addEventListener('DOMContentLoaded', procesarMensajesDjango);
+        
+        // Funciones globales de SweetAlert2 para usar en todos los CRUDs
+        window.showAlert = function(type, message, title = null) {
+            const icons = {
+                'success': 'success',
+                'error': 'error',
+                'warning': 'warning',
+                'info': 'info'
+            };
+            
+            const titles = {
+                'success': title || '¡Éxito!',
+                'error': title || 'Error',
+                'warning': title || 'Advertencia',
+                'info': title || 'Información'
+            };
+            
+            Swal.fire({
+                icon: icons[type] || 'info',
+                title: titles[type],
+                text: message,
+                timer: type === 'success' ? 3000 : 0,
+                timerProgressBar: type === 'success',
+                toast: type === 'success',
+                position: type === 'success' ? 'top-end' : 'center',
+                showConfirmButton: type !== 'success'
+            });
+        };
+        
+        window.showConfirmDialog = function(options) {
+            return Swal.fire({
+                title: options.title || '¿Está seguro?',
+                text: options.text || 'Esta acción no se puede deshacer',
+                icon: options.icon || 'warning',
+                showCancelButton: true,
+                confirmButtonColor: options.confirmColor || '#28a745',
+                cancelButtonColor: options.cancelColor || '#6c757d',
+                confirmButtonText: options.confirmText || 'Sí, continuar',
+                cancelButtonText: options.cancelText || 'Cancelar',
+                reverseButtons: true
+            });
+        };
     </script>
     
     <!-- Custom JavaScript -->

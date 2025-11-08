@@ -82,7 +82,7 @@
                 <h2><i class="fas fa-exclamation-triangle me-2"></i>Eliminar Producto</h2>
                 <p class="mb-0">Esta acción no se puede deshacer</p>
             </div>
-            <a href="{% url 'producto_listar' %}" class="btn btn-light">
+            <a href="{% url 'maestros:producto_listar' %}" class="btn btn-light">
                 <i class="fas fa-arrow-left me-2"></i>Volver a Lista
             </a>
         </div>
@@ -193,11 +193,11 @@
             {% csrf_token %}
             
             <div class="d-flex justify-content-center gap-3 mt-4">
-                <a href="{% url 'producto_detalle' producto.pk %}" class="btn btn-outline-secondary btn-lg">
+                <a href="{% url 'maestros:producto_detalle' producto.pk %}" class="btn btn-outline-secondary btn-lg">
                     <i class="fas fa-eye me-2"></i>Ver Detalle
                 </a>
                 
-                <a href="{% url 'producto_listar' %}" class="btn btn-secondary btn-lg">
+                <a href="{% url 'maestros:producto_listar' %}" class="btn btn-secondary btn-lg">
                     <i class="fas fa-times me-2"></i>Cancelar
                 </a>
                 
@@ -261,7 +261,7 @@ function eliminarProducto() {
     const csrfToken = $('[name=csrfmiddlewaretoken]').val();
     
     $.ajax({
-        url: '{% url "producto_eliminar" producto.pk %}',
+        url: '{% url "maestros:producto_eliminar" producto.pk %}',
         type: 'POST',
         data: formData,
         processData: false,

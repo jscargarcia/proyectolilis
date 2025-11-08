@@ -43,7 +43,7 @@
                     <p><strong>Tiempo restante:</strong> <span class="countdown-timer" id="countdown">10:00</span></p>
                 </div>
                 
-                <form id="formVerificarCodigo" method="post" action="{% url 'verificar_codigo_recuperacion' %}">
+                <form id="formVerificarCodigo" method="post" action="{% url 'autenticacion:verificar_codigo_recuperacion' %}">
                     {% csrf_token %}
                     
                     <div class="form-group">
@@ -144,7 +144,7 @@
                         Cambiar Contraseña
                     </button>
                     
-                    <a href="{% url 'recuperar_password' %}" class="btn btn-outline-secondary">
+                    <a href="{% url 'autenticacion:recuperar_password' %}" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left me-2"></i>
                         Solicitar Nuevo Código
                     </a>
@@ -181,7 +181,7 @@
                     text: 'El código ha expirado. Solicita uno nuevo.',
                     confirmButtonText: 'Solicitar Nuevo Código'
                 }).then(() => {
-                    window.location.href = '{% url "recuperar_password" %}';
+                    window.location.href = '{% url "autenticacion:recuperar_password" %}';
                 });
             }
             timeLeft--;

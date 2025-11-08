@@ -1,0 +1,410 @@
+{% extends 'base.html' %}
+{% load permisos_tags %}
+
+{% block title %}Detalle de Usuario{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
+<style>
+    .avatar-large {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #fff;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .info-card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .status-badge {
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 12px;
+        text-transform: uppercase;
+    }
+    .status-activo {
+        background-color: #d4edda;
+        color: #155724;
+    }
+    .status-bloqueado {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+    .status-inactivo {
+        background-color: #e2e3e5;
+        color: #495057;
+    }
+    .action-btn {
+        margin: 0 5px;
+    }
+    .info-row {
+        margin-bottom: 15px;
+    }
+    .info-label {
+        font-weight: 600;
+        color: #6c757d;
+        font-size: 14px;
+        margin-bottom: 5px;
+    }
+    .info-value {
+        font-size: 16px;
+        color: #333;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-user"></i> Detalle de Usuario</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'autenticacion:dashboard' %}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'autenticacion:usuario_listar' %}">Usuarios</a></li>
+                            <li class="breadcrumb-item active">{{ usuario.get_full_name|default:usuario.username }}</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{% url 'autenticacion:usuario_listar' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                    {% if request.user|has_permission:'autenticacion.change_usuario' %}
+                        <a href="{% url 'autenticacion:usuario_editar' usuario.pk %}" class="btn btn-primary action-btn">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                    {% endif %}
+                    {% if request.user|has_permission:'autenticacion.change_usuario' and usuario.pk != request.user.pk %}
+                        <button type="button" class="btn btn-warning action-btn" onclick="cambiarEstado({{ usuario.pk }}, '{{ usuario.estado }}')">
+                            <i class="fas fa-user-lock"></i> 
+                            {% if usuario.estado == 'ACTIVO' %}Bloquear{% else %}Activar{% endif %}
+                        </button>
+                    {% endif %}
+                    {% if request.user|has_permission:'autenticacion.change_usuario' %}
+                        <button type="button" class="btn btn-info action-btn" onclick="resetearPassword({{ usuario.pk }})">
+                            <i class="fas fa-key"></i> Resetear Contraseña
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información Personal -->
+        <div class="col-lg-4">
+            <div class="info-card text-center">
+                {% if usuario.avatar %}
+                    <img src="{{ usuario.avatar.url }}" alt="Avatar" class="avatar-large mb-3">
+                {% else %}
+                    <div class="avatar-large mx-auto mb-3 d-flex align-items-center justify-content-center bg-secondary text-white" style="font-size: 30px;">
+                        {{ usuario.first_name.0|default:usuario.username.0|upper }}
+                    </div>
+                {% endif %}
+                
+                <h4 class="mb-1">{{ usuario.get_full_name|default:usuario.username }}</h4>
+                <p class="text-muted mb-3">{{ usuario.email }}</p>
+                
+                <span class="status-badge status-{{ usuario.estado|lower }}">
+                    {{ usuario.get_estado_display }}
+                </span>
+                
+                {% if usuario.rol %}
+                    <div class="mt-3">
+                        <span class="badge bg-primary">{{ usuario.rol.nombre }}</span>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Información de Contacto -->
+            <div class="info-card">
+                <h5 class="mb-3"><i class="fas fa-address-card"></i> Información de Contacto</h5>
+                
+                <div class="info-row">
+                    <div class="info-label">Teléfono</div>
+                    <div class="info-value">{{ usuario.telefono|default:"No especificado" }}</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Email</div>
+                    <div class="info-value">{{ usuario.email }}</div>
+                </div>
+                
+                <div class="info-row">
+                    <div class="info-label">Dirección</div>
+                    <div class="info-value">{{ usuario.direccion|default:"No especificada" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información del Sistema -->
+        <div class="col-lg-8">
+            <div class="info-card">
+                <h5 class="mb-3"><i class="fas fa-cogs"></i> Información del Sistema</h5>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <div class="info-label">Nombre de Usuario</div>
+                            <div class="info-value">{{ usuario.username }}</div>
+                        </div>
+                        
+                        <div class="info-row">
+                            <div class="info-label">Rol del Sistema</div>
+                            <div class="info-value">
+                                {% if usuario.rol %}
+                                    {{ usuario.rol.nombre }}
+                                    <small class="text-muted">({{ usuario.rol.descripcion }})</small>
+                                {% else %}
+                                    No asignado
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="info-row">
+                            <div class="info-label">Estado</div>
+                            <div class="info-value">
+                                <span class="status-badge status-{{ usuario.estado|lower }}">
+                                    {{ usuario.get_estado_display }}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="info-row">
+                            <div class="info-label">Superusuario</div>
+                            <div class="info-value">
+                                {% if usuario.is_superuser %}
+                                    <span class="badge bg-danger">Sí</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="info-row">
+                            <div class="info-label">Fecha de Registro</div>
+                            <div class="info-value">{{ usuario.date_joined|date:"d/m/Y H:i" }}</div>
+                        </div>
+                        
+                        <div class="info-row">
+                            <div class="info-label">Último Acceso</div>
+                            <div class="info-value">
+                                {% if usuario.last_login %}
+                                    {{ usuario.last_login|date:"d/m/Y H:i" }}
+                                {% else %}
+                                    Nunca
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="info-row">
+                            <div class="info-label">Última Actualización</div>
+                            <div class="info-value">{{ usuario.updated_at|date:"d/m/Y H:i" }}</div>
+                        </div>
+                        
+                        <div class="info-row">
+                            <div class="info-label">Activo</div>
+                            <div class="info-value">
+                                {% if usuario.is_active %}
+                                    <span class="badge bg-success">Sí</span>
+                                {% else %}
+                                    <span class="badge bg-danger">No</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Permisos del Rol -->
+            {% if usuario.rol and usuario.rol.permisos %}
+                <div class="info-card">
+                    <h5 class="mb-3"><i class="fas fa-shield-alt"></i> Permisos del Rol</h5>
+                    
+                    <div class="row">
+                        {% for permiso, valor in usuario.rol.permisos.items %}
+                            {% if valor %}
+                                <div class="col-md-4 mb-2">
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check"></i> {{ permiso|title }}
+                                    </span>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Acciones Rápidas -->
+            <div class="info-card">
+                <h5 class="mb-3"><i class="fas fa-bolt"></i> Acciones Rápidas</h5>
+                
+                <div class="d-flex flex-wrap gap-2">
+                    {% if request.user|has_permission:'autenticacion.view_usuario' %}
+                        <a href="{% url 'autenticacion:usuario_historial' usuario.pk %}" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-history"></i> Ver Historial
+                        </a>
+                    {% endif %}
+                    
+                    {% if request.user|has_permission:'autenticacion.change_usuario' %}
+                        <button type="button" class="btn btn-outline-warning btn-sm" onclick="cambiarEstado({{ usuario.pk }}, '{{ usuario.estado }}')">
+                            <i class="fas fa-user-lock"></i> Cambiar Estado
+                        </button>
+                        
+                        <button type="button" class="btn btn-outline-primary btn-sm" onclick="resetearPassword({{ usuario.pk }})">
+                            <i class="fas fa-key"></i> Resetear Contraseña
+                        </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para cambiar estado -->
+<div class="modal fade" id="modalCambiarEstado" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cambiar Estado del Usuario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro que desea cambiar el estado del usuario <strong>{{ usuario.get_full_name|default:usuario.username }}</strong>?</p>
+                <form id="formCambiarEstado" method="post" action="{% url 'autenticacion:usuario_cambiar_estado' usuario.pk %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="nuevoEstado" class="form-label">Nuevo Estado</label>
+                        <select class="form-select" id="nuevoEstado" name="estado" required>
+                            <option value="ACTIVO" {% if usuario.estado == 'ACTIVO' %}selected{% endif %}>Activo</option>
+                            <option value="BLOQUEADO" {% if usuario.estado == 'BLOQUEADO' %}selected{% endif %}>Bloqueado</option>
+                            <option value="INACTIVO" {% if usuario.estado == 'INACTIVO' %}selected{% endif %}>Inactivo</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="motivo" class="form-label">Motivo (opcional)</label>
+                        <textarea class="form-control" id="motivo" name="motivo" rows="3" placeholder="Ingrese el motivo del cambio de estado"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" onclick="confirmarCambioEstado()">Cambiar Estado</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+<script>
+function cambiarEstado(usuarioId, estadoActual) {
+    const modal = new bootstrap.Modal(document.getElementById('modalCambiarEstado'));
+    modal.show();
+}
+
+function confirmarCambioEstado() {
+    const form = document.getElementById('formCambiarEstado');
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: data.message,
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                location.reload();
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message
+            });
+        }
+        bootstrap.Modal.getInstance(document.getElementById('modalCambiarEstado')).hide();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Ocurrió un error al cambiar el estado'
+        });
+        bootstrap.Modal.getInstance(document.getElementById('modalCambiarEstado')).hide();
+    });
+}
+
+function resetearPassword(usuarioId) {
+    Swal.fire({
+        title: '¿Resetear contraseña?',
+        text: 'Se generará una nueva contraseña temporal para el usuario',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, resetear',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`{% url 'autenticacion:usuario_resetear_password' usuario.pk %}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Contraseña reseteada!',
+                        html: `<p>${data.message}</p><p><strong>Nueva contraseña temporal:</strong> <code>${data.nueva_password}</code></p>`,
+                        confirmButtonText: 'Entendido'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Ocurrió un error al resetear la contraseña'
+                });
+            });
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,436 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Proveedor - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-card {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.form-container {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.form-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-left: 4px solid #28a745;
+}
+
+.form-section h5 {
+    color: #28a745;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.required::after {
+    content: ' *';
+    color: #dc3545;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #218838 0%, #1e7e8b 100%);
+    transform: translateY(-2px);
+}
+
+.help-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+.invalid-feedback {
+    display: block;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="form-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-edit me-2"></i>Editar Proveedor</h2>
+                <p class="mb-0">Modificar información del proveedor</p>
+            </div>
+            <div>
+                <a href="{% url 'maestros:proveedor_detalle' proveedor.pk %}" class="btn btn-light me-2">
+                    <i class="fas fa-eye me-2"></i>Ver Detalle
+                </a>
+                <a href="{% url 'maestros:proveedor_listar' %}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario -->
+    <div class="form-container">
+        <form id="proveedorForm" method="post">
+            {% csrf_token %}
+            
+            <!-- Información Básica -->
+            <div class="form-section">
+                <h5><i class="fas fa-building me-2"></i>Información Básica</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="rut_nif" class="form-label required">RUT/NIF</label>
+                        <input type="text" class="form-control" id="rut_nif" name="rut_nif" 
+                               value="{{ proveedor.rut_nif }}" required maxlength="20"
+                               placeholder="Ej: 12.345.678-9">
+                        <div class="invalid-feedback" id="rut_nif-error"></div>
+                        <div class="help-text">RUT para Chile o NIF para otros países</div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="razon_social" class="form-label required">Razón Social</label>
+                        <input type="text" class="form-control" id="razon_social" name="razon_social" 
+                               value="{{ proveedor.razon_social }}" required maxlength="255"
+                               placeholder="Nombre legal de la empresa">
+                        <div class="invalid-feedback" id="razon_social-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="nombre_fantasia" class="form-label">Nombre Fantasía</label>
+                        <input type="text" class="form-control" id="nombre_fantasia" name="nombre_fantasia" 
+                               value="{{ proveedor.nombre_fantasia|default:'' }}" maxlength="255"
+                               placeholder="Nombre comercial (opcional)">
+                        <div class="invalid-feedback" id="nombre_fantasia-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="estado" class="form-label required">Estado</label>
+                        <select class="form-select" id="estado" name="estado" required>
+                            {% for value, label in estado_choices %}
+                            <option value="{{ value }}" {% if proveedor.estado == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="invalid-feedback" id="estado-error"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Contacto -->
+            <div class="form-section">
+                <h5><i class="fas fa-address-book me-2"></i>Información de Contacto</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="email" class="form-label required">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="{{ proveedor.email }}" required maxlength="254"
+                               placeholder="contacto@proveedor.com">
+                        <div class="invalid-feedback" id="email-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="telefono" class="form-label">Teléfono</label>
+                        <input type="tel" class="form-control" id="telefono" name="telefono" 
+                               value="{{ proveedor.telefono|default:'' }}" maxlength="30"
+                               placeholder="Ej: +56 9 1234 5678">
+                        <div class="invalid-feedback" id="telefono-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="sitio_web" class="form-label">Sitio Web</label>
+                        <input type="url" class="form-control" id="sitio_web" name="sitio_web" 
+                               value="{{ proveedor.sitio_web|default:'' }}"
+                               placeholder="https://www.proveedor.com">
+                        <div class="invalid-feedback" id="sitio_web-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="direccion" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="direccion" name="direccion" 
+                               value="{{ proveedor.direccion|default:'' }}" maxlength="255"
+                               placeholder="Dirección completa">
+                        <div class="invalid-feedback" id="direccion-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="ciudad" class="form-label">Ciudad</label>
+                        <input type="text" class="form-control" id="ciudad" name="ciudad" 
+                               value="{{ proveedor.ciudad|default:'' }}" maxlength="128"
+                               placeholder="Ciudad">
+                        <div class="invalid-feedback" id="ciudad-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="pais" class="form-label">País</label>
+                        <input type="text" class="form-control" id="pais" name="pais" 
+                               value="{{ proveedor.pais|default:'Chile' }}" maxlength="64">
+                        <div class="invalid-feedback" id="pais-error"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Condiciones Comerciales -->
+            <div class="form-section">
+                <h5><i class="fas fa-handshake me-2"></i>Condiciones Comerciales</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="condiciones_pago" class="form-label required">Condiciones de Pago</label>
+                        <select class="form-select" id="condiciones_pago" name="condiciones_pago" required>
+                            <option value="">Seleccionar...</option>
+                            {% for value, label in condiciones_pago_choices %}
+                            <option value="{{ value }}" {% if proveedor.condiciones_pago == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="invalid-feedback" id="condiciones_pago-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="condiciones_pago_detalle" class="form-label">Detalle Condiciones</label>
+                        <input type="text" class="form-control" id="condiciones_pago_detalle" 
+                               name="condiciones_pago_detalle" value="{{ proveedor.condiciones_pago_detalle|default:'' }}" 
+                               maxlength="255" placeholder="Detalle adicional si es necesario">
+                        <div class="invalid-feedback" id="condiciones_pago_detalle-error"></div>
+                        <div class="help-text">Requerido si selecciona "Otro"</div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="moneda" class="form-label">Moneda</label>
+                        <select class="form-select" id="moneda" name="moneda">
+                            <option value="CLP" {% if proveedor.moneda == 'CLP' %}selected{% endif %}>Peso Chileno (CLP)</option>
+                            <option value="USD" {% if proveedor.moneda == 'USD' %}selected{% endif %}>Dólar Americano (USD)</option>
+                            <option value="EUR" {% if proveedor.moneda == 'EUR' %}selected{% endif %}>Euro (EUR)</option>
+                        </select>
+                        <div class="invalid-feedback" id="moneda-error"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contacto Principal -->
+            <div class="form-section">
+                <h5><i class="fas fa-user-tie me-2"></i>Contacto Principal</h5>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="contacto_principal_nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="contacto_principal_nombre" 
+                               name="contacto_principal_nombre" value="{{ proveedor.contacto_principal_nombre|default:'' }}" 
+                               maxlength="120" placeholder="Nombre del contacto">
+                        <div class="invalid-feedback" id="contacto_principal_nombre-error"></div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="contacto_principal_email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="contacto_principal_email" 
+                               name="contacto_principal_email" value="{{ proveedor.contacto_principal_email|default:'' }}" 
+                               placeholder="contacto@proveedor.com">
+                        <div class="invalid-feedback" id="contacto_principal_email-error"></div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <label for="contacto_principal_telefono" class="form-label">Teléfono</label>
+                        <input type="tel" class="form-control" id="contacto_principal_telefono" 
+                               name="contacto_principal_telefono" value="{{ proveedor.contacto_principal_telefono|default:'' }}" 
+                               maxlength="30" placeholder="Teléfono directo">
+                        <div class="invalid-feedback" id="contacto_principal_telefono-error"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="form-section">
+                <h5><i class="fas fa-sticky-note me-2"></i>Observaciones</h5>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="observaciones" class="form-label">Observaciones Adicionales</label>
+                        <textarea class="form-control" id="observaciones" name="observaciones" 
+                                  rows="3" placeholder="Notas adicionales sobre el proveedor...">{{ proveedor.observaciones|default:'' }}</textarea>
+                        <div class="invalid-feedback" id="observaciones-error"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="d-flex justify-content-between">
+                <div>
+                    <a href="{% url 'maestros:proveedor_detalle' proveedor.pk %}" class="btn btn-outline-secondary">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </a>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Actualizar Proveedor
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Validación de RUT chileno corregida
+    function validarRUT(rut) {
+        // Limpiar el RUT
+        rut = rut.replace(/\./g, '').replace('-', '').replace(/\s/g, '').toUpperCase();
+        
+        // Verificar largo
+        if (rut.length < 8 || rut.length > 9) return false;
+        
+        // Separar cuerpo y dígito verificador
+        const cuerpo = rut.slice(0, -1);
+        const dv = rut.slice(-1);
+        
+        // Verificar que el cuerpo sean solo números
+        if (!/^\d+$/.test(cuerpo)) return false;
+        
+        // Calcular dígito verificador
+        let suma = 0;
+        let multiplicador = 2;
+        
+        // Recorrer desde el final hacia el inicio
+        for (let i = cuerpo.length - 1; i >= 0; i--) {
+            suma += parseInt(cuerpo.charAt(i)) * multiplicador;
+            multiplicador++;
+            if (multiplicador > 7) {
+                multiplicador = 2;
+            }
+        }
+        
+        const resto = suma % 11;
+        const dvCalculado = 11 - resto;
+        
+        let dvEsperado;
+        if (dvCalculado === 11) {
+            dvEsperado = '0';
+        } else if (dvCalculado === 10) {
+            dvEsperado = 'K';
+        } else {
+            dvEsperado = dvCalculado.toString();
+        }
+        
+        return dv === dvEsperado;
+    }
+
+    // Formatear RUT mientras se escribe
+    function formatearRUT(valor) {
+        let rut = valor.replace(/\./g, '').replace('-', '');
+        
+        if (rut.length > 1) {
+            const cuerpo = rut.slice(0, -1);
+            const dv = rut.slice(-1);
+            
+            // Formatear con puntos
+            const cuerpoFormateado = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return cuerpoFormateado + '-' + dv;
+        }
+        return valor;
+    }
+
+$(document).ready(function() {
+    
+    // Formatear RUT mientras se escribe
+    $('#rut_nif').on('input', function(e) {
+        const valor = e.target.value;
+        const valorFormateado = formatearRUT(valor);
+        if (valor !== valorFormateado) {
+            e.target.value = valorFormateado;
+        }
+    });
+    
+    // Validación en tiempo real del RUT
+    $('#rut_nif').on('blur', function(e) {
+        const rut = e.target.value.trim();
+        const rutField = $(this);
+        const errorDiv = $('#rut_nif-error');
+        
+        if (rut && rut.includes('-') && !validarRUT(rut)) {
+            rutField.addClass('is-invalid');
+            errorDiv.text('RUT inválido');
+        } else {
+            rutField.removeClass('is-invalid');
+            errorDiv.text('');
+        }
+    });
+    
+    // Validación simple del formulario (sin AJAX)
+    $('#proveedorForm').on('submit', function(e) {
+        console.log('Enviando formulario de edición de proveedor...');
+        
+        // Validaciones básicas
+        const nombre = $('#nombre').val().trim();
+        const rut = $('#rut_nif').val().trim();
+        
+        if (!nombre) {
+            e.preventDefault();
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Datos incompletos',
+                    text: 'El nombre del proveedor es obligatorio.',
+                    confirmButtonColor: '#667eea'
+                });
+            } else {
+                alert('El nombre del proveedor es obligatorio.');
+            }
+            return false;
+        }
+        
+        // Validar RUT si existe
+        if (rut && rut.includes('-') && !validarRUT(rut)) {
+            e.preventDefault();
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'RUT inválido',
+                    text: 'Por favor, ingrese un RUT válido.',
+                    confirmButtonColor: '#667eea'
+                });
+            } else {
+                alert('Por favor, ingrese un RUT válido.');
+            }
+            return false;
+        }
+        
+        console.log('Formulario válido, enviando...');
+    });
+    
+    // Validación en tiempo real para condiciones de pago
+    $('#condiciones_pago').on('change', function() {
+        var selectedValue = $(this).val();
+        var detalleField = $('#condiciones_pago_detalle');
+        
+        if (selectedValue === 'OTRO') {
+            detalleField.attr('required', true);
+            detalleField.closest('.col-md-6').find('.help-text').addClass('text-danger');
+        } else {
+            detalleField.removeAttr('required');
+            detalleField.closest('.col-md-6').find('.help-text').removeClass('text-danger');
+        }
+    });
+    
+    // Ejecutar la validación inicial
+    $('#condiciones_pago').trigger('change');
+    
+});
+</script>
+{% endblock %}

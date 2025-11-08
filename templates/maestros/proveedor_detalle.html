@@ -1,0 +1,362 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ proveedor.razon_social }} - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+.detail-card {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.info-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.info-section h5 {
+    color: #28a745;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+
+.info-row {
+    margin-bottom: 15px;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+.info-value {
+    color: #6c757d;
+    font-size: 0.95rem;
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-activo {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-bloqueado {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.btn-action {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="detail-card">
+        <div class="d-flex justify-content-between align-items-start">
+            <div>
+                <h2><i class="fas fa-truck me-2"></i>{{ proveedor.razon_social }}</h2>
+                <p class="mb-2"><strong>RUT/NIF:</strong> {{ proveedor.rut_nif }}</p>
+                {% if proveedor.nombre_fantasia %}
+                    <p class="mb-2"><strong>Nombre Fantasía:</strong> {{ proveedor.nombre_fantasia }}</p>
+                {% endif %}
+                <span class="status-badge status-{{ proveedor.estado|lower }}">
+                    {{ proveedor.get_estado_display }}
+                </span>
+            </div>
+            <div class="text-end">
+                <a href="{% url 'maestros:proveedor_listar' %}" class="btn btn-light btn-action">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+                </a>
+                <a href="{% url 'maestros:proveedor_editar' proveedor.pk %}" class="btn btn-warning btn-action">
+                    <i class="fas fa-edit me-2"></i>Editar
+                </a>
+                <a href="{% url 'maestros:proveedor_eliminar' proveedor.pk %}" class="btn btn-danger btn-action">
+                    <i class="fas fa-trash me-2"></i>Eliminar
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información Básica -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <div class="info-section">
+                    <h5><i class="fas fa-info-circle me-2"></i>Información Básica</h5>
+                    
+                    <div class="info-row">
+                        <div class="info-label">RUT/NIF</div>
+                        <div class="info-value">{{ proveedor.rut_nif }}</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">Razón Social</div>
+                        <div class="info-value">{{ proveedor.razon_social }}</div>
+                    </div>
+                    
+                    {% if proveedor.nombre_fantasia %}
+                    <div class="info-row">
+                        <div class="info-label">Nombre Fantasía</div>
+                        <div class="info-value">{{ proveedor.nombre_fantasia }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="info-row">
+                        <div class="info-label">Email</div>
+                        <div class="info-value">
+                            <a href="mailto:{{ proveedor.email }}">{{ proveedor.email }}</a>
+                        </div>
+                    </div>
+                    
+                    {% if proveedor.telefono %}
+                    <div class="info-row">
+                        <div class="info-label">Teléfono</div>
+                        <div class="info-value">
+                            <a href="tel:{{ proveedor.telefono }}">{{ proveedor.telefono }}</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if proveedor.sitio_web %}
+                    <div class="info-row">
+                        <div class="info-label">Sitio Web</div>
+                        <div class="info-value">
+                            <a href="{{ proveedor.sitio_web }}" target="_blank">{{ proveedor.sitio_web }}</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Información de Contacto -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <div class="info-section">
+                    <h5><i class="fas fa-map-marker-alt me-2"></i>Información de Contacto</h5>
+                    
+                    {% if proveedor.direccion %}
+                    <div class="info-row">
+                        <div class="info-label">Dirección</div>
+                        <div class="info-value">{{ proveedor.direccion }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if proveedor.ciudad %}
+                    <div class="info-row">
+                        <div class="info-label">Ciudad</div>
+                        <div class="info-value">{{ proveedor.ciudad }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="info-row">
+                        <div class="info-label">País</div>
+                        <div class="info-value">{{ proveedor.pais }}</div>
+                    </div>
+                    
+                    {% if proveedor.contacto_principal_nombre %}
+                    <div class="info-row">
+                        <div class="info-label">Contacto Principal</div>
+                        <div class="info-value">{{ proveedor.contacto_principal_nombre }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if proveedor.contacto_principal_email %}
+                    <div class="info-row">
+                        <div class="info-label">Email Contacto</div>
+                        <div class="info-value">
+                            <a href="mailto:{{ proveedor.contacto_principal_email }}">{{ proveedor.contacto_principal_email }}</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if proveedor.contacto_principal_telefono %}
+                    <div class="info-row">
+                        <div class="info-label">Teléfono Contacto</div>
+                        <div class="info-value">
+                            <a href="tel:{{ proveedor.contacto_principal_telefono }}">{{ proveedor.contacto_principal_telefono }}</a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Condiciones Comerciales -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <div class="info-section">
+                    <h5><i class="fas fa-handshake me-2"></i>Condiciones Comerciales</h5>
+                    
+                    <div class="info-row">
+                        <div class="info-label">Condiciones de Pago</div>
+                        <div class="info-value">{{ proveedor.get_condiciones_pago_display }}</div>
+                    </div>
+                    
+                    {% if proveedor.condiciones_pago_detalle %}
+                    <div class="info-row">
+                        <div class="info-label">Detalle Condiciones</div>
+                        <div class="info-value">{{ proveedor.condiciones_pago_detalle }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="info-row">
+                        <div class="info-label">Moneda</div>
+                        <div class="info-value">{{ proveedor.moneda }}</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">Estado</div>
+                        <div class="info-value">
+                            <span class="status-badge status-{{ proveedor.estado|lower }}">
+                                {{ proveedor.get_estado_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Observaciones y Fechas -->
+        <div class="col-md-6">
+            <div class="info-card">
+                <div class="info-section">
+                    <h5><i class="fas fa-calendar-alt me-2"></i>Información Adicional</h5>
+                    
+                    <div class="info-row">
+                        <div class="info-label">Fecha de Registro</div>
+                        <div class="info-value">{{ proveedor.created_at|date:"d/m/Y H:i" }}</div>
+                    </div>
+                    
+                    <div class="info-row">
+                        <div class="info-label">Última Actualización</div>
+                        <div class="info-value">{{ proveedor.updated_at|date:"d/m/Y H:i" }}</div>
+                    </div>
+                    
+                    {% if proveedor.observaciones %}
+                    <div class="info-row">
+                        <div class="info-label">Observaciones</div>
+                        <div class="info-value">{{ proveedor.observaciones|linebreaks }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Productos del Proveedor -->
+    {% if productos %}
+    <div class="info-card">
+        <div class="info-section">
+            <h5><i class="fas fa-box me-2"></i>Productos del Proveedor ({{ productos|length }})</h5>
+            
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>SKU</th>
+                            <th>Producto</th>
+                            <th>Costo</th>
+                            <th>Lead Time</th>
+                            <th>Lote Mínimo</th>
+                            <th>Preferente</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for producto_proveedor in productos %}
+                        <tr>
+                            <td><code>{{ producto_proveedor.producto.sku }}</code></td>
+                            <td>{{ producto_proveedor.producto.nombre }}</td>
+                            <td>${{ producto_proveedor.costo|floatformat:0 }}</td>
+                            <td>{{ producto_proveedor.lead_time_dias }} días</td>
+                            <td>{{ producto_proveedor.min_lote|floatformat:0 }}</td>
+                            <td>
+                                {% if producto_proveedor.preferente %}
+                                    <span class="badge bg-success">Sí</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">No</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmarEliminar() {
+    Swal.fire({
+        title: '¿Está seguro?',
+        text: `¿Desea eliminar el proveedor "${proveedor.razon_social}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Aquí iría la lógica para eliminar el proveedor
+            // Por ahora solo mostramos un mensaje
+            Swal.fire({
+                title: 'Funcionalidad en desarrollo',
+                text: 'La eliminación de proveedores estará disponible próximamente.',
+                icon: 'info',
+                confirmButtonColor: '#28a745'
+            });
+        }
+    });
+}
+
+// Mostrar mensaje de éxito si viene desde creación
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+            Swal.fire({
+                icon: 'success',
+                title: '¡Éxito!',
+                text: '{{ message }}',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+        {% elif message.tags == 'error' %}
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: '{{ message }}',
+                confirmButtonColor: '#28a745'
+            });
+        {% endif %}
+    {% endfor %}
+{% endif %}
+</script>
+{% endblock %}

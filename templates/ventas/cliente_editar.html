@@ -12,13 +12,14 @@
                     <h4 class="mb-0"><i class="fas fa-edit"></i> Editar Cliente: {{ cliente.nombre }}</h4>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" id="clienteEditarForm">
                         {% csrf_token %}
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label for="rut_nif" class="form-label">RUT/NIF <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="rut_nif" name="rut_nif" value="{{ cliente.rut_nif }}" required>
+                                <div class="invalid-feedback" id="rut_nif-error"></div>
                             </div>
 
                             <div class="col-md-6 mb-3">
@@ -27,11 +28,13 @@
                                     <option value="PERSONA" {% if cliente.tipo == 'PERSONA' %}selected{% endif %}>Persona Natural</option>
                                     <option value="EMPRESA" {% if cliente.tipo == 'EMPRESA' %}selected{% endif %}>Empresa</option>
                                 </select>
+                                <div class="invalid-feedback" id="tipo-error"></div>
                             </div>
 
                             <div class="col-12 mb-3">
                                 <label for="nombre" class="form-label">Nombre / Razón Social <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="nombre" name="nombre" value="{{ cliente.nombre }}" required>
+                                <div class="invalid-feedback" id="nombre-error"></div>
                             </div>
 
                             <div class="col-md-6 mb-3">
@@ -68,10 +71,10 @@
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
-                            <a href="{% url 'cliente_detalle' cliente.pk %}" class="btn btn-secondary">
+                            <a href="{% url 'ventas:cliente_detalle' cliente.pk %}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Cancelar
                             </a>
-                            <button type="submit" class="btn btn-warning">
+                            <button type="submit" class="btn btn-warning" id="btnActualizar">
                                 <i class="fas fa-save"></i> Actualizar Cliente
                             </button>
                         </div>
@@ -81,4 +84,126 @@
         </div>
     </div>
 </div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay" style="display: none;">
+    <div class="loading-spinner">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Actualizando...</span>
+        </div>
+        <div class="text-light mt-2">Actualizando cliente...</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    const form = document.getElementById('clienteEditarForm');
+    const btnActualizar = document.getElementById('btnActualizar');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    
+    // Manejo del envío del formulario
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Limpiar errores previos
+        document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        document.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+        
+        // Mostrar loading
+        loadingOverlay.style.display = 'block';
+        btnActualizar.disabled = true;
+        
+        // Enviar formulario
+        const formData = new FormData(form);
+        
+        fetch(form.action || window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Actualizado!',
+                    text: data.message,
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
+                    window.location.href = data.redirect_url;
+                });
+            } else {
+                // Error - mostrar errores específicos
+                if (data.errores) {
+                    // Mostrar errores de validación en los campos
+                    Object.keys(data.errores).forEach(campo => {
+                        const elemento = document.getElementById(campo);
+                        if (elemento) {
+                            elemento.classList.add('is-invalid');
+                            const errorDiv = document.getElementById(campo + '-error');
+                            if (errorDiv) {
+                                errorDiv.textContent = data.errores[campo];
+                            }
+                        }
+                    });
+                    
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Errores de validación',
+                        text: data.message,
+                        confirmButtonColor: '#ffc107'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Error al actualizar el cliente',
+                        confirmButtonColor: '#ffc107'
+                    });
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de conexión',
+                text: 'Error al actualizar el cliente. Por favor, inténtelo nuevamente.',
+                confirmButtonColor: '#ffc107'
+            });
+        })
+        .finally(() => {
+            loadingOverlay.style.display = 'none';
+            btnActualizar.disabled = false;
+        });
+    });
+});
+</script>
+
+<style>
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.loading-spinner {
+    text-align: center;
+}
+</style>
 {% endblock %}

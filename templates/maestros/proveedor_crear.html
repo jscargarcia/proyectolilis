@@ -1,0 +1,415 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Crear Proveedor - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-card {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.form-container {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.form-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-left: 4px solid #28a745;
+}
+
+.form-section h5 {
+    color: #28a745;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.required::after {
+    content: ' *';
+    color: #dc3545;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ba085 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.btn-secondary {
+    background: #6c757d;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.help-text {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+.invalid-feedback {
+    display: block;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="form-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-truck me-2"></i>Crear Nuevo Proveedor</h2>
+                <p class="mb-0">Complete la información del proveedor</p>
+            </div>
+            <a href="{% url 'maestros:proveedor_listar' %}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+            </a>
+        </div>
+    </div>
+
+    <div class="form-container">
+        <form id="proveedor-form" method="POST" novalidate>
+            {% csrf_token %}
+            
+            <!-- Información Básica -->
+            <div class="form-section">
+                <h5><i class="fas fa-info-circle me-2"></i>Información Básica</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="rut_nif" class="form-label required">RUT/NIF</label>
+                        <input type="text" 
+                               class="form-control{% if errores.rut_nif %} is-invalid{% endif %}" 
+                               id="rut_nif" 
+                               name="rut_nif" 
+                               required
+                               maxlength="20"
+                               value="{{ datos.rut_nif|default:'' }}"
+                               placeholder="12.345.678-9">
+                        <div class="help-text">RUT para Chile o NIF para otros países</div>
+                        <div class="invalid-feedback" id="rut_nif-error">{{ errores.rut_nif|default:'' }}</div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="razon_social" class="form-label required">Razón Social</label>
+                        <input type="text" 
+                               class="form-control{% if errores.razon_social %} is-invalid{% endif %}" 
+                               id="razon_social" 
+                               name="razon_social" 
+                               required
+                               maxlength="255"
+                               value="{{ datos.razon_social|default:'' }}"
+                               placeholder="Empresa S.A.">
+                        <div class="help-text">Nombre legal de la empresa</div>
+                        <div class="invalid-feedback" id="razon_social-error">{{ errores.razon_social|default:'' }}</div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="nombre_fantasia" class="form-label">Nombre Fantasía</label>
+                        <input type="text" 
+                               class="form-control{% if errores.nombre_fantasia %} is-invalid{% endif %}" 
+                               id="nombre_fantasia" 
+                               name="nombre_fantasia"
+                               maxlength="255"
+                               value="{{ datos.nombre_fantasia|default:'' }}"
+                               placeholder="Nombre comercial">
+                        <div class="help-text">Nombre comercial (opcional)</div>
+                        <div class="invalid-feedback" id="nombre_fantasia-error">{{ errores.nombre_fantasia|default:'' }}</div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="email" class="form-label required">Email</label>
+                        <input type="email" 
+                               class="form-control{% if errores.email %} is-invalid{% endif %}" 
+                               id="email" 
+                               name="email" 
+                               required
+                               value="{{ datos.email|default:'' }}"
+                               placeholder="contacto@empresa.com">
+                        <div class="help-text">Email principal de contacto</div>
+                        <div class="invalid-feedback" id="email-error">{{ errores.email|default:'' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Contacto -->
+            <div class="form-section">
+                <h5><i class="fas fa-phone me-2"></i>Información de Contacto</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="telefono" class="form-label">Teléfono</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="telefono" 
+                               name="telefono"
+                               maxlength="30"
+                               placeholder="+56 9 1234 5678">
+                        <div class="help-text">Teléfono principal</div>
+                        <div class="invalid-feedback" id="telefono-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="sitio_web" class="form-label">Sitio Web</label>
+                        <input type="url" 
+                               class="form-control" 
+                               id="sitio_web" 
+                               name="sitio_web"
+                               placeholder="https://www.empresa.com">
+                        <div class="help-text">URL del sitio web (opcional)</div>
+                        <div class="invalid-feedback" id="sitio_web-error"></div>
+                    </div>
+                    
+                    <div class="col-12">
+                        <label for="direccion" class="form-label">Dirección</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="direccion" 
+                               name="direccion"
+                               maxlength="255"
+                               placeholder="Av. Principal 123, Piso 4">
+                        <div class="help-text">Dirección completa</div>
+                        <div class="invalid-feedback" id="direccion-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="ciudad" class="form-label">Ciudad</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="ciudad" 
+                               name="ciudad"
+                               maxlength="128"
+                               placeholder="Santiago">
+                        <div class="help-text">Ciudad</div>
+                        <div class="invalid-feedback" id="ciudad-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="pais" class="form-label">País</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="pais" 
+                               name="pais"
+                               maxlength="64"
+                               value="{{ datos.pais|default:'Chile' }}">
+                        <div class="help-text">País</div>
+                        <div class="invalid-feedback" id="pais-error"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Condiciones Comerciales -->
+            <div class="form-section">
+                <h5><i class="fas fa-handshake me-2"></i>Condiciones Comerciales</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="condiciones_pago" class="form-label required">Condiciones de Pago</label>
+                        <select class="form-select{% if errores.condiciones_pago %} is-invalid{% endif %}" id="condiciones_pago" name="condiciones_pago" required>
+                            <option value="">Seleccione...</option>
+                            {% for valor, etiqueta in CONDICIONES_PAGO_CHOICES %}
+                                <option value="{{ valor }}"{% if datos.condiciones_pago == valor %} selected{% endif %}>{{ etiqueta }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="help-text">Términos de pago</div>
+                        <div class="invalid-feedback" id="condiciones_pago-error">{{ errores.condiciones_pago|default:'' }}</div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="condiciones_pago_detalle" class="form-label">Detalle Condiciones</label>
+                        <input type="text" 
+                               class="form-control{% if errores.condiciones_pago_detalle %} is-invalid{% endif %}" 
+                               id="condiciones_pago_detalle" 
+                               name="condiciones_pago_detalle"
+                               maxlength="255"
+                               value="{{ datos.condiciones_pago_detalle|default:'' }}"
+                               placeholder="Especificar si seleccionó 'Otro'">
+                        <div class="help-text">Detalle adicional de condiciones de pago</div>
+                        <div class="invalid-feedback" id="condiciones_pago_detalle-error">{{ errores.condiciones_pago_detalle|default:'' }}</div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="moneda" class="form-label">Moneda</label>
+                        <select class="form-select" id="moneda" name="moneda">
+                            <option value="CLP" selected>CLP - Peso Chileno</option>
+                            <option value="USD">USD - Dólar Americano</option>
+                            <option value="EUR">EUR - Euro</option>
+                            <option value="ARS">ARS - Peso Argentino</option>
+                        </select>
+                        <div class="help-text">Moneda de transacciones</div>
+                        <div class="invalid-feedback" id="moneda-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="estado" class="form-label">Estado</label>
+                        <select class="form-select{% if errores.estado %} is-invalid{% endif %}" id="estado" name="estado">
+                            {% for valor, etiqueta in ESTADO_CHOICES %}
+                                <option value="{{ valor }}"{% if datos.estado == valor or valor == 'ACTIVO' and not datos.estado %} selected{% endif %}>{{ etiqueta }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="help-text">Estado del proveedor</div>
+                        <div class="invalid-feedback" id="estado-error">{{ errores.estado|default:'' }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contacto Principal -->
+            <div class="form-section">
+                <h5><i class="fas fa-user-tie me-2"></i>Contacto Principal</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="contacto_principal_nombre" class="form-label">Nombre</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="contacto_principal_nombre" 
+                               name="contacto_principal_nombre"
+                               maxlength="120"
+                               placeholder="Juan Pérez">
+                        <div class="help-text">Nombre del contacto principal</div>
+                        <div class="invalid-feedback" id="contacto_principal_nombre-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="contacto_principal_email" class="form-label">Email</label>
+                        <input type="email" 
+                               class="form-control" 
+                               id="contacto_principal_email" 
+                               name="contacto_principal_email"
+                               placeholder="juan.perez@empresa.com">
+                        <div class="help-text">Email del contacto principal</div>
+                        <div class="invalid-feedback" id="contacto_principal_email-error"></div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="contacto_principal_telefono" class="form-label">Teléfono</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="contacto_principal_telefono" 
+                               name="contacto_principal_telefono"
+                               maxlength="30"
+                               placeholder="+56 9 8765 4321">
+                        <div class="help-text">Teléfono del contacto principal</div>
+                        <div class="invalid-feedback" id="contacto_principal_telefono-error"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Observaciones -->
+            <div class="form-section">
+                <h5><i class="fas fa-comments me-2"></i>Observaciones</h5>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label for="observaciones" class="form-label">Observaciones</label>
+                        <textarea class="form-control" 
+                                  id="observaciones" 
+                                  name="observaciones" 
+                                  rows="3"
+                                  placeholder="Notas adicionales sobre el proveedor..."></textarea>
+                        <div class="help-text">Información adicional relevante</div>
+                        <div class="invalid-feedback" id="observaciones-error"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="d-flex justify-content-end gap-3 mt-4">
+                <a href="{% url 'maestros:proveedor_listar' %}" class="btn btn-secondary">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary" id="btn-guardar">
+                    <i class="fas fa-save me-2"></i>Guardar Proveedor
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Iniciando JavaScript del formulario...');
+    
+    // Formateo automático de RUT
+    const rutInput = document.getElementById('rut_nif');
+    if (rutInput) {
+        rutInput.addEventListener('input', function(e) {
+            let valor = e.target.value.replace(/\./g, '').replace('-', '').replace(/\s/g, '');
+            if (valor.length > 1) {
+                const cuerpo = valor.slice(0, -1);
+                const dv = valor.slice(-1);
+                if (cuerpo.length > 3) {
+                    const cuerpoFormateado = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                    e.target.value = cuerpoFormateado + '-' + dv;
+                }
+            }
+        });
+    }
+    
+    // Validación básica del formulario
+    const form = document.getElementById('proveedor-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            console.log('Enviando formulario...');
+            
+            // Validaciones simples
+            const rutNif = document.getElementById('rut_nif').value.trim();
+            const razonSocial = document.getElementById('razon_social').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const condicionesPago = document.getElementById('condiciones_pago').value;
+            
+            if (!rutNif || !razonSocial || !email || !condicionesPago) {
+                e.preventDefault();
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Datos incompletos',
+                        text: 'Por favor, complete todos los campos obligatorios.',
+                        confirmButtonColor: '#28a745'
+                    });
+                } else {
+                    alert('Por favor, complete todos los campos obligatorios.');
+                }
+                return false;
+            }
+            
+            console.log('Formulario válido, enviando...');
+        });
+    }
+    
+    console.log('JavaScript cargado correctamente');
+});
+</script>
+{% endblock %}

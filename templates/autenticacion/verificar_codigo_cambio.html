@@ -177,7 +177,7 @@
                                 
                                 <!-- Botones -->
                                 <div class="d-flex gap-2 justify-content-between">
-                                    <a href="{% url 'solicitar_codigo_cambio' %}" class="btn btn-outline-secondary">
+                                    <a href="{% url 'autenticacion:solicitar_codigo_cambio' %}" class="btn btn-outline-secondary">
                                         <i class="fas fa-arrow-left"></i> Solicitar Nuevo Código
                                     </a>
                                     <button type="submit" class="btn btn-danger" id="submitBtn">
@@ -245,7 +245,7 @@ $(document).ready(function() {
         submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Verificando...');
         
         $.ajax({
-            url: '{% url "verificar_codigo_cambio" %}',
+            url: '{% url "autenticacion:verificar_codigo_cambio" %}',
             type: 'POST',
             data: formData,
             success: function(response) {
@@ -318,7 +318,7 @@ function startCountdown(seconds) {
                 confirmButtonColor: '#dc2626',
                 confirmButtonText: 'Solicitar Nuevo Código'
             }).then(() => {
-                window.location.href = '{% url "solicitar_codigo_cambio" %}';
+                window.location.href = '{% url "autenticacion:solicitar_codigo_cambio" %}';
             });
         }
         

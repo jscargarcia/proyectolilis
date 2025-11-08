@@ -511,9 +511,23 @@ productos_data = [
 ]
 
 productos_creados = {}
+# Obtener unidades de medida por defecto
+uom_unidad = UnidadMedida.objects.get(codigo='UND')
+uom_kg = UnidadMedida.objects.get(codigo='KG')
+
 for prod_data in productos_data:
     cat = Categoria.objects.get(nombre=prod_data['categoria'])
     marca = Marca.objects.get(nombre=prod_data['marca'])
+    
+    # Determinar unidades de medida según el tipo de producto
+    if prod_data['categoria'] in ['Chocolates', 'Caramelos', 'Gomitas', 'Chicles']:
+        uom_compra = uom_kg
+        uom_venta = uom_unidad
+        uom_stock = uom_unidad
+    else:
+        uom_compra = uom_kg
+        uom_venta = uom_unidad
+        uom_stock = uom_unidad
     
     prod, created = Producto.objects.get_or_create(
         sku=prod_data['sku'],
@@ -521,12 +535,15 @@ for prod_data in productos_data:
             'nombre': prod_data['nombre'],
             'categoria': cat,
             'marca': marca,
-            'estado': 'Activo',
+            'estado': 'ACTIVO',
             'stock_minimo': prod_data['stock_minimo'],
             'precio_venta': prod_data['precio_venta'],
             'perishable': prod_data.get('perishable', False),
             'control_por_lote': prod_data.get('control_por_lote', False),
-            'control_por_serie': False
+            'control_por_serie': False,
+            'uom_compra': uom_compra,
+            'uom_venta': uom_venta,
+            'uom_stock': uom_stock,
         }
     )
     productos_creados[prod.sku] = prod
@@ -621,4 +638,18 @@ print()
 print("🌐 Acceso al sistema:")
 print("  Servidor: http://127.0.0.1:8000/")
 print("  Panel Admin: http://127.0.0.1:8000/admin/")
+print()
+print("✅ CORRECCIONES IMPLEMENTADAS (Noviembre 2025):")
+print("  🔧 Todos los CRUDs optimizados con envío tradicional")
+print("  🎨 Dashboard con z-index corregido (dropdown funcional)")
+print("  🚀 JavaScript simplificado sin AJAX problemático")
+print("  ✨ Templates corregidos sin errores de sintaxis")
+print("  💎 SweetAlert2 consistente en toda la aplicación")
+print()
+print("🎯 Funcionalidades principales:")
+print("  📦 Gestión de Productos - CRUD completo optimizado")
+print("  🏢 Gestión de Proveedores - Formularios mejorados")
+print("  👥 Gestión de Clientes - Validaciones simplificadas")
+print("  📊 Dashboard interactivo - Sin problemas de interfaz")
+print("  🔐 Sistema de roles y permisos - Completamente funcional")
 print()

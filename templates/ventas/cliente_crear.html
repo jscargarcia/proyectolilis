@@ -12,7 +12,7 @@
                     <h4 class="mb-0"><i class="fas fa-user-plus"></i> Crear Nuevo Cliente</h4>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" id="clienteForm">
                         {% csrf_token %}
                         
                         <div class="row">
@@ -20,6 +20,7 @@
                             <div class="col-md-6 mb-3">
                                 <label for="rut_nif" class="form-label">RUT/NIF <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="rut_nif" name="rut_nif" required>
+                                <div class="invalid-feedback" id="rut_nif-error"></div>
                                 <small class="text-muted">Formato: 12345678-9 o similar</small>
                             </div>
 
@@ -30,12 +31,14 @@
                                     <option value="PERSONA">Persona Natural</option>
                                     <option value="EMPRESA">Empresa</option>
                                 </select>
+                                <div class="invalid-feedback" id="tipo-error"></div>
                             </div>
 
                             <!-- Nombre -->
                             <div class="col-12 mb-3">
                                 <label for="nombre" class="form-label">Nombre / Razón Social <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" id="nombre" name="nombre" required maxlength="150">
+                                <div class="invalid-feedback" id="nombre-error"></div>
                             </div>
 
                             <!-- Email -->
@@ -80,10 +83,10 @@
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
-                            <a href="{% url 'cliente_listar' %}" class="btn btn-secondary">
+                            <a href="{% url 'ventas:cliente_listar' %}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Cancelar
                             </a>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" id="btnGuardar">
                                 <i class="fas fa-save"></i> Guardar Cliente
                             </button>
                         </div>
@@ -93,4 +96,168 @@
         </div>
     </div>
 </div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Iniciando JavaScript del formulario de clientes...');
+    
+    // Formateo automático de RUT
+    const rutInput = document.getElementById('rut_nif');
+    if (rutInput) {
+        rutInput.addEventListener('input', function(e) {
+            let valor = e.target.value.replace(/\./g, '').replace('-', '').replace(/\s/g, '');
+            if (valor.length > 1) {
+                const cuerpo = valor.slice(0, -1);
+                const dv = valor.slice(-1);
+                if (cuerpo.length > 3) {
+                    const cuerpoFormateado = cuerpo.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                    e.target.value = cuerpoFormateado + '-' + dv;
+                }
+            }
+        });
+    }
+    
+    // Validación básica del formulario
+    const form = document.getElementById('clienteForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            console.log('Enviando formulario de cliente...');
+            
+            // Validaciones simples
+            const rutNif = document.getElementById('rut_nif').value.trim();
+            const nombre = document.getElementById('nombre').value.trim();
+            const email = document.getElementById('email').value.trim();
+            
+            if (!rutNif || !nombre || !email) {
+                e.preventDefault();
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Datos incompletos',
+                        text: 'Por favor, complete todos los campos obligatorios.',
+                        confirmButtonColor: '#007bff'
+                    });
+                } else {
+                    alert('Por favor, complete todos los campos obligatorios.');
+                }
+                return false;
+            }
+            
+            console.log('Formulario válido, enviando...');
+        });
+    
+    console.log('JavaScript de clientes cargado correctamente');
+});
+</script>
+            document.getElementById('nombre-error').textContent = 'El nombre es obligatorio';
+            esValido = false;
+        }
+        
+        // Validar tipo
+        const tipo = document.getElementById('tipo').value;
+        if (!tipo) {
+            document.getElementById('tipo').classList.add('is-invalid');
+            document.getElementById('tipo-error').textContent = 'El tipo es obligatorio';
+            esValido = false;
+        }
+        
+        return esValido;
+    }
+    
+    // Manejo del envío del formulario
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!validarFormulario()) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Datos incompletos',
+                text: 'Por favor, complete todos los campos obligatorios.',
+                confirmButtonColor: '#007bff'
+            });
+            return;
+        }
+        
+        // Mostrar loading
+        loadingOverlay.style.display = 'block';
+        btnGuardar.disabled = true;
+        
+        // Enviar formulario
+        const formData = new FormData(form);
+        
+        fetch(form.action || window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Éxito
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: data.message,
+                    showConfirmButton: false,
+                    timer: 2000,
+                    timerProgressBar: true
+                }).then(() => {
+                    window.location.href = data.redirect_url;
+                });
+            } else {
+                // Error - mostrar errores específicos
+                if (data.errores) {
+                    // Mostrar errores de validación en los campos
+                    Object.keys(data.errores).forEach(campo => {
+                        const elemento = document.getElementById(campo);
+                        if (elemento) {
+                            elemento.classList.add('is-invalid');
+                            const errorDiv = document.getElementById(campo + '-error');
+                            if (errorDiv) {
+                                errorDiv.textContent = data.errores[campo];
+                            }
+                        }
+                    });
+                    
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Errores de validación',
+                        text: data.message,
+                        confirmButtonColor: '#007bff'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'Error al crear el cliente',
+                        confirmButtonColor: '#007bff'
+                    });
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de conexión',
+                text: 'Error al guardar el cliente. Por favor, inténtelo nuevamente.',
+                confirmButtonColor: '#007bff'
+            });
+        })
+        .finally(() => {
+            loadingOverlay.style.display = 'none';
+            btnGuardar.disabled = false;
+        });
+    });
+});
+</script>
+
+
 {% endblock %}

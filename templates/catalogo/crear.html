@@ -11,7 +11,7 @@
                     <h4 class="mb-0"><i class="fas fa-plus"></i> Crear Nuevo Producto</h4>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{% url 'catalogo_crear' %}">
+                    <form method="POST" action="{% url 'catalogo:catalogo_crear' %}">
                         {% csrf_token %}
                         
                         <div class="row">
@@ -116,7 +116,7 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Crear Producto
                             </button>
-                            <a href="{% url 'catalogo_listar' %}" class="btn btn-secondary">
+                            <a href="{% url 'catalogo:catalogo_listar' %}" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Cancelar
                             </a>
                         </div>

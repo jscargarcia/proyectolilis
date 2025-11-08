@@ -23,9 +23,9 @@ from django.shortcuts import render
 
 def home_redirect(request):
     if request.user.is_authenticated:
-        return redirect('/auth/dashboard/')
+        return redirect('autenticacion:dashboard')
     else:
-        return redirect('login')
+        return redirect('autenticacion:login')
 
 def demo_alertas(request):
     """Vista para demostrar el sistema de alertas"""
@@ -40,6 +40,7 @@ urlpatterns = [
     path('ventas/', include('ventas.urls')),
     path('maestros/', include('maestros.urls')),
     path('productos/', include('productos.urls')),
+    path('inventario/', include('inventario.urls')),
     path('demo/alertas/', demo_alertas, name='demo_alertas'),
 ]
 

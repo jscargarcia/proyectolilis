@@ -1,0 +1,346 @@
+{% extends 'base.html' %}
+{% load permisos_tags %}
+
+{% block title %}Historial de Usuario{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dee2e6;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 30px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-left: 20px;
+    }
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -25px;
+        top: 25px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #007bff;
+        border: 3px solid #fff;
+        box-shadow: 0 0 0 3px #dee2e6;
+    }
+    .timeline-item.login::before { background: #28a745; }
+    .timeline-item.logout::before { background: #6c757d; }
+    .timeline-item.update::before { background: #ffc107; }
+    .timeline-item.error::before { background: #dc3545; }
+    .timeline-item.password::before { background: #17a2b8; }
+    
+    .timeline-content h5 {
+        color: #495057;
+        margin-bottom: 10px;
+    }
+    .timeline-meta {
+        color: #6c757d;
+        font-size: 14px;
+        margin-bottom: 15px;
+    }
+    .timeline-details {
+        background: #f8f9fa;
+        border-radius: 5px;
+        padding: 15px;
+        margin-top: 10px;
+    }
+    .activity-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    .badge-login { background: #d4edda; color: #155724; }
+    .badge-logout { background: #e2e3e5; color: #495057; }
+    .badge-update { background: #fff3cd; color: #856404; }
+    .badge-error { background: #f8d7da; color: #721c24; }
+    .badge-password { background: #d1ecf1; color: #0c5460; }
+    
+    .stats-card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 20px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .stats-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #007bff;
+    }
+    .stats-label {
+        color: #6c757d;
+        font-size: 14px;
+        margin-top: 5px;
+    }
+    .filter-card {
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2><i class="fas fa-history"></i> Historial de Usuario</h2>
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="{% url 'autenticacion:dashboard' %}">Dashboard</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'autenticacion:usuario_listar' %}">Usuarios</a></li>
+                            <li class="breadcrumb-item"><a href="{% url 'autenticacion:usuario_detalle' usuario.pk %}">{{ usuario.get_full_name|default:usuario.username }}</a></li>
+                            <li class="breadcrumb-item active">Historial</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{% url 'autenticacion:usuario_detalle' usuario.pk %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información del Usuario -->
+        <div class="col-lg-4">
+            <div class="filter-card">
+                <div class="text-center mb-3">
+                    {% if usuario.avatar %}
+                        <img src="{{ usuario.avatar.url }}" alt="Avatar" class="rounded-circle" style="width: 80px; height: 80px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-secondary text-white d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 30px;">
+                            {{ usuario.first_name.0|default:usuario.username.0|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                <h4 class="text-center mb-1">{{ usuario.get_full_name|default:usuario.username }}</h4>
+                <p class="text-center text-muted mb-3">{{ usuario.email }}</p>
+                <div class="text-center">
+                    <span class="badge bg-primary">{{ usuario.get_estado_display }}</span>
+                    {% if usuario.rol %}
+                        <span class="badge bg-secondary">{{ usuario.rol.nombre }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Estadísticas Rápidas -->
+            <div class="row">
+                <div class="col-6">
+                    <div class="stats-card">
+                        <div class="stats-number">{{ total_accesos }}</div>
+                        <div class="stats-label">Total Accesos</div>
+                    </div>
+                </div>
+                <div class="col-6">
+                    <div class="stats-card">
+                        <div class="stats-number">{{ dias_activo }}</div>
+                        <div class="stats-label">Días Activo</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros -->
+            <div class="filter-card">
+                <h5 class="mb-3"><i class="fas fa-filter"></i> Filtros</h5>
+                <form method="get" id="filtroForm">
+                    <div class="mb-3">
+                        <label for="tipo_actividad" class="form-label">Tipo de Actividad</label>
+                        <select class="form-select" id="tipo_actividad" name="tipo" onchange="document.getElementById('filtroForm').submit()">
+                            <option value="">Todas las actividades</option>
+                            <option value="login" {% if filtro_tipo == 'login' %}selected{% endif %}>Inicios de Sesión</option>
+                            <option value="logout" {% if filtro_tipo == 'logout' %}selected{% endif %}>Cierres de Sesión</option>
+                            <option value="update" {% if filtro_tipo == 'update' %}selected{% endif %}>Actualizaciones</option>
+                            <option value="password" {% if filtro_tipo == 'password' %}selected{% endif %}>Cambios de Contraseña</option>
+                            <option value="error" {% if filtro_tipo == 'error' %}selected{% endif %}>Errores</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="fecha_desde" class="form-label">Desde</label>
+                        <input type="date" class="form-control" id="fecha_desde" name="fecha_desde" 
+                               value="{{ filtro_fecha_desde }}" onchange="document.getElementById('filtroForm').submit()">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="fecha_hasta" class="form-label">Hasta</label>
+                        <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta" 
+                               value="{{ filtro_fecha_hasta }}" onchange="document.getElementById('filtroForm').submit()">
+                    </div>
+                    
+                    <div class="d-grid">
+                        <a href="{% url 'autenticacion:usuario_historial' usuario.pk %}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-times"></i> Limpiar Filtros
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Timeline de Actividades -->
+        <div class="col-lg-8">
+            {% if actividades %}
+                <div class="timeline">
+                    {% for actividad in actividades %}
+                        <div class="timeline-item {{ actividad.tipo|default:'update' }}">
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5>
+                                        <span class="activity-badge badge-{{ actividad.tipo|default:'update' }}">
+                                            {{ actividad.tipo|default:'Actualización'|title }}
+                                        </span>
+                                        {{ actividad.descripcion|default:'Actividad del usuario' }}
+                                    </h5>
+                                </div>
+                                
+                                <div class="timeline-meta">
+                                    <i class="fas fa-calendar"></i> {{ actividad.fecha|date:"d/m/Y H:i:s" }}
+                                    {% if actividad.ip %}
+                                        <span class="ms-3"><i class="fas fa-map-marker-alt"></i> IP: {{ actividad.ip }}</span>
+                                    {% endif %}
+                                    {% if actividad.user_agent %}
+                                        <span class="ms-3"><i class="fas fa-desktop"></i> {{ actividad.navegador|default:'Desconocido' }}</span>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if actividad.detalles %}
+                                    <div class="timeline-details">
+                                        <strong>Detalles:</strong>
+                                        <div class="mt-2">
+                                            {% if actividad.tipo == 'update' %}
+                                                <ul class="mb-0">
+                                                    {% for campo, valores in actividad.cambios.items %}
+                                                        <li>
+                                                            <strong>{{ campo|title }}:</strong> 
+                                                            "{{ valores.anterior|default:'(vacío)' }}" → "{{ valores.nuevo|default:'(vacío)' }}"
+                                                        </li>
+                                                    {% endfor %}
+                                                </ul>
+                                            {% else %}
+                                                {{ actividad.detalles }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Paginación -->
+                {% if page_obj.has_other_pages %}
+                    <nav aria-label="Paginación del historial">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_fecha_desde %}&fecha_desde={{ filtro_fecha_desde }}{% endif %}{% if filtro_fecha_hasta %}&fecha_hasta={{ filtro_fecha_hasta }}{% endif %}">Primera</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_fecha_desde %}&fecha_desde={{ filtro_fecha_desde }}{% endif %}{% if filtro_fecha_hasta %}&fecha_hasta={{ filtro_fecha_hasta }}{% endif %}">Anterior</a>
+                                </li>
+                            {% endif %}
+
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+                            </li>
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_fecha_desde %}&fecha_desde={{ filtro_fecha_desde }}{% endif %}{% if filtro_fecha_hasta %}&fecha_hasta={{ filtro_fecha_hasta }}{% endif %}">Siguiente</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_fecha_desde %}&fecha_desde={{ filtro_fecha_desde }}{% endif %}{% if filtro_fecha_hasta %}&fecha_hasta={{ filtro_fecha_hasta }}{% endif %}">Última</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                {% endif %}
+                
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-history fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No hay actividades registradas</h4>
+                    <p class="text-muted">
+                        {% if filtro_tipo or filtro_fecha_desde or filtro_fecha_hasta %}
+                            No se encontraron actividades con los filtros aplicados.
+                        {% else %}
+                            Aún no hay actividades registradas para este usuario.
+                        {% endif %}
+                    </p>
+                    {% if filtro_tipo or filtro_fecha_desde or filtro_fecha_hasta %}
+                        <a href="{% url 'autenticacion:usuario_historial' usuario.pk %}" class="btn btn-primary">
+                            <i class="fas fa-times"></i> Limpiar Filtros
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.all.min.js"></script>
+<script>
+// Auto-envío del formulario cuando cambian los filtros
+document.addEventListener('DOMContentLoaded', function() {
+    const filtroForm = document.getElementById('filtroForm');
+    const inputs = filtroForm.querySelectorAll('select, input');
+    
+    inputs.forEach(input => {
+        input.addEventListener('change', function() {
+            filtroForm.submit();
+        });
+    });
+});
+
+// Función para exportar historial
+function exportarHistorial() {
+    Swal.fire({
+        title: 'Exportar Historial',
+        text: '¿En qué formato desea exportar el historial?',
+        icon: 'question',
+        showCancelButton: true,
+        showDenyButton: true,
+        confirmButtonText: 'PDF',
+        denyButtonText: 'Excel',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Exportar a PDF
+            window.location.href = `{% url 'autenticacion:usuario_historial' usuario.pk %}?export=pdf{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_fecha_desde %}&fecha_desde={{ filtro_fecha_desde }}{% endif %}{% if filtro_fecha_hasta %}&fecha_hasta={{ filtro_fecha_hasta }}{% endif %}`;
+        } else if (result.isDenied) {
+            // Exportar a Excel
+            window.location.href = `{% url 'autenticacion:usuario_historial' usuario.pk %}?export=excel{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_fecha_desde %}&fecha_desde={{ filtro_fecha_desde }}{% endif %}{% if filtro_fecha_hasta %}&fecha_hasta={{ filtro_fecha_hasta }}{% endif %}`;
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -43,7 +43,7 @@ class SessionSecurityMiddleware:
                 
                 logout(request)
                 messages.warning(request, 'Tu cuenta ha sido desactivada.')
-                return redirect('login')
+                return redirect('autenticacion:login')
         
         response = self.get_response(request)
         return response

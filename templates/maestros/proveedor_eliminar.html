@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Proveedor - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-card {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.form-container {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.warning-section {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.info-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-left: 4px solid #6c757d;
+}
+
+.danger-section {
+    background: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+    transform: translateY(-2px);
+}
+
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+}
+
+.loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="form-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-trash-alt me-2"></i>Eliminar Proveedor</h2>
+                <p class="mb-0">Confirmar eliminación del proveedor</p>
+            </div>
+            <div>
+                <a href="{% url 'maestros:proveedor_detalle' proveedor.pk %}" class="btn btn-light me-2">
+                    <i class="fas fa-eye me-2"></i>Ver Detalle
+                </a>
+                <a href="{% url 'maestros:proveedor_listar' %}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido -->
+    <div class="form-container">
+        
+        <!-- Información del Proveedor -->
+        <div class="info-section">
+            <h5><i class="fas fa-info-circle me-2"></i>Información del Proveedor</h5>
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>RUT/NIF:</strong> {{ proveedor.rut_nif }}</p>
+                    <p><strong>Razón Social:</strong> {{ proveedor.razon_social }}</p>
+                    {% if proveedor.nombre_fantasia %}
+                    <p><strong>Nombre Fantasía:</strong> {{ proveedor.nombre_fantasia }}</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Email:</strong> {{ proveedor.email }}</p>
+                    {% if proveedor.telefono %}
+                    <p><strong>Teléfono:</strong> {{ proveedor.telefono }}</p>
+                    {% endif %}
+                    <p><strong>Estado:</strong> 
+                        <span class="badge {% if proveedor.estado == 'ACTIVO' %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ proveedor.get_estado_display }}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {% if productos_asociados > 0 %}
+        <!-- Advertencia de Productos Asociados -->
+        <div class="danger-section">
+            <h5><i class="fas fa-exclamation-triangle me-2 text-danger"></i>No se puede eliminar</h5>
+            <p class="mb-2">
+                <strong>Este proveedor tiene {{ productos_asociados }} producto{{ productos_asociados|pluralize }} asociado{{ productos_asociados|pluralize }}.</strong>
+            </p>
+            <p class="mb-0">
+                Para eliminar este proveedor, primero debe:
+            </p>
+            <ul class="mt-2">
+                <li>Eliminar todos los productos asociados, o</li>
+                <li>Reasignar los productos a otro proveedor</li>
+            </ul>
+        </div>
+
+        <!-- Botones - Solo volver -->
+        <div class="d-flex justify-content-between">
+            <a href="{% url 'maestros:proveedor_detalle' proveedor.pk %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Detalle
+            </a>
+            <a href="{% url 'maestros:proveedor_editar' proveedor.pk %}" class="btn btn-primary">
+                <i class="fas fa-edit me-2"></i>Editar Proveedor
+            </a>
+        </div>
+
+        {% else %}
+        <!-- Confirmación de Eliminación -->
+        <div class="warning-section">
+            <h5><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Confirmar Eliminación</h5>
+            <p class="mb-0">
+                <strong>¿Está seguro que desea eliminar este proveedor?</strong>
+            </p>
+            <p class="mt-2 mb-0">
+                Esta acción no se puede deshacer. El proveedor será eliminado permanentemente del sistema.
+            </p>
+        </div>
+
+        <!-- Formulario de Eliminación -->
+        <form id="eliminarForm" method="post">
+            {% csrf_token %}
+            
+            <div class="d-flex justify-content-between">
+                <a href="{% url 'maestros:proveedor_detalle' proveedor.pk %}" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-danger btn-lg">
+                    <i class="fas fa-trash-alt me-2"></i>Eliminar Proveedor
+                </button>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner">
+        <div class="spinner-border text-light" role="status">
+            <span class="visually-hidden">Eliminando...</span>
+        </div>
+        <div class="text-light mt-2">Eliminando proveedor...</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    
+    // Manejo del formulario de eliminación
+    $('#eliminarForm').on('submit', function(e) {
+        e.preventDefault();
+        
+        const form = this;
+        
+        // Confirmación adicional con SweetAlert2
+        Swal.fire({
+            title: '¿Está completamente seguro?',
+            text: 'Esta acción no se puede deshacer. El proveedor será eliminado permanentemente.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            reverseButtons: true
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Mostrar loading
+                $('#loadingOverlay').show();
+                
+                // Enviar formulario
+                $.ajax({
+                    url: '{% url "maestros:proveedor_eliminar" proveedor.pk %}',
+                    method: 'POST',
+                    data: $(form).serialize(),
+                    success: function(response) {
+                        $('#loadingOverlay').hide();
+                        
+                        if (response.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Eliminado!',
+                                text: response.message,
+                                showConfirmButton: false,
+                                timer: 2000,
+                                timerProgressBar: true
+                            }).then(() => {
+                                if (response.redirect_url) {
+                                    window.location.href = response.redirect_url;
+                                }
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: response.message || 'Error al eliminar proveedor',
+                                confirmButtonColor: '#dc3545'
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        $('#loadingOverlay').hide();
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error de conexión',
+                            text: 'Por favor intente nuevamente.',
+                            confirmButtonColor: '#dc3545'
+                        });
+                    }
+                });
+            }
+        });
+    });
+    
+});
+</script>
+{% endblock %}

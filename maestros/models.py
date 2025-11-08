@@ -127,6 +127,18 @@ class Producto(models.Model):
     control_por_lote = models.BooleanField(default=False)
     control_por_serie = models.BooleanField(default=False)
     
+    # Control de vencimiento (solo para productos perecederos)
+    dias_vencimiento = models.IntegerField(null=True, blank=True, 
+                                         help_text='Días hasta vencimiento desde fecha de producción')
+    meses_vencimiento = models.IntegerField(null=True, blank=True,
+                                          help_text='Meses hasta vencimiento (alternativo a días)')
+    requiere_fecha_vencimiento = models.BooleanField(default=False,
+                                                   help_text='Requiere control de fecha de vencimiento')
+    
+    # Stock actual (calculado)
+    stock_actual = models.DecimalField(max_digits=18, decimal_places=6, default=0,
+                                     help_text='Stock actual calculado automáticamente')
+    
     # Archivos
     imagen = models.ImageField(upload_to='productos/', null=True, blank=True, 
                               help_text='Imagen del producto (JPG, PNG, máx 5MB)')

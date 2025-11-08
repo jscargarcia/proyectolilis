@@ -44,7 +44,7 @@
             </button>
             {% tiene_permiso 'productos' 'crear' as puede_crear %}
             {% if puede_crear %}
-            <a href="{% url 'producto_crear' %}" class="btn btn-primary">
+            <a href="{% url 'maestros:producto_crear' %}" class="btn btn-primary">
                 <i class="fas fa-plus me-2"></i>Nuevo Producto
             </a>
             {% endif %}
@@ -118,7 +118,7 @@
                         <button type="submit" class="btn btn-primary me-2">
                             <i class="fas fa-filter me-1"></i>Filtrar
                         </button>
-                        <a href="{% url 'producto_listar' %}" class="btn btn-outline-secondary">
+                        <a href="{% url 'maestros:producto_listar' %}" class="btn btn-outline-secondary">
                             <i class="fas fa-times me-1"></i>Limpiar
                         </a>
                     </div>
@@ -301,14 +301,14 @@
                             </td>
                             <td>
                                 <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{% url 'producto_detalle' producto.pk %}" 
+                                    <a href="{% url 'maestros:producto_detalle' producto.pk %}" 
                                        class="btn btn-outline-primary" 
                                        title="Ver detalle">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     {% tiene_permiso 'productos' 'editar' as puede_editar %}
                                     {% if puede_editar %}
-                                    <a href="{% url 'producto_editar' producto.pk %}" 
+                                    <a href="{% url 'maestros:producto_editar' producto.pk %}" 
                                        class="btn btn-outline-warning" 
                                        title="Editar">
                                         <i class="fas fa-edit"></i>
@@ -333,7 +333,7 @@
                                     <i class="fas fa-box-open fa-3x mb-3"></i>
                                     <h5>No se encontraron productos</h5>
                                     <p>No hay productos que coincidan con los filtros seleccionados.</p>
-                                    <a href="{% url 'producto_crear' %}" class="btn btn-primary">
+                                    <a href="{% url 'maestros:producto_crear' %}" class="btn btn-primary">
                                         <i class="fas fa-plus me-2"></i>Crear primer producto
                                     </a>
                                 </div>
@@ -712,7 +712,7 @@ function exportarExcel() {
     
     // Construir URL con los filtros actuales
     const urlParams = new URLSearchParams(window.location.search);
-    const exportUrl = '{% url "productos_exportar_excel" %}?' + urlParams.toString();
+    const exportUrl = '{% url "maestros:productos_exportar_excel" %}?' + urlParams.toString();
     
     console.log('🔗 URL de exportación:', exportUrl);
     

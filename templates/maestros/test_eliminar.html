@@ -14,7 +14,7 @@
     <form method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este producto?')">
         {% csrf_token %}
         <button type="submit" class="btn btn-danger">Eliminar Producto (Sin AJAX)</button>
-        <a href="{% url 'producto_listar' %}" class="btn btn-secondary">Cancelar</a>
+        <a href="{% url 'maestros:producto_listar' %}" class="btn btn-secondary">Cancelar</a>
     </form>
 </div>
 {% endblock %}

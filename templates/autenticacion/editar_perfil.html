@@ -207,12 +207,12 @@
                                 <hr>
                                 <div class="d-flex gap-2 justify-content-between">
                                     <div>
-                                        <a href="{% url 'perfil_usuario' %}" class="btn btn-outline-secondary">
+                                        <a href="{% url 'autenticacion:perfil_usuario' %}" class="btn btn-outline-secondary">
                                             <i class="fas fa-arrow-left"></i> Cancelar
                                         </a>
                                     </div>
                                     <div class="d-flex gap-2">
-                                        <a href="{% url 'cambiar_password' %}" class="btn btn-outline-warning">
+                                        <a href="{% url 'autenticacion:cambiar_password' %}" class="btn btn-outline-warning">
                                             <i class="fas fa-key"></i> Cambiar Contraseña
                                         </a>
                                         <button type="submit" class="btn btn-danger">
@@ -283,7 +283,7 @@ $(document).ready(function() {
         submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
         
         $.ajax({
-            url: '{% url "editar_perfil" %}',
+            url: '{% url "autenticacion:editar_perfil" %}',
             type: 'POST',
             data: formData,
             processData: false,
@@ -296,7 +296,7 @@ $(document).ready(function() {
                         icon: 'success',
                         confirmButtonColor: '#dc2626'
                     }).then(() => {
-                        window.location.href = '{% url "perfil_usuario" %}';
+                        window.location.href = '{% url "autenticacion:perfil_usuario" %}';
                     });
                 } else {
                     // Mostrar errores
@@ -344,7 +344,7 @@ function eliminarAvatar() {
     }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: '{% url "eliminar_avatar" %}',
+                url: '{% url "autenticacion:eliminar_avatar" %}',
                 type: 'DELETE',
                 headers: {
                     'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
