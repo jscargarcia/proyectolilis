@@ -69,7 +69,7 @@ def is_admin(user):
         return False
     
     return (user.is_superuser or 
-            (hasattr(user, 'rol') and user.rol and user.rol.nombre == 'ADMIN'))
+            (hasattr(user, 'rol') and user.rol and user.rol.nombre == 'Administrador'))
 
 
 @register.filter
@@ -81,7 +81,7 @@ def has_role(user, role_name):
     if not user.is_authenticated:
         return False
     
-    if user.is_superuser and role_name == 'ADMIN':
+    if user.is_superuser and role_name == 'Administrador':
         return True
         
     return (hasattr(user, 'rol') and user.rol and user.rol.nombre == role_name)
@@ -127,7 +127,7 @@ def can_manage_products(user):
         return False
     
     return (user.is_superuser or 
-            (hasattr(user, 'rol') and user.rol and user.rol.nombre in ['ADMIN', 'GERENTE']))
+            (hasattr(user, 'rol') and user.rol and user.rol.nombre in ['Administrador', 'Editor']))
 
 
 @register.filter
@@ -140,7 +140,7 @@ def can_manage_inventory(user):
         return False
     
     return (user.is_superuser or 
-            (hasattr(user, 'rol') and user.rol and user.rol.nombre in ['ADMIN', 'GERENTE', 'BODEGUERO']))
+            (hasattr(user, 'rol') and user.rol and user.rol.nombre in ['Administrador', 'Editor']))
 
 
 @register.filter
@@ -153,7 +153,7 @@ def can_manage_suppliers(user):
         return False
     
     return (user.is_superuser or 
-            (hasattr(user, 'rol') and user.rol and user.rol.nombre in ['ADMIN', 'GERENTE']))
+            (hasattr(user, 'rol') and user.rol and user.rol.nombre in ['Administrador', 'Editor']))
 
 
 @register.filter
@@ -166,4 +166,4 @@ def can_supervise(user):
         return False
     
     return (user.is_superuser or 
-            (hasattr(user, 'rol') and user.rol and user.rol.nombre in ['ADMIN', 'SUPERVISOR']))
+            (hasattr(user, 'rol') and user.rol and user.rol.nombre in ['Administrador']))

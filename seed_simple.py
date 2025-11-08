@@ -31,51 +31,52 @@ print()
 print("📋 1. Verificando Roles y Creando Usuarios Adicionales...")
 print("-" * 80)
 
-# Crear roles actuales del sistema
+# Crear roles del sistema
 roles_data = [
     {
-        'nombre': 'ADMIN',
-        'descripcion': 'Administrador del sistema con acceso completo',
+        'nombre': 'Administrador',
+        'descripcion': 'Acceso total (CRUD completo y gestión de usuarios)',
         'permisos': {
             'admin': True,
             'all_permissions': True,
-            'descripcion': 'Acceso total a todas las funciones del sistema'
-        }
-    },
-    {
-        'nombre': 'GERENTE',
-        'descripcion': 'Gerente con permisos de gestión del negocio',
-        'permisos': {
+            'usuarios': True,
+            'productos': True,
+            'proveedores': True,
+            'clientes': True,
             'ventas': True,
             'compras': True,
             'inventario': True,
             'reportes': True,
-            'usuarios': True,
+            'crear': True,
+            'editar': True,
+            'eliminar': True,
+            'ver': True,
+            'descripcion': 'Acceso total a todas las funciones del sistema'
+        }
+    },
+    {
+        'nombre': 'Editor',
+        'descripcion': 'Solo puede crear y editar',
+        'permisos': {
             'productos': True,
             'proveedores': True,
-            'descripcion': 'Gestión completa del negocio'
+            'clientes': True,
+            'crear': True,
+            'editar': True,
+            'ver': True,
+            'descripcion': 'Permisos de creación y edición'
         }
     },
     {
-        'nombre': 'SUPERVISOR',
-        'descripcion': 'Supervisor con permisos de supervisión y catálogo',
+        'nombre': 'Lector',
+        'descripcion': 'Solo puede visualizar datos',
         'permisos': {
-            'catalogo': True,
+            'ver': True,
             'productos_view': True,
-            'inventario_view': True,
+            'proveedores_view': True,
+            'clientes_view': True,
             'reportes_view': True,
-            'descripcion': 'Supervisión y gestión de catálogo'
-        }
-    },
-    {
-        'nombre': 'BODEGUERO',
-        'descripcion': 'Bodeguero con permisos de inventario y productos',
-        'permisos': {
-            'inventario': True,
-            'productos': True,
-            'movimientos_stock': True,
-            'compras_view': True,
-            'descripcion': 'Gestión de inventario y productos'
+            'descripcion': 'Solo permisos de visualización'
         }
     },
 ]
@@ -92,10 +93,9 @@ for rol_data in roles_data:
 
 # Crear usuarios del sistema
 try:
-    rol_admin = Rol.objects.get(nombre='ADMIN')
-    rol_gerente = Rol.objects.get(nombre='GERENTE')
-    rol_supervisor = Rol.objects.get(nombre='SUPERVISOR')
-    rol_bodeguero = Rol.objects.get(nombre='BODEGUERO')
+    rol_administrador = Rol.objects.get(nombre='Administrador')
+    rol_editor = Rol.objects.get(nombre='Editor')
+    rol_lector = Rol.objects.get(nombre='Lector')
     
     usuarios_data = [
         {
@@ -104,37 +104,27 @@ try:
             'nombres': 'Administrador',
             'apellidos': 'Sistema',
             'password': 'admin123',
-            'rol': rol_admin,
+            'rol': rol_administrador,
             'is_staff': True,
             'is_superuser': True
         },
         {
-            'username': 'gerente',
-            'email': 'gerente@dulcerialilis.cl',
-            'nombres': 'Ana',
-            'apellidos': 'Martínez',
-            'password': 'gerente123',
-            'rol': rol_gerente,
-            'is_staff': True,
-            'is_superuser': False
-        },
-        {
-            'username': 'supervisor',
-            'email': 'supervisor@dulcerialilis.cl',
-            'nombres': 'Luis',
+            'username': 'editor',
+            'email': 'editor@dulcerialilis.cl',
+            'nombres': 'María',
             'apellidos': 'González',
-            'password': 'supervisor123',
-            'rol': rol_supervisor,
+            'password': 'editor123',
+            'rol': rol_editor,
             'is_staff': True,
             'is_superuser': False
         },
         {
-            'username': 'bodeguero',
-            'email': 'bodeguero@dulcerialilis.cl',
+            'username': 'lector',
+            'email': 'lector@dulcerialilis.cl',
             'nombres': 'Carlos',
             'apellidos': 'Ramírez',
-            'password': 'bodeguero123',
-            'rol': rol_bodeguero,
+            'password': 'lector123',
+            'rol': rol_lector,
             'is_staff': True,
             'is_superuser': False
         },
@@ -633,11 +623,11 @@ print("="*80)
 print()
 print("🔐 Credenciales de acceso:")
 print("  Administrador:")
-print("    admin / admin123 - Acceso completo al sistema")
-print("  Usuarios del negocio:")
-print("    gerente / gerente123 - Gestión completa del negocio")
-print("    supervisor / supervisor123 - Supervisión y catálogo")
-print("    bodeguero / bodeguero123 - Gestión de inventario")
+print("    admin / admin123 - Acceso total (CRUD completo y gestión de usuarios)")
+print("  Editor:")
+print("    editor / editor123 - Solo puede crear y editar")
+print("  Lector:")
+print("    lector / lector123 - Solo puede visualizar datos")
 print()
 print("🌐 Acceso al sistema:")
 print("  Servidor: http://127.0.0.1:8000/")
@@ -655,5 +645,5 @@ print("  📦 Gestión de Productos - CRUD completo optimizado")
 print("  🏢 Gestión de Proveedores - Formularios mejorados")
 print("  👥 Gestión de Clientes - Validaciones simplificadas")
 print("  📊 Dashboard interactivo - Sin problemas de interfaz")
-print("  🔐 Sistema de roles y permisos - 4 roles: ADMIN, GERENTE, SUPERVISOR, BODEGUERO")
+print("  🔐 Sistema de roles y permisos - 3 roles: Administrador, Editor, Lector")
 print()
