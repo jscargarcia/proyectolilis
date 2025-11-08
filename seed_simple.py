@@ -31,11 +31,11 @@ print()
 print("📋 1. Verificando Roles y Creando Usuarios Adicionales...")
 print("-" * 80)
 
-# Crear todos los roles del sistema
+# Crear roles actuales del sistema
 roles_data = [
     {
-        'nombre': 'Administrador',
-        'descripcion': 'Acceso completo al sistema - Superusuario',
+        'nombre': 'ADMIN',
+        'descripcion': 'Administrador del sistema con acceso completo',
         'permisos': {
             'admin': True,
             'all_permissions': True,
@@ -43,36 +43,38 @@ roles_data = [
         }
     },
     {
-        'nombre': 'Gerente',
-        'descripcion': 'Gestión general del negocio y reportes',
+        'nombre': 'GERENTE',
+        'descripcion': 'Gerente con permisos de gestión del negocio',
         'permisos': {
             'ventas': True,
             'compras': True,
             'inventario': True,
             'reportes': True,
             'usuarios': True,
+            'productos': True,
+            'proveedores': True,
             'descripcion': 'Gestión completa del negocio'
         }
     },
     {
-        'nombre': 'Vendedor',
-        'descripcion': 'Gestión de ventas y atención a clientes',
+        'nombre': 'SUPERVISOR',
+        'descripcion': 'Supervisor con permisos de supervisión y catálogo',
         'permisos': {
-            'ventas': True,
-            'clientes': True,
+            'catalogo': True,
             'productos_view': True,
             'inventario_view': True,
-            'descripcion': 'Gestión de ventas y clientes'
+            'reportes_view': True,
+            'descripcion': 'Supervisión y gestión de catálogo'
         }
     },
     {
-        'nombre': 'Bodeguero',
-        'descripcion': 'Gestión de inventario y almacén',
+        'nombre': 'BODEGUERO',
+        'descripcion': 'Bodeguero con permisos de inventario y productos',
         'permisos': {
             'inventario': True,
             'productos': True,
-            'compras_view': True,
             'movimientos_stock': True,
+            'compras_view': True,
             'descripcion': 'Gestión de inventario y productos'
         }
     },
@@ -90,17 +92,17 @@ for rol_data in roles_data:
 
 # Crear usuarios del sistema
 try:
-    rol_admin = Rol.objects.get(nombre='Administrador')
-    rol_gerente = Rol.objects.get(nombre='Gerente')
-    rol_vendedor = Rol.objects.get(nombre='Vendedor')
-    rol_bodeguero = Rol.objects.get(nombre='Bodeguero')
+    rol_admin = Rol.objects.get(nombre='ADMIN')
+    rol_gerente = Rol.objects.get(nombre='GERENTE')
+    rol_supervisor = Rol.objects.get(nombre='SUPERVISOR')
+    rol_bodeguero = Rol.objects.get(nombre='BODEGUERO')
     
     usuarios_data = [
         {
             'username': 'admin',
-            'email': 'admin@gmail.com',
-            'nombres': 'admin1',
-            'apellidos': 'cortes',
+            'email': 'admin@dulcerialilis.cl',
+            'nombres': 'Administrador',
+            'apellidos': 'Sistema',
             'password': 'admin123',
             'rol': rol_admin,
             'is_staff': True,
@@ -114,25 +116,27 @@ try:
             'password': 'gerente123',
             'rol': rol_gerente,
             'is_staff': True,
-            'is_superuser': True
+            'is_superuser': False
         },
         {
-            'username': 'vendedor1',
-            'email': 'vendedor1@dulcerialilis.cl',
-            'nombres': 'María',
+            'username': 'supervisor',
+            'email': 'supervisor@dulcerialilis.cl',
+            'nombres': 'Luis',
             'apellidos': 'González',
-            'password': 'vendedor123',
-            'rol': rol_vendedor,
-            'is_staff': True
+            'password': 'supervisor123',
+            'rol': rol_supervisor,
+            'is_staff': True,
+            'is_superuser': False
         },
         {
-            'username': 'bodeguero1',
+            'username': 'bodeguero',
             'email': 'bodeguero@dulcerialilis.cl',
             'nombres': 'Carlos',
             'apellidos': 'Ramírez',
             'password': 'bodeguero123',
             'rol': rol_bodeguero,
-            'is_staff': True
+            'is_staff': True,
+            'is_superuser': False
         },
     ]
     
@@ -628,12 +632,12 @@ print("✅ ¡BASE DE DATOS POBLADA EXITOSAMENTE!")
 print("="*80)
 print()
 print("🔐 Credenciales de acceso:")
-print("  Administradores:")
-print("    admin / admin123 - Acceso completo")
-print("    gerente / gerente123 - Funciones gerenciales")
-print("  Usuarios operativos:")
-print("    vendedor1 / vendedor123 - Gestión de ventas")
-print("    bodeguero1 / bodeguero123 - Gestión de inventario")
+print("  Administrador:")
+print("    admin / admin123 - Acceso completo al sistema")
+print("  Usuarios del negocio:")
+print("    gerente / gerente123 - Gestión completa del negocio")
+print("    supervisor / supervisor123 - Supervisión y catálogo")
+print("    bodeguero / bodeguero123 - Gestión de inventario")
 print()
 print("🌐 Acceso al sistema:")
 print("  Servidor: http://127.0.0.1:8000/")
@@ -651,5 +655,5 @@ print("  📦 Gestión de Productos - CRUD completo optimizado")
 print("  🏢 Gestión de Proveedores - Formularios mejorados")
 print("  👥 Gestión de Clientes - Validaciones simplificadas")
 print("  📊 Dashboard interactivo - Sin problemas de interfaz")
-print("  🔐 Sistema de roles y permisos - Completamente funcional")
+print("  🔐 Sistema de roles y permisos - 4 roles: ADMIN, GERENTE, SUPERVISOR, BODEGUERO")
 print()
