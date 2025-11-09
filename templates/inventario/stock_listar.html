@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 {% load permisos_tags %}
+{% load inventario_tags %}
 
 {% block title %}Stock Actual - Dulcería Lilis{% endblock %}
 
@@ -9,6 +10,12 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2><i class="fas fa-boxes"></i> Stock Actual</h2>
         <div>
+            <a href="{% url 'maestros:producto_crear' %}" class="btn btn-primary me-2">
+                <i class="fas fa-plus"></i> Nuevo Producto
+            </a>
+            <a href="{% url 'inventario:movimiento_crear' %}" class="btn btn-success me-2">
+                <i class="fas fa-plus"></i> Nuevo Movimiento
+            </a>
             <a href="{% url 'autenticacion:dashboard' %}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left"></i> Volver al Dashboard
             </a>
@@ -100,6 +107,7 @@
                                     <th>Precio</th>
                                     <th>Valor Total</th>
                                     <th>Estado</th>
+                                    <th width="160">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -107,34 +115,43 @@
                                 <tr>
                                     <td>
                                         <strong>{{ stock.producto.nombre }}</strong>
-                                        {% if stock.producto.codigo %}
-                                        <br><small class="text-muted">{{ stock.producto.codigo }}</small>
+                                        {% if stock.producto.sku %}
+                                        <br><small class="text-muted">{{ stock.producto.sku }}</small>
                                         {% endif %}
                                     </td>
                                     <td>{{ stock.bodega.nombre }}</td>
                                     <td>
-                                        <span class="badge {% if stock.cantidad > 0 %}bg-success{% else %}bg-danger{% endif %}">
-                                            {{ stock.cantidad|floatformat:2 }}
+                                        <span class="badge {% if stock.cantidad_disponible > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ stock.cantidad_disponible|floatformat:2 }}
                                         </span>
                                     </td>
-                                    <td>{{ stock.producto.unidad_medida.nombre|default:"UND" }}</td>
-                                    <td>${{ stock.precio_promedio|floatformat:0 }}</td>
+                                    <td>{{ stock.producto.uom_stock.nombre|default:"UND" }}</td>
+                                    <td>${{ stock.producto.costo_promedio|default:0|floatformat:0 }}</td>
                                     <td>
-                                        <strong>${{ stock.valor_total|floatformat:0 }}</strong>
+                                        <strong>${{ stock.cantidad_disponible|mul:stock.producto.costo_promedio|floatformat:0 }}</strong>
                                     </td>
                                     <td>
-                                        {% if stock.cantidad <= 0 %}
+                                        {% if stock.cantidad_disponible <= 0 %}
                                             <span class="badge bg-danger">Sin Stock</span>
-                                        {% elif stock.cantidad <= stock.producto.stock_minimo %}
+                                        {% elif stock.cantidad_disponible <= stock.producto.stock_minimo %}
                                             <span class="badge bg-warning">Stock Bajo</span>
                                         {% else %}
                                             <span class="badge bg-success">Stock OK</span>
                                         {% endif %}
                                     </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{% url 'maestros:producto_detalle' stock.producto.pk %}" 
+                                               class="btn btn-primary btn-sm" 
+                                               title="Ver detalle del producto">
+                                                <i class="fas fa-eye"></i> Ver Detalle
+                                            </a>
+                                        </div>
+                                    </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="7" class="text-center">
+                                    <td colspan="8" class="text-center">
                                         <div class="py-4">
                                             <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
                                             <p class="text-muted">No se encontraron productos en stock.</p>

@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Desactivar Producto - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+.deactivate-card {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.confirmation-container {
+    background: white;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    text-align: center;
+}
+
+.product-info {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 25px;
+    margin: 25px 0;
+    border-left: 4px solid #f39c12;
+}
+
+.warning-icon {
+    font-size: 4rem;
+    color: #f39c12;
+    margin-bottom: 20px;
+}
+
+.product-image {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    border: none;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(135deg, #d68910 0%, #ca6f1e 100%);
+    transform: translateY(-2px);
+}
+
+.loading-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+}
+
+.loading-spinner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.relations-info {
+    background: #fff3cd;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    border-left: 4px solid #ffc107;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="deactivate-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-pause-circle me-2"></i>Desactivar Producto</h2>
+                <p class="mb-0">Una alternativa segura a la eliminación</p>
+            </div>
+            <a href="{% url 'maestros:producto_listar' %}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+            </a>
+        </div>
+    </div>
+
+    <div class="confirmation-container">
+        <div class="warning-icon">
+            <i class="fas fa-pause-circle"></i>
+        </div>
+        
+        <h3 class="mb-4">¿Deseas desactivar este producto?</h3>
+        
+        <div class="product-info">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center">
+                    {% if producto.imagen_url %}
+                    <img src="{{ producto.imagen_url }}" 
+                         alt="{{ producto.nombre }}" 
+                         class="product-image">
+                    {% else %}
+                    <img src="{% static 'img/placeholder.svg' %}" 
+                         alt="Sin imagen" 
+                         class="product-image">
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-9">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <strong>SKU:</strong><br>
+                            <code class="text-primary fs-5">{{ producto.sku }}</code>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <strong>Estado Actual:</strong><br>
+                            {% if producto.estado == 'Activo' %}
+                            <span class="badge bg-success fs-6">Activo</span>
+                            {% elif producto.estado == 'Inactivo' %}
+                            <span class="badge bg-warning fs-6">Inactivo</span>
+                            {% else %}
+                            <span class="badge bg-danger fs-6">{{ producto.estado }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-12">
+                            <strong>Nombre:</strong><br>
+                            <span class="fs-4 fw-bold">{{ producto.nombre }}</span>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <strong>Categoría:</strong><br>
+                            <span class="badge bg-secondary fs-6">{{ producto.categoria.nombre }}</span>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <strong>Marca:</strong><br>
+                            {% if producto.marca %}
+                            {{ producto.marca.nombre }}
+                            {% else %}
+                            <span class="text-muted">Sin marca</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if relaciones %}
+        <div class="relations-info">
+            <h5><i class="fas fa-info-circle me-2"></i>Registros Relacionados</h5>
+            <p class="mb-2">Este producto tiene los siguientes registros asociados:</p>
+            <ul class="list-unstyled mb-0">
+                {% for relacion in relaciones %}
+                <li><i class="fas fa-check-circle text-warning me-2"></i>{{ relacion }}</li>
+                {% endfor %}
+            </ul>
+            <small class="text-muted mt-2 d-block">
+                Por seguridad y para mantener la integridad de los datos históricos, 
+                se recomienda desactivar en lugar de eliminar.
+            </small>
+        </div>
+        {% endif %}
+
+        <div class="alert alert-warning" role="alert">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>¿Qué significa desactivar?</strong> El producto no aparecerá en nuevas transacciones, 
+            pero se conservarán todos los registros históricos. Podrás reactivarlo en cualquier momento.
+        </div>
+
+        <form id="deactivate-form" method="POST">
+            {% csrf_token %}
+            
+            <div class="d-flex justify-content-center gap-3 mt-4">
+                <a href="{% url 'maestros:producto_detalle' producto.pk %}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-eye me-2"></i>Ver Detalle
+                </a>
+                
+                <a href="{% url 'maestros:producto_listar' %}" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+                
+                <button type="button" onclick="confirmarDesactivacion()" class="btn btn-warning btn-lg">
+                    <i class="fas fa-pause-circle me-2"></i>Desactivar Producto
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading-overlay">
+    <div class="loading-spinner">
+        <div class="spinner-border text-warning" role="status">
+            <span class="visually-hidden">Desactivando...</span>
+        </div>
+        <p class="text-white mt-2">Desactivando producto...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmarDesactivacion() {
+    Swal.fire({
+        title: 'Confirmar Desactivación',
+        html: `
+            ¿Estás seguro de que deseas <strong>desactivar</strong> el producto:<br><br>
+            <strong class="text-warning">${'{{ producto.nombre|escapejs }}'}</strong><br>
+            <code>${'{{ producto.sku|escapejs }}'}</code><br><br>
+            <small class="text-muted">Podrás reactivarlo en cualquier momento desde la lista de productos</small>
+        `,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#f39c12',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, desactivar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true,
+        focusCancel: true,
+        customClass: {
+            confirmButton: 'btn btn-warning btn-lg',
+            cancelButton: 'btn btn-secondary btn-lg'
+        },
+        buttonsStyling: false
+    }).then((result) => {
+        if (result.isConfirmed) {
+            desactivarProducto();
+        }
+    });
+}
+
+function desactivarProducto() {
+    // Mostrar loading
+    $('#loading-overlay').show();
+    
+    const formData = new FormData($('#deactivate-form')[0]);
+    
+    // Obtener token CSRF
+    const csrfToken = $('[name=csrfmiddlewaretoken]').val();
+    
+    $.ajax({
+        url: '{% url "maestros:producto_desactivar" producto.pk %}',
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        headers: {
+            'X-CSRFToken': csrfToken
+        },
+        success: function(response) {
+            $('#loading-overlay').hide();
+            
+            console.log('Response received:', response);
+            
+            if (response.success) {
+                Swal.fire({
+                    title: '¡Producto Desactivado!',
+                    text: response.message,
+                    icon: 'success',
+                    timer: 3000,
+                    showConfirmButton: false,
+                    customClass: {
+                        popup: 'animated bounce'
+                    }
+                }).then(() => {
+                    window.location.href = response.redirect_url;
+                });
+            } else {
+                console.error('Error en response:', response);
+                Swal.fire({
+                    title: 'No se pudo desactivar',
+                    text: response.message || 'Error desconocido',
+                    icon: 'error',
+                    confirmButtonColor: '#f39c12'
+                });
+            }
+        },
+        error: function(xhr) {
+            $('#loading-overlay').hide();
+            
+            console.error('AJAX Error:', xhr.status, xhr.statusText);
+            console.error('Response text:', xhr.responseText);
+            
+            let errorMessage = 'Error de conexión. Inténtalo de nuevo.';
+            
+            if (xhr.status === 400) {
+                const response = xhr.responseJSON;
+                if (response && response.message) {
+                    errorMessage = response.message;
+                }
+            } else if (xhr.status === 403) {
+                errorMessage = 'No tienes permisos para desactivar este producto.';
+            } else if (xhr.status === 404) {
+                errorMessage = 'El producto no fue encontrado.';
+            } else if (xhr.status === 500) {
+                errorMessage = 'Error interno del servidor.';
+            }
+            
+            Swal.fire({
+                title: 'Error al desactivar',
+                html: `<strong>Status:</strong> ${xhr.status}<br><strong>Error:</strong> ${errorMessage}`,
+                icon: 'error',
+                confirmButtonColor: '#f39c12'
+            });
+        }
+    });
+}
+
+// Prevenir envío accidental del formulario
+$('#deactivate-form').on('submit', function(e) {
+    e.preventDefault();
+    confirmarDesactivacion();
+});
+</script>
+{% endblock %}

@@ -117,7 +117,7 @@ def catalogo_crear(request):
             catalogo.save()
             
             messages.success(request, f'Catálogo "{catalogo.nombre}" creado exitosamente.')
-            return redirect('catalogo_detalle', pk=catalogo.pk)
+            return redirect('catalogo:catalogo_detalle', pk=catalogo.pk)
             
         except Exception as e:
             messages.error(request, f'Error al crear el catálogo: {str(e)}')
@@ -172,7 +172,7 @@ def catalogo_editar(request, pk):
             catalogo.save()
             
             messages.success(request, f'Catálogo "{catalogo.nombre}" actualizado exitosamente.')
-            return redirect('catalogo_detalle', pk=catalogo.pk)
+            return redirect('catalogo:catalogo_detalle', pk=catalogo.pk)
             
         except Exception as e:
             messages.error(request, f'Error al actualizar el catálogo: {str(e)}')
@@ -196,7 +196,7 @@ def catalogo_eliminar(request, pk):
         nombre = catalogo.nombre
         catalogo.delete()
         messages.success(request, f'Catálogo "{nombre}" eliminado exitosamente.')
-        return redirect('catalogo_listar')
+        return redirect('catalogo:catalogo_listar')
     
     context = {
         'catalogo': catalogo,
@@ -219,6 +219,6 @@ def catalogo_publicar(request, pk):
         else:
             messages.error(request, 'No se puede publicar el catálogo. Verifique el stock y el precio.')
         
-        return redirect('catalogo_detalle', pk=catalogo.pk)
+        return redirect('catalogo:catalogo_detalle', pk=catalogo.pk)
     
-    return redirect('catalogo_listar')
+    return redirect('catalogo:catalogo_listar')

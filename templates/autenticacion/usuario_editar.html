@@ -132,16 +132,16 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="first_name" class="form-label required-field">Nombre</label>
-                                <input type="text" class="form-control" id="first_name" name="first_name" 
-                                       value="{{ usuario.first_name }}" required>
+                                <label for="nombres" class="form-label required-field">Nombres</label>
+                                <input type="text" class="form-control" id="nombres" name="nombres" 
+                                       value="{{ usuario.nombres }}" required>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="last_name" class="form-label required-field">Apellido</label>
-                                <input type="text" class="form-control" id="last_name" name="last_name" 
-                                       value="{{ usuario.last_name }}" required>
+                                <label for="apellidos" class="form-label required-field">Apellidos</label>
+                                <input type="text" class="form-control" id="apellidos" name="apellidos" 
+                                       value="{{ usuario.apellidos }}" required>
                             </div>
                         </div>
                     </div>
@@ -199,10 +199,10 @@
                     
                     <div class="mb-3">
                         <label for="rol" class="form-label">Rol del Sistema</label>
-                        <select class="form-select" id="rol" name="rol">
+                        <select class="form-select" id="rol_id" name="rol_id">
                             <option value="">Sin rol asignado</option>
                             {% for role in roles %}
-                                <option value="{{ role.id }}" {% if usuario.rol_id == role.id %}selected{% endif %}>
+                                <option value="{{ role.id }}" {% if usuario.rol.id == role.id %}selected{% endif %}>
                                     {{ role.nombre }}
                                 </option>
                             {% endfor %}
@@ -377,15 +377,15 @@ document.getElementById('formEditarUsuario').addEventListener('submit', function
     }
     
     // Validar campos requeridos
-    const requiredFields = ['username', 'email', 'first_name', 'last_name', 'estado'];
+    const requiredFields = ['username', 'email', 'nombres', 'apellidos', 'estado'];
     let valid = true;
     
     requiredFields.forEach(fieldName => {
         const field = document.getElementById(fieldName);
-        if (!field.value.trim()) {
+        if (field && !field.value.trim()) {
             field.classList.add('is-invalid');
             valid = false;
-        } else {
+        } else if (field) {
             field.classList.remove('is-invalid');
         }
     });
@@ -414,18 +414,28 @@ document.getElementById('formEditarUsuario').addEventListener('submit', function
             // Enviar formulario
             const formData = new FormData(this);
             
+            // Debug: mostrar datos del formulario
+            console.log('=== DATOS DEL FORMULARIO ===');
+            for (let pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
+            console.log('=== FIN DATOS FORMULARIO ===');
+            
             fetch(this.action, {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
             })
             .then(response => {
-                if (response.ok) {
-                    return response.json();
-                }
-                throw new Error('Error en la respuesta del servidor');
+                return response.json().then(data => ({
+                    ok: response.ok,
+                    data: data
+                }));
             })
-            .then(data => {
-                if (data.success) {
+            .then(({ok, data}) => {
+                if (ok && data.success) {
                     Swal.fire({
                         icon: 'success',
                         title: '¡Éxito!',

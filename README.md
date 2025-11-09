@@ -766,7 +766,82 @@ python manage.py shell
 
 ---
 
-**⚡ Sistema completamente corregido, optimizado y funcional** 🚀
+## 🔧 OPTIMIZACIÓN DEL SISTEMA - SIMPLIFICACIÓN Y LIMPIEZA (9 de Noviembre 2025)
 
-**Última actualización**: 8 de noviembre de 2025
-**Estado**: ✅ Todas las funcionalidades operativas - URLs con namespaces corregidos
+### ✅ **ELIMINACIÓN DE GESTIÓN DE MOVIMIENTOS**
+- ✅ **Sistema simplificado**: Removida gestión compleja de movimientos de inventario
+- ✅ **Solo visualización de stock**: Sistema enfocado en mostrar stock actual
+- ✅ **Archivos eliminados**:
+  - `inventario/views_movimientos.py` - Gestión completa de movimientos
+  - `templates/inventario/anular_movimiento.html` - Template de anulación
+  - `templates/inventario/movimientos_por_producto.html` - Historial de movimientos
+- ✅ **URLs limpiadas**: Removidas rutas de movimientos del inventario
+- ✅ **Botones eliminados**: Ya no aparecen opciones de gestión de movimientos
+
+### ✅ **MEJORA EN ELIMINACIÓN DE PRODUCTOS**
+- ✅ **Limpieza automática**: Al eliminar productos se limpian automáticamente sus movimientos
+- ✅ **Comandos de gestión creados**:
+  - `limpiar_movimientos.py` - Limpia movimientos de productos específicos
+  - `reset_inventario.py` - Resetea inventario completo con confirmación
+- ✅ **Eliminación sin restricciones**: Productos se pueden eliminar sin errores de integridad
+- ✅ **Feedback mejorado**: Mensajes claros sobre la limpieza automática
+
+### ✅ **SISTEMA DE PERMISOS PARA MARCAS Y CATEGORÍAS COMPLETADO**
+- ✅ **Decoradores aplicados**: Todos los views de marcas y categorías tienen `@permission_required`
+- ✅ **Permisos granulares**:
+  - **Administrador**: CRUD completo (crear, leer, actualizar, eliminar)
+  - **Editor**: Crear y editar (no eliminar)
+  - **Lector**: Solo visualización
+- ✅ **Templates integrados**: Botones aparecen/desaparecen según permisos del usuario
+- ✅ **UX mejorada**: Mensajes amigables en lugar de errores HTTP 403
+- ✅ **Base de datos actualizada**: Todos los roles tienen permisos para módulos `marcas` y `categorias`
+
+### ✅ **DECORADOR DE PERMISOS MEJORADO**
+- ✅ **Mensajes amigables**: Error personalizado con mensaje claro de permisos insuficientes
+- ✅ **Redirección inteligente**: Usuarios sin permisos van al dashboard con mensaje explicativo
+- ✅ **Mapeo actualizado**: Función `tiene_permiso` incluye mapeo de `marcas` y `categorias`
+- ✅ **Consistencia**: Sistema de permisos unificado en todo el proyecto
+
+### ✅ **ARCHIVOS DE GESTIÓN PARA LIMPIEZA**
+```bash
+# Limpiar movimientos de un producto específico
+python manage.py limpiar_movimientos --producto-id 6 --confirmar
+
+# Resetear inventario completo (cuidado en producción)
+python manage.py reset_inventario --confirmar
+```
+
+### 🎯 **BENEFICIOS DE LA OPTIMIZACIÓN**
+- ⚡ **Sistema más simple**: Sin complejidad innecesaria de movimientos
+- 🔧 **Mantenimiento fácil**: Menos código que mantener y debuggear
+- 🛡️ **Permisos robustos**: Control granular de acceso por módulo y acción
+- 👥 **UX mejorada**: Usuarios ven solo lo que pueden hacer
+- 🗑️ **Limpieza automática**: Sin problemas de integridad al eliminar productos
+
+### 📋 **COMANDOS DE VERIFICACIÓN POST-OPTIMIZACIÓN**
+```bash
+# Verificar que no existen referencias a movimientos
+python -c "import os,django; os.environ.setdefault('DJANGO_SETTINGS_MODULE','config.settings'); django.setup(); from inventario.models import MovimientoInventario; print(f'Movimientos restantes: {MovimientoInventario.objects.count()}')"
+
+# Verificar permisos de roles
+python manage.py shell
+>>> from autenticacion.models import Rol
+>>> for rol in Rol.objects.all(): print(f"{rol.nombre}: {rol.permisos}")
+
+# Probar eliminación de productos
+# (Debe funcionar sin errores de integridad)
+```
+
+### 🎉 **SISTEMA OPTIMIZADO Y SIMPLIFICADO**
+- ✅ **Gestión de movimientos**: Eliminada para simplicidad
+- ✅ **Eliminación de productos**: Funciona correctamente con limpieza automática
+- ✅ **Sistema de permisos**: Completo y funcional en marcas/categorías
+- ✅ **UX mejorada**: Mensajes amigables y botones condicionados
+- ✅ **Base de código**: Más limpia y mantenible
+
+---
+
+**⚡ Sistema completamente optimizado, simplificado y funcional** 🚀
+
+**Última actualización**: 9 de noviembre de 2025
+**Estado**: ✅ Sistema simplificado - Movimientos eliminados - Permisos completos - Eliminación de productos corregida

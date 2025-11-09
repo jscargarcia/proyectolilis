@@ -539,18 +539,32 @@
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <div class="p-3">
-                                <i class="fas fa-shopping-cart fa-2x mb-2 text-warning"></i>
-                                <h4 class="mb-1 text-warning">{{ carrito_count }}</h4>
-                                <p class="text-muted mb-0">Items en carrito</p>
+                                <i class="fas fa-boxes fa-2x mb-2 text-primary"></i>
+                                <h4 class="mb-1 text-primary">{{ stats.productos_total }}</h4>
+                                <p class="text-muted mb-0">Productos Activos</p>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <div class="p-3">
-                                <i class="fas fa-bell fa-2x mb-2 text-info"></i>
-                                <h4 class="mb-1 text-info">{{ notificaciones_count }}</h4>
-                                <p class="text-muted mb-0">Notificaciones no leídas</p>
+                                <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+                                <h4 class="mb-1 text-warning">{{ stats.productos_bajo_stock }}</h4>
+                                <p class="text-muted mb-0">Stock Bajo</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3">
+                                <i class="fas fa-bell fa-2x mb-2 text-danger"></i>
+                                <h4 class="mb-1 text-danger">{{ stats.alertas_pendientes }}</h4>
+                                <p class="text-muted mb-0">Alertas Pendientes</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3">
+                                <i class="fas fa-exchange-alt fa-2x mb-2 text-success"></i>
+                                <h4 class="mb-1 text-success">{{ stats.movimientos_hoy }}</h4>
+                                <p class="text-muted mb-0">Movimientos Hoy</p>
                             </div>
                         </div>
                     </div>

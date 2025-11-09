@@ -1,6 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load permisos_tags %}
 {% csrf_token %}
+
+{# Verificar permisos #}
+{% tiene_permiso 'categorias' 'crear' as puede_crear %}
+{% tiene_permiso 'categorias' 'editar' as puede_editar %}
+{% tiene_permiso 'categorias' 'eliminar' as puede_eliminar %}
 
 {% block title %}Gestión de Categorías - Dulcería Lilis{% endblock %}
 
@@ -99,9 +105,11 @@
                 <p class="mb-0">Administra las categorías de productos del sistema</p>
             </div>
             <div>
+                {% if puede_crear %}
                 <a href="{% url 'maestros:categoria_crear' %}" class="btn btn-light me-2">
                     <i class="fas fa-plus me-2"></i>Nueva Categoría
                 </a>
+                {% endif %}
                 <a href="{% url 'maestros:producto_listar' %}" class="btn btn-outline-light">
                     <i class="fas fa-box me-2"></i>Ver Productos
                 </a>
@@ -224,17 +232,21 @@
                                 <a href="{% url 'maestros:categoria_detalle' categoria.pk %}" class="btn btn-sm btn-outline-primary" title="Ver detalles">
                                     <i class="fas fa-eye"></i>
                                 </a>
+                                {% if puede_editar %}
                                 <a href="{% url 'maestros:categoria_editar' categoria.pk %}" class="btn btn-sm btn-outline-warning" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
-                                {% if not categoria.productos.exists %}
-                                    <button class="btn btn-sm btn-outline-danger" onclick="confirmarEliminar({{ categoria.id }}, '{{ categoria.nombre }}')" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                {% else %}
-                                    <button class="btn btn-sm btn-outline-secondary" disabled title="No se puede eliminar - tiene productos asociados">
-                                        <i class="fas fa-ban"></i>
-                                    </button>
+                                {% endif %}
+                                {% if puede_eliminar %}
+                                    {% if not categoria.productos.exists %}
+                                        <button class="btn btn-sm btn-outline-danger" onclick="confirmarEliminar({{ categoria.id }}, '{{ categoria.nombre }}')" title="Eliminar">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    {% else %}
+                                        <button class="btn btn-sm btn-outline-secondary" disabled title="No se puede eliminar - tiene productos asociados">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                    {% endif %}
                                 {% endif %}
                             </div>
                         </td>

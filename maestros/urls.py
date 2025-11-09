@@ -10,6 +10,7 @@ urlpatterns = [
     path('productos/exportar-excel/', views.productos_exportar_excel, name='productos_exportar_excel'),
     path('productos/<int:pk>/', views.producto_detalle, name='producto_detalle'),
     path('productos/<int:pk>/editar/', views.producto_editar, name='producto_editar'),
+    path('productos/<int:pk>/desactivar/', views.producto_desactivar, name='producto_desactivar'),
     path('productos/<int:pk>/eliminar/', views.producto_eliminar, name='producto_eliminar'),
     path('productos/<int:pk>/test-eliminar/', views.test_producto_eliminar, name='test_producto_eliminar'),
     path('productos/<int:pk>/test-estado/', views.producto_test_estado, name='producto_test_estado'),

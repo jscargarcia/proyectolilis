@@ -31,7 +31,7 @@ print()
 print("📋 1. Verificando Roles y Creando Usuarios Adicionales...")
 print("-" * 80)
 
-# Crear roles del sistema
+# Crear roles del sistema con permisos optimizados (9 noviembre 2025)
 roles_data = [
     {
         'nombre': 'Administrador',
@@ -44,7 +44,9 @@ roles_data = [
             'productos': {'leer': True, 'crear': True, 'eliminar': True, 'actualizar': True},
             'inventario': {'leer': True, 'crear': True, 'eliminar': True, 'actualizar': True},
             'proveedores': {'leer': True, 'crear': True, 'eliminar': True, 'actualizar': True},
-            'configuracion': {'leer': True, 'crear': True, 'eliminar': True, 'actualizar': True}
+            'configuracion': {'leer': True, 'crear': True, 'eliminar': True, 'actualizar': True},
+            'marcas': {'leer': True, 'crear': True, 'eliminar': True, 'actualizar': True},
+            'categorias': {'leer': True, 'crear': True, 'eliminar': True, 'actualizar': True}
         }
     },
     {
@@ -58,7 +60,9 @@ roles_data = [
             'productos': {'leer': True, 'crear': True, 'eliminar': False, 'actualizar': True},
             'inventario': {'leer': True, 'crear': True, 'eliminar': False, 'actualizar': True},
             'proveedores': {'leer': True, 'crear': True, 'eliminar': False, 'actualizar': True},
-            'configuracion': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False}
+            'configuracion': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False},
+            'marcas': {'leer': True, 'crear': True, 'eliminar': False, 'actualizar': True},
+            'categorias': {'leer': True, 'crear': True, 'eliminar': False, 'actualizar': True}
         }
     },
     {
@@ -72,7 +76,9 @@ roles_data = [
             'productos': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False},
             'inventario': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False},
             'proveedores': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False},
-            'configuracion': {'leer': False, 'crear': False, 'eliminar': False, 'actualizar': False}
+            'configuracion': {'leer': False, 'crear': False, 'eliminar': False, 'actualizar': False},
+            'marcas': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False},
+            'categorias': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False}
         }
     },
 ]
@@ -654,4 +660,12 @@ print("  ✅ Templates profesionales con diseño responsivo")
 print("  🛡️ Validaciones de dependencias antes de eliminar")
 print("  🎨 Diseño diferenciado por módulo (verde/azul/rojo)")
 print("  ⚡ Animaciones y efectos visuales modernos")
+print()
+print("🔧 OPTIMIZACIONES DEL SISTEMA (9 Noviembre 2025):")
+print("  ❌ Gestión de movimientos eliminada - Sistema simplificado")
+print("  🗑️ Eliminación de productos mejorada con limpieza automática")
+print("  🔐 Sistema de permisos granular para marcas y categorías")
+print("  💬 UX mejorada - Mensajes amigables en lugar de errores HTTP")
+print("  🎯 Botones condicionados por rol del usuario")
+print("  🧹 Comandos de gestión: limpiar_movimientos, reset_inventario")
 print()

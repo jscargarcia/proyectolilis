@@ -38,6 +38,8 @@ def tiene_permiso(usuario, modulo, accion):
     # Mapeo de módulos del template a módulos en el JSON
     mapeo_modulos = {
         'productos': 'productos',
+        'marcas': 'marcas',
+        'categorias': 'categorias',
         'proveedores': 'productos',  # Los proveedores pueden estar bajo productos o su propio módulo
         'clientes': 'ventas',  # Los clientes están bajo ventas
     }
@@ -195,8 +197,42 @@ def permission_required(permission_name):
                             if permisos[modulo][accion]:
                                 return view_func(request, *args, **kwargs)
             
-            messages.error(request, f'No tienes permiso para: {permission_name}')
-            return HttpResponseForbidden(f'Acceso denegado: No tienes permiso para {permission_name}')
+            # Crear mensajes más amigables
+            accion_texto = {
+                'leer': 'ver',
+                'crear': 'crear',
+                'actualizar': 'editar',
+                'eliminar': 'eliminar'
+            }
+            
+            modulo_texto = {
+                'categorias': 'categorías',
+                'marcas': 'marcas',
+                'productos': 'productos',
+                'usuarios': 'usuarios',
+                'inventario': 'inventario'
+            }
+            
+            parts = permission_name.split('.')
+            if len(parts) == 2:
+                modulo, accion = parts
+                modulo_nombre = modulo_texto.get(modulo, modulo)
+                accion_nombre = accion_texto.get(accion, accion)
+                mensaje = f'No tienes permisos para {accion_nombre} {modulo_nombre}. Contacta al administrador si necesitas acceso.'
+            else:
+                mensaje = f'No tienes permiso para realizar esta acción.'
+            
+            messages.error(request, mensaje)
+            
+            # Redirigir a una página apropiada según el módulo
+            if 'categorias' in permission_name:
+                return redirect('maestros:categoria_listar')
+            elif 'marcas' in permission_name:
+                return redirect('maestros:marca_listar')
+            elif 'productos' in permission_name:
+                return redirect('maestros:producto_listar')
+            else:
+                return redirect('autenticacion:dashboard')
         
         return wrapper
     return decorator
