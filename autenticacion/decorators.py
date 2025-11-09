@@ -24,8 +24,50 @@ def tiene_permiso(usuario, modulo, accion):
     if not hasattr(usuario, 'rol') or not usuario.rol or not usuario.rol.permisos:
         return False
     
-    permisos_modulo = usuario.rol.permisos.get(modulo, [])
-    return accion in permisos_modulo
+    permisos = usuario.rol.permisos
+    
+    # Mapeo de acciones del template a acciones del JSON
+    mapeo_acciones = {
+        'ver': 'leer',
+        'listar': 'leer',
+        'crear': 'crear',
+        'editar': 'actualizar',
+        'eliminar': 'eliminar'
+    }
+    
+    # Mapeo de módulos del template a módulos en el JSON
+    mapeo_modulos = {
+        'productos': 'productos',
+        'proveedores': 'productos',  # Los proveedores pueden estar bajo productos o su propio módulo
+        'clientes': 'ventas',  # Los clientes están bajo ventas
+    }
+    
+    # Convertir la acción del template a la acción del JSON
+    accion_json = mapeo_acciones.get(accion, accion)
+    
+    # Convertir el módulo del template al módulo del JSON
+    modulo_json = mapeo_modulos.get(modulo, modulo)
+    
+    # Verificar si el módulo existe en los permisos
+    if modulo_json not in permisos:
+        return False
+    
+    # Obtener permisos del módulo
+    permisos_modulo = permisos.get(modulo_json, {})
+    
+    # Si los permisos del módulo son un diccionario, verificar la acción específica
+    if isinstance(permisos_modulo, dict):
+        return permisos_modulo.get(accion_json, False)
+    
+    # Si es una lista, verificar si la acción está en la lista
+    elif isinstance(permisos_modulo, list):
+        return accion_json in permisos_modulo
+    
+    # Si es un booleano, retornarlo directamente
+    elif isinstance(permisos_modulo, bool):
+        return permisos_modulo
+    
+    return False
 
 
 def permiso_requerido(modulo, accion):
@@ -59,11 +101,8 @@ def permiso_requerido(modulo, accion):
                 
                 return redirect('autenticacion:dashboard')
             
-            # Verificar si el módulo existe en los permisos
-            permisos_modulo = request.user.rol.permisos.get(modulo, [])
-            
-            # Verificar si tiene el permiso específico
-            if accion not in permisos_modulo:
+            # Usar la función tiene_permiso centralizada
+            if not tiene_permiso(request.user, modulo, accion):
                 messages.error(
                     request,
                     f'No tienes permiso para {accion} {modulo}. '

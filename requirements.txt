@@ -5,24 +5,36 @@ asgiref==3.8.1
 sqlparse==0.5.3
 tzdata==2025.2
 
-#Para desarrollo
+# Para desarrollo
 django-extensions>=3.2.0
 pillow>=10.4.0
 openpyxl==3.1.5
 certifi==2025.1.31
 
-#Para testing
+# Para testing
 pytest-django>=4.5.0
 factory-boy>=3.3.0
 
-#Para API REST (opcional)
+# Para API REST (opcional)
 djangorestframework>=3.14.0
 django-cors-headers>=4.3.0
 
-#Para documentación de API
+# Para documentación de API
 drf-spectacular>=0.26.0
 
 # Para validaciones y formularios mejorados
 requests>=2.27.1
 urllib3>=1.26.20
+
+# Para sistema de correos (cambio de contraseña)
+django-environ>=0.11.0
+
+# Para manejo de archivos estáticos y multimedia
+whitenoise>=6.6.0
+
+# Para seguridad mejorada
+django-ratelimit>=4.1.0
+
+# Para compresión de archivos estáticos (opcional)
+django-compressor>=4.4.0
 

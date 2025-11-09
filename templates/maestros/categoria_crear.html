@@ -1,0 +1,341 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nueva Categoría - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+.header-card {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.form-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.form-card .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    padding: 20px;
+}
+
+.form-card .card-body {
+    padding: 30px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    padding: 12px 16px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #28a745;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.form-select {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    padding: 12px 16px;
+}
+
+.form-check {
+    margin-top: 15px;
+}
+
+.form-check-input {
+    border-radius: 6px;
+    border: 2px solid #e9ecef;
+    width: 20px;
+    height: 20px;
+}
+
+.form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.btn-secondary {
+    border-radius: 25px;
+    padding: 12px 30px;
+    font-weight: 600;
+}
+
+.required {
+    color: #dc3545;
+}
+
+.form-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 5px;
+}
+
+.categoria-preview {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    border-left: 4px solid #28a745;
+    margin-top: 15px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="header-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-plus-circle me-2"></i>Nueva Categoría</h2>
+                <p class="mb-0">Crear una nueva categoría de productos</p>
+            </div>
+            <div>
+                <a href="{% url 'maestros:categoria_listar' %}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tag me-2"></i>Información de la Categoría
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" id="categoriaForm">
+                        {% csrf_token %}
+                        
+                        <!-- Nombre -->
+                        <div class="form-group">
+                            <label for="nombre" class="form-label">
+                                Nombre <span class="required">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="nombre" 
+                                   name="nombre" 
+                                   value="{{ form_data.nombre|default:'' }}"
+                                   required 
+                                   maxlength="100"
+                                   placeholder="Ej: Chocolates, Bebidas, Caramelos...">
+                            <div class="form-text">Nombre único para identificar la categoría</div>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="form-group">
+                            <label for="descripcion" class="form-label">
+                                Descripción
+                            </label>
+                            <textarea class="form-control" 
+                                      id="descripcion" 
+                                      name="descripcion" 
+                                      rows="3"
+                                      maxlength="255"
+                                      placeholder="Descripción opcional de la categoría">{{ form_data.descripcion|default:'' }}</textarea>
+                            <div class="form-text">Descripción opcional de la categoría (máximo 255 caracteres)</div>
+                        </div>
+
+                        <!-- Categoría Padre -->
+                        <div class="form-group">
+                            <label for="categoria_padre" class="form-label">
+                                Categoría Padre
+                            </label>
+                            <select class="form-select" id="categoria_padre" name="categoria_padre">
+                                <option value="">-- Categoría Principal --</option>
+                                {% for categoria in categorias_padre %}
+                                    <option value="{{ categoria.id }}" 
+                                            {% if form_data.categoria_padre == categoria.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ categoria.nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">Seleccionar una categoría padre para crear una subcategoría</div>
+                        </div>
+
+                        <!-- Estado -->
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="activo" 
+                                       name="activo"
+                                       {% if form_data.activo != 'off' %}checked{% endif %}>
+                                <label class="form-check-label" for="activo">
+                                    <strong>Categoría Activa</strong>
+                                </label>
+                            </div>
+                            <div class="form-text">Las categorías inactivas no aparecerán en los formularios de productos</div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div id="categoriaPreview" class="categoria-preview" style="display: none;">
+                            <h6><i class="fas fa-eye me-2"></i>Vista Previa</h6>
+                            <div id="previewContent"></div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-end gap-3 mt-4">
+                            <a href="{% url 'maestros:categoria_listar' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-save me-2"></i>Crear Categoría
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('categoriaForm');
+    const nombreInput = document.getElementById('nombre');
+    const descripcionInput = document.getElementById('descripcion');
+    const categoriaPadreSelect = document.getElementById('categoria_padre');
+    const activoCheck = document.getElementById('activo');
+    const preview = document.getElementById('categoriaPreview');
+    const previewContent = document.getElementById('previewContent');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Validación en tiempo real
+    function validateForm() {
+        const nombre = nombreInput.value.trim();
+        let isValid = true;
+
+        // Validar nombre
+        if (!nombre) {
+            nombreInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            nombreInput.classList.remove('is-invalid');
+            nombreInput.classList.add('is-valid');
+        }
+
+        submitBtn.disabled = !isValid;
+        updatePreview();
+    }
+
+    // Actualizar preview
+    function updatePreview() {
+        const nombre = nombreInput.value.trim();
+        const descripcion = descripcionInput.value.trim();
+        const categoriaPadre = categoriaPadreSelect.options[categoriaPadreSelect.selectedIndex].text;
+        const activo = activoCheck.checked;
+
+        if (nombre) {
+            let html = `
+                <div class="d-flex align-items-center mb-2">
+                    <div class="categoria-icon me-3" style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #28a745, #20c997); display: flex; align-items: center; justify-content: center; color: white;">
+                        <i class="fas fa-tag" style="font-size: 0.8rem;"></i>
+                    </div>
+                    <div>
+                        <strong>${nombre}</strong>
+                        <span class="badge ${activo ? 'bg-success' : 'bg-secondary'} ms-2">
+                            ${activo ? 'Activa' : 'Inactiva'}
+                        </span>
+                    </div>
+                </div>
+            `;
+
+            if (descripcion) {
+                html += `<p class="text-muted mb-2">${descripcion}</p>`;
+            }
+
+            if (categoriaPadre !== '-- Categoría Principal --') {
+                html += `<small class="text-info"><i class="fas fa-arrow-up me-1"></i>Subcategoría de: ${categoriaPadre}</small>`;
+            }
+
+            previewContent.innerHTML = html;
+            preview.style.display = 'block';
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+
+    // Event listeners
+    nombreInput.addEventListener('input', validateForm);
+    descripcionInput.addEventListener('input', updatePreview);
+    categoriaPadreSelect.addEventListener('change', updatePreview);
+    activoCheck.addEventListener('change', updatePreview);
+
+    // Validación inicial
+    validateForm();
+
+    // Validación del formulario antes de enviar
+    form.addEventListener('submit', function(e) {
+        const nombre = nombreInput.value.trim();
+
+        if (!nombre) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'Datos incompletos',
+                text: 'El nombre de la categoría es obligatorio.',
+                confirmButtonColor: '#28a745'
+            });
+            nombreInput.focus();
+            return;
+        }
+
+        // Mostrar loading
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Creando...';
+        submitBtn.disabled = true;
+    });
+
+    // Animación de entrada
+    const formCard = document.querySelector('.form-card');
+    formCard.style.opacity = '0';
+    formCard.style.transform = 'translateY(30px)';
+    formCard.style.transition = 'all 0.5s ease';
+    
+    setTimeout(() => {
+        formCard.style.opacity = '1';
+        formCard.style.transform = 'translateY(0)';
+    }, 100);
+});
+</script>
+{% endblock %}

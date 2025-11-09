@@ -3,6 +3,7 @@ from django.contrib.auth import authenticate, login, logout, update_session_auth
 from django.contrib import messages
 from django.utils import timezone
 from django.http import JsonResponse
+from django.urls import reverse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_protect
@@ -187,15 +188,23 @@ def dashboard(request):
     return render(request, 'autenticacion/dashboard.html', context)
 
 
+@login_required
 def perfil_usuario(request):
-    """Vista del perfil del usuario"""
-    if not request.user.is_authenticated:
+    """Vista del perfil del usuario - disponible para todos los usuarios autenticados"""
+    
+    # Verificar que el usuario esté activo
+    if request.user.estado != 'ACTIVO':
+        messages.error(request, 'Tu cuenta no está activa. Contacta al administrador.')
         return redirect('autenticacion:login')
     
     context = {
         'usuario': request.user,
         'carrito_count': len(request.session.get('carrito', [])),
         'notificaciones_count': len([n for n in request.session.get('notificaciones', []) if not n.get('leida', True)]),
+        'puede_editar_perfil': True,  # Todos los usuarios autenticados pueden editar su propio perfil
+        'es_lector': request.user.rol and request.user.rol.nombre == 'Lector',
+        'es_editor': request.user.rol and request.user.rol.nombre == 'Editor',
+        'es_admin': request.user.rol and request.user.rol.nombre == 'Administrador',
     }
     
     return render(request, 'autenticacion/perfil.html', context)
@@ -204,30 +213,55 @@ def perfil_usuario(request):
 @login_required
 @csrf_protect
 def editar_perfil(request):
-    """Vista para editar el perfil del usuario"""
+    """Vista para editar el perfil del usuario - disponible para todos los usuarios autenticados"""
+    
+    # Verificar que el usuario esté activo
+    if request.user.estado != 'ACTIVO':
+        messages.error(request, 'Tu cuenta no está activa. Contacta al administrador.')
+        return redirect('autenticacion:login')
+    
     if request.method == 'POST':
         form = EditarPerfilForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
-            usuario = form.save(commit=False)
-            
-            # Procesar avatar si se subió uno nuevo
-            if 'avatar' in request.FILES:
-                avatar_procesado = procesar_avatar(request.FILES['avatar'], usuario)
-                if avatar_procesado:
-                    usuario.avatar = avatar_procesado
-            
-            usuario.save()
-            messages.success(request, '¡Tu perfil ha sido actualizado exitosamente!')
-            
-            # Respuesta AJAX
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': True,
-                    'message': 'Perfil actualizado exitosamente',
-                    'avatar_url': usuario.avatar.url if usuario.avatar else None
-                })
-            
-            return redirect('perfil_usuario')
+            try:
+                usuario = form.save(commit=False)
+                
+                # Procesar avatar si se subió uno nuevo
+                if 'avatar' in request.FILES:
+                    avatar_procesado = procesar_avatar(request.FILES['avatar'], usuario)
+                    if avatar_procesado:
+                        usuario.avatar = avatar_procesado
+                
+                # Mantener campos que el usuario no debería cambiar
+                usuario.username = request.user.username
+                usuario.rol = request.user.rol
+                usuario.estado = request.user.estado
+                usuario.is_staff = request.user.is_staff
+                usuario.is_superuser = request.user.is_superuser
+                
+                usuario.save()
+                messages.success(request, '¡Tu perfil ha sido actualizado exitosamente!')
+                
+                # Respuesta AJAX
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': True,
+                        'message': 'Perfil actualizado exitosamente',
+                        'avatar_url': usuario.avatar.url if usuario.avatar else None,
+                        'redirect_url': reverse('autenticacion:perfil_usuario')
+                    })
+                
+                return redirect('autenticacion:perfil_usuario')
+                
+            except Exception as e:
+                error_msg = f'Error al actualizar el perfil: {str(e)}'
+                messages.error(request, error_msg)
+                
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'message': error_msg
+                    })
         else:
             # Respuesta AJAX con errores
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -236,8 +270,9 @@ def editar_perfil(request):
                     'errors': form.errors
                 })
             
-            for error in form.errors.values():
-                messages.error(request, error[0])
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{field}: {error}')
     else:
         form = EditarPerfilForm(instance=request.user)
     
@@ -246,6 +281,10 @@ def editar_perfil(request):
         'usuario': request.user,
         'carrito_count': len(request.session.get('carrito', [])),
         'notificaciones_count': len([n for n in request.session.get('notificaciones', []) if not n.get('leida', True)]),
+        'puede_editar_perfil': True,  # Todos los usuarios autenticados pueden editar su propio perfil
+        'es_lector': request.user.rol and request.user.rol.nombre == 'Lector',
+        'es_editor': request.user.rol and request.user.rol.nombre == 'Editor',
+        'es_admin': request.user.rol and request.user.rol.nombre == 'Administrador',
     }
     
     return render(request, 'autenticacion/editar_perfil.html', context)
@@ -276,27 +315,23 @@ def solicitar_codigo_cambio(request):
                     f'Se ha enviado un código de verificación a {request.user.email}. '
                     'El código es válido por 10 minutos.'
                 )
-                
-                # Respuesta AJAX
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return JsonResponse({
-                        'success': True,
-                        'message': 'Código enviado exitosamente',
-                        'redirect_url': '/auth/verificar-codigo-cambio/'
-                    })
-                
-                return redirect('verificar_codigo_cambio')
             else:
-                messages.error(
-                    request,
-                    'Hubo un problema enviando el código. Inténtalo nuevamente.'
+                # Mostrar código temporalmente cuando no se puede enviar email
+                messages.warning(
+                    request, 
+                    f'No se pudo enviar el email. Tu código de verificación es: {codigo_cambio.codigo}. '
+                    'Válido por 10 minutos. (Configurar email SMTP para envío automático)'
                 )
-                
-                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                    return JsonResponse({
-                        'success': False,
-                        'message': 'Error enviando el código'
-                    })
+            
+            # Respuesta AJAX
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': 'Código generado exitosamente',
+                    'redirect_url': '/auth/verificar-codigo-cambio/'
+                })
+            
+            return redirect('autenticacion:verificar_codigo_cambio')
         else:
             # Respuesta AJAX con errores
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -357,7 +392,7 @@ def verificar_codigo_cambio(request):
                         'redirect_url': '/auth/perfil/'
                     })
                 
-                return redirect('perfil_usuario')
+                return redirect('autenticacion:perfil_usuario')
             else:
                 error_msg = 'El código es inválido o ha expirado.'
                 messages.error(request, error_msg)
@@ -395,7 +430,7 @@ def verificar_codigo_cambio(request):
 @csrf_protect
 def cambiar_password(request):
     """Vista legacy - redirige al nuevo flujo"""
-    return redirect('solicitar_codigo_cambio')
+    return redirect('autenticacion:solicitar_codigo_cambio')
 
 
 @csrf_protect
@@ -430,27 +465,25 @@ def recuperar_password(request):
                             f'Se ha enviado un código de verificación a {email}. '
                             'Revisa tu bandeja de entrada y spam.'
                         )
-                        
-                        # Respuesta AJAX
-                        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                            return JsonResponse({
-                                'success': True,
-                                'message': f'Código enviado a {email}',
-                                'redirect_url': '/auth/verificar-codigo-recuperacion/'
-                            })
-                        
-                        return redirect('verificar_codigo_recuperacion')
                     else:
-                        messages.warning(
-                            request,
-                            'Hubo un problema enviando el código. Inténtalo nuevamente.'
-                        )
+                        # Mostrar código temporalmente cuando no se puede enviar email
+                        request.session['recovery_user_id'] = usuario.id
                         
-                        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                            return JsonResponse({
-                                'success': False,
-                                'message': 'Error enviando el código'
-                            })
+                        messages.warning(
+                            request, 
+                            f'No se pudo enviar el email. El código de verificación es: {codigo_cambio.codigo}. '
+                            'Válido por 10 minutos. (Configurar email SMTP para envío automático)'
+                        )
+                    
+                    # Respuesta AJAX
+                    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                        return JsonResponse({
+                            'success': True,
+                            'message': f'Código generado para {email}',
+                            'redirect_url': '/auth/verificar-codigo-recuperacion/'
+                        })
+                    
+                    return redirect('autenticacion:verificar_codigo_recuperacion')
                 else:
                     messages.error(request, 'Error generando el código de verificación.')
                     
@@ -498,13 +531,13 @@ def verificar_codigo_recuperacion(request):
     user_id = request.session.get('recovery_user_id')
     if not user_id:
         messages.error(request, 'Sesión de recuperación expirada. Solicita un nuevo código.')
-        return redirect('recuperar_password')
+        return redirect('autenticacion:recuperar_password')
     
     try:
         usuario = Usuario.objects.get(id=user_id, estado='ACTIVO')
     except Usuario.DoesNotExist:
         messages.error(request, 'Usuario no encontrado.')
-        return redirect('recuperar_password')
+        return redirect('autenticacion:recuperar_password')
     
     if request.method == 'POST':
         form = VerificarCodigoCambioForm(request.POST)
@@ -582,7 +615,7 @@ def resetear_password(request, token):
     token_reset = validar_token_reset(token)
     if not token_reset:
         messages.error(request, 'El enlace de recuperación es inválido o ha expirado.')
-        return redirect('recuperar_password')
+        return redirect('autenticacion:recuperar_password')
     
     if request.method == 'POST':
         form = ResetearPasswordForm(request.POST)
@@ -1039,6 +1072,7 @@ def usuario_historial(request, pk):
 
 @login_required
 @admin_only
+@csrf_protect
 def usuario_eliminar(request, pk):
     """Eliminar usuario (solo admins)"""
     usuario = get_object_or_404(Usuario, pk=pk)
@@ -1053,7 +1087,7 @@ def usuario_eliminar(request, pk):
         try:
             usuario.delete()
             messages.success(request, f'Usuario "{nombre_usuario}" eliminado exitosamente')
-            return redirect('usuario_listar')
+            return redirect('autenticacion:usuario_listar')
         except Exception as e:
             messages.error(request, f'Error al eliminar usuario: {str(e)}')
             return redirect('autenticacion:usuario_detalle', pk=pk)
@@ -1120,7 +1154,7 @@ def rol_crear(request):
                 permisos=permisos
             )
             messages.success(request, f'Rol "{rol.nombre}" creado exitosamente')
-            return redirect('rol_listar')
+            return redirect('autenticacion:rol_listar')
         except Exception as e:
             messages.error(request, f'Error al crear rol: {str(e)}')
     
@@ -1170,7 +1204,7 @@ def rol_editar(request, pk):
             rol.save()
             
             messages.success(request, f'Rol "{rol.nombre}" actualizado exitosamente')
-            return redirect('rol_listar')
+            return redirect('autenticacion:rol_listar')
         except Exception as e:
             messages.error(request, f'Error al actualizar rol: {str(e)}')
     

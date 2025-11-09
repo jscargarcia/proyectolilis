@@ -182,7 +182,6 @@ X_FRAME_OPTIONS = 'DENY'
 # CSRF_COOKIE_SECURE = True
 
 # Configuración de Email
-# Para cambiar entre console y email real, modifica EMAIL_BACKEND en .env
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
 
 # Configuración SMTP (solo si se usa smtp backend)

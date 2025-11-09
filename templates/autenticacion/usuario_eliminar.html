@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Usuario - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+.delete-card {
+    max-width: 600px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.delete-header {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+.delete-content {
+    padding: 30px;
+}
+
+.user-info {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.user-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 15px;
+}
+
+.warning-box {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.form-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.btn-delete:hover {
+    background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(220, 53, 69, 0.3);
+}
+
+.btn-cancel {
+    background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+    border: none;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.btn-cancel:hover {
+    background: linear-gradient(135deg, #5a6268 0%, #545b62 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="delete-card">
+        <!-- Header -->
+        <div class="delete-header">
+            <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+            <h3>Eliminar Usuario</h3>
+            <p class="mb-0">Esta acción no se puede deshacer</p>
+        </div>
+
+        <!-- Content -->
+        <div class="delete-content">
+            <!-- Información del usuario -->
+            <div class="user-info text-center">
+                {% if usuario.avatar %}
+                    <img src="{{ usuario.avatar.url }}" alt="Avatar" class="user-avatar">
+                {% else %}
+                    <div class="user-avatar bg-secondary d-flex align-items-center justify-content-center mx-auto">
+                        <i class="fas fa-user text-white fs-4"></i>
+                    </div>
+                {% endif %}
+                
+                <h5 class="mb-2">{{ usuario.get_full_name }}</h5>
+                <p class="text-muted mb-1">
+                    <i class="fas fa-user me-2"></i>{{ usuario.username }}
+                </p>
+                <p class="text-muted mb-1">
+                    <i class="fas fa-envelope me-2"></i>{{ usuario.email|default:"Sin email" }}
+                </p>
+                <p class="text-muted mb-0">
+                    <i class="fas fa-shield-alt me-2"></i>{{ usuario.rol.nombre }}
+                </p>
+            </div>
+
+            <!-- Advertencia -->
+            <div class="warning-box">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle text-warning me-3 fs-4"></i>
+                    <div>
+                        <strong>Advertencia importante:</strong>
+                        <p class="mb-0 mt-1">
+                            Esta acción eliminará permanentemente el usuario y toda la información asociada. 
+                            No podrá recuperar estos datos posteriormente.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confirmación -->
+            <div class="text-center">
+                <p class="mb-0">
+                    ¿Está seguro de que desea eliminar el usuario 
+                    <strong>"{{ usuario.get_full_name }}"</strong>?
+                </p>
+            </div>
+
+            <!-- Formulario -->
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-buttons">
+                    <button type="submit" class="btn btn-delete">
+                        <i class="fas fa-trash me-2"></i>Sí, Eliminar Usuario
+                    </button>
+                    <a href="{% url 'autenticacion:usuario_detalle' usuario.pk %}" class="btn btn-cancel">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Confirmación adicional antes del envío
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const confirmed = confirm(
+            '¿Está completamente seguro de eliminar este usuario? Esta acción no se puede deshacer.'
+        );
+        if (!confirmed) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

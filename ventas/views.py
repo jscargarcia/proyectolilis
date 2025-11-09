@@ -5,7 +5,7 @@ from django.db.models import Q, Sum
 from django.http import JsonResponse
 from django.urls import reverse
 from django.views.decorators.http import require_http_methods
-from autenticacion.decorators import login_required_custom, permission_required, estado_usuario_activo
+from autenticacion.decorators import login_required_custom, permission_required, estado_usuario_activo, permiso_requerido
 from .models import Cliente, Venta, VentaDetalle
 from maestros.models import Producto
 
@@ -215,7 +215,7 @@ def cliente_editar(request, pk):
 
 @login_required_custom
 @estado_usuario_activo
-@permission_required('ventas.eliminar_clientes')
+@permiso_requerido('clientes', 'eliminar')
 def cliente_eliminar(request, pk):
     """Eliminar cliente"""
     cliente = get_object_or_404(Cliente, pk=pk)

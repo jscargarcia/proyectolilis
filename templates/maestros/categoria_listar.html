@@ -1,0 +1,326 @@
+{% extends 'base.html' %}
+{% load static %}
+{% csrf_token %}
+
+{% block title %}Gestión de Categorías - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+.header-card {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.stats-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #28a745;
+}
+
+.table-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.categoria-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-activo {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-inactivo {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.action-buttons .btn {
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.categoria-jerarquia {
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.subcategoria-indicator {
+    margin-left: 20px;
+    position: relative;
+}
+
+.subcategoria-indicator::before {
+    content: "└─";
+    position: absolute;
+    left: -15px;
+    color: #6c757d;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="header-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-tags me-2"></i>Gestión de Categorías</h2>
+                <p class="mb-0">Administra las categorías de productos del sistema</p>
+            </div>
+            <div>
+                <a href="{% url 'maestros:categoria_crear' %}" class="btn btn-light me-2">
+                    <i class="fas fa-plus me-2"></i>Nueva Categoría
+                </a>
+                <a href="{% url 'maestros:producto_listar' %}" class="btn btn-outline-light">
+                    <i class="fas fa-box me-2"></i>Ver Productos
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number">{{ categorias|length }}</div>
+                <div>Total Categorías</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number text-success">
+                    {% for categoria in categorias %}
+                        {% if categoria.activo %}{{ forloop.counter0|add:1 }}{% endif %}
+                    {% empty %}0{% endfor %}
+                </div>
+                <div>Activas</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number text-info">
+                    {% for categoria in categorias %}
+                        {% if categoria.categoria_padre %}{{ forloop.counter0|add:1 }}{% endif %}
+                    {% empty %}0{% endfor %}
+                </div>
+                <div>Subcategorías</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number text-warning">
+                    {% for categoria in categorias %}
+                        {% if not categoria.activo %}{{ forloop.counter0|add:1 }}{% endif %}
+                    {% empty %}0{% endfor %}
+                </div>
+                <div>Inactivas</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de categorías -->
+    <div class="table-card">
+        <div class="card-header bg-light">
+            <h5 class="mb-0">
+                <i class="fas fa-list me-2"></i>Lista de Categorías
+            </h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Categoría</th>
+                        <th>Descripción</th>
+                        <th>Tipo</th>
+                        <th>Estado</th>
+                        <th>Fecha Creación</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for categoria in categorias %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="categoria-icon me-3">
+                                    <i class="fas fa-tag"></i>
+                                </div>
+                                <div {% if categoria.categoria_padre %}class="subcategoria-indicator"{% endif %}>
+                                    <strong>{{ categoria.nombre }}</strong>
+                                    {% if categoria.categoria_padre %}
+                                        <div class="categoria-jerarquia">
+                                            <i class="fas fa-arrow-up me-1"></i>{{ categoria.categoria_padre.nombre }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if categoria.descripcion %}
+                                {{ categoria.descripcion }}
+                            {% else %}
+                                <span class="text-muted">Sin descripción</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if categoria.categoria_padre %}
+                                <span class="badge bg-secondary">
+                                    <i class="fas fa-level-down-alt me-1"></i>Subcategoría
+                                </span>
+                            {% else %}
+                                <span class="badge bg-primary">
+                                    <i class="fas fa-folder me-1"></i>Principal
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge {% if categoria.activo %}status-activo{% else %}status-inactivo{% endif %}">
+                                {% if categoria.activo %}
+                                    <i class="fas fa-check-circle me-1"></i>Activa
+                                {% else %}
+                                    <i class="fas fa-times-circle me-1"></i>Inactiva
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>
+                                {{ categoria.created_at|date:"d/m/Y" }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-buttons">
+                                <a href="{% url 'maestros:categoria_detalle' categoria.pk %}" class="btn btn-sm btn-outline-primary" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'maestros:categoria_editar' categoria.pk %}" class="btn btn-sm btn-outline-warning" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% if not categoria.productos.exists %}
+                                    <button class="btn btn-sm btn-outline-danger" onclick="confirmarEliminar({{ categoria.id }}, '{{ categoria.nombre }}')" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-sm btn-outline-secondary" disabled title="No se puede eliminar - tiene productos asociados">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="fas fa-tags fa-3x mb-3"></i>
+                                <p>No hay categorías registradas</p>
+                                <a href="{% url 'maestros:categoria_crear' %}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Crear Primera Categoría
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function verDetalles(categoriaId, nombre) {
+    Swal.fire({
+        title: `Categoría: ${nombre}`,
+        html: `
+            <div class="text-start">
+                <p><strong>ID:</strong> ${categoriaId}</p>
+                <p><strong>Nombre:</strong> ${nombre}</p>
+                <p class="text-muted">Más detalles disponibles cuando se implemente la vista de detalle.</p>
+            </div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Cerrar',
+        confirmButtonColor: '#28a745'
+    });
+}
+
+function confirmarEliminar(categoriaId, nombre) {
+    Swal.fire({
+        title: '¿Está seguro?',
+        text: `¿Desea eliminar la categoría "${nombre}"? Esta acción no se puede deshacer.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Crear formulario para enviar DELETE
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/maestros/categorias/${categoriaId}/eliminar/`;
+            
+            // Token CSRF desde Django template
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = '{{ csrf_token }}';
+            form.appendChild(csrfInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+    });
+}
+
+// Animaciones de entrada
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.stats-card, .table-card');
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.5s ease';
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 50);
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

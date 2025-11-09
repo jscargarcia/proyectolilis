@@ -4,7 +4,7 @@ from django.core.paginator import Paginator
 from django.db.models import Q, Count
 from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.csrf import csrf_exempt, csrf_protect
 from django.urls import reverse
 from django.db import transaction
 from decimal import Decimal, InvalidOperation
@@ -732,6 +732,7 @@ def test_producto_eliminar(request, pk):
 
 @login_required_custom
 @estado_usuario_activo
+@permiso_requerido('proveedores', 'leer')
 def proveedor_listar(request):
     """Lista de proveedores"""
     query = request.GET.get('query', '')
@@ -763,6 +764,7 @@ def proveedor_listar(request):
 
 @login_required_custom
 @estado_usuario_activo
+@permiso_requerido('proveedores', 'crear')
 def proveedor_crear(request):
     """Crear nuevo proveedor"""
     if request.method == 'POST':
@@ -901,6 +903,7 @@ def proveedor_crear(request):
 
 @login_required_custom
 @estado_usuario_activo
+@permiso_requerido('proveedores', 'leer')
 def proveedor_detalle(request, pk):
     """Detalle de proveedor"""
     proveedor = get_object_or_404(Proveedor, pk=pk)
@@ -925,6 +928,170 @@ def categoria_listar(request):
     return render(request, 'maestros/categoria_listar.html', context)
 
 
+@login_required_custom
+@estado_usuario_activo
+@permiso_requerido('maestros', 'leer')
+def categoria_detalle(request, pk):
+    """Detalle de categoría"""
+    categoria = get_object_or_404(Categoria, pk=pk)
+    
+    # Contar productos asociados
+    productos_count = categoria.productos.count()
+    
+    # Obtener subcategorías si las tiene
+    subcategorias = categoria.subcategorias.all().order_by('nombre')
+    
+    context = {
+        'categoria': categoria,
+        'productos_count': productos_count,
+        'subcategorias': subcategorias,
+    }
+    return render(request, 'maestros/categoria_detalle.html', context)
+
+
+@login_required_custom
+@estado_usuario_activo
+@permiso_requerido('productos', 'crear')
+@csrf_protect
+def categoria_crear(request):
+    """Crear nueva categoría"""
+    if request.method == 'POST':
+        try:
+            # Validar campos requeridos
+            nombre = request.POST.get('nombre', '').strip()
+            descripcion = request.POST.get('descripcion', '').strip()
+            categoria_padre_id = request.POST.get('categoria_padre')
+            activo = request.POST.get('activo') == 'on'
+            
+            if not nombre:
+                messages.error(request, 'El nombre es obligatorio.')
+                return render(request, 'maestros/categoria_crear.html', {
+                    'categorias_padre': Categoria.objects.filter(categoria_padre__isnull=True).order_by('nombre')
+                })
+            
+            # Verificar que no exista una categoría con el mismo nombre
+            if Categoria.objects.filter(nombre__iexact=nombre).exists():
+                messages.error(request, f'Ya existe una categoría con el nombre "{nombre}".')
+                return render(request, 'maestros/categoria_crear.html', {
+                    'categorias_padre': Categoria.objects.filter(categoria_padre__isnull=True).order_by('nombre'),
+                    'form_data': request.POST
+                })
+            
+            # Crear la categoría
+            categoria = Categoria.objects.create(
+                nombre=nombre,
+                descripcion=descripcion if descripcion else None,
+                categoria_padre_id=categoria_padre_id if categoria_padre_id else None,
+                activo=activo
+            )
+            
+            messages.success(request, f'Categoría "{categoria.nombre}" creada exitosamente.')
+            return redirect('maestros:categoria_detalle', pk=categoria.pk)
+            
+        except Exception as e:
+            messages.error(request, f'Error al crear la categoría: {str(e)}')
+    
+    context = {
+        'categorias_padre': Categoria.objects.filter(categoria_padre__isnull=True).order_by('nombre')
+    }
+    return render(request, 'maestros/categoria_crear.html', context)
+
+
+@login_required_custom
+@estado_usuario_activo
+@permiso_requerido('productos', 'actualizar')
+@csrf_protect
+def categoria_editar(request, pk):
+    """Editar categoría existente"""
+    categoria = get_object_or_404(Categoria, pk=pk)
+    
+    if request.method == 'POST':
+        try:
+            # Validar campos requeridos
+            nombre = request.POST.get('nombre', '').strip()
+            descripcion = request.POST.get('descripcion', '').strip()
+            categoria_padre_id = request.POST.get('categoria_padre')
+            activo = request.POST.get('activo') == 'on'
+            
+            if not nombre:
+                messages.error(request, 'El nombre es obligatorio.')
+                return render(request, 'maestros/categoria_editar.html', {
+                    'categoria': categoria,
+                    'categorias_padre': Categoria.objects.filter(categoria_padre__isnull=True).exclude(pk=categoria.pk).order_by('nombre')
+                })
+            
+            # Verificar que no exista otra categoría con el mismo nombre
+            if Categoria.objects.filter(nombre__iexact=nombre).exclude(pk=categoria.pk).exists():
+                messages.error(request, f'Ya existe otra categoría con el nombre "{nombre}".')
+                return render(request, 'maestros/categoria_editar.html', {
+                    'categoria': categoria,
+                    'categorias_padre': Categoria.objects.filter(categoria_padre__isnull=True).exclude(pk=categoria.pk).order_by('nombre'),
+                    'form_data': request.POST
+                })
+            
+            # Validar que no se asigne a sí misma como padre
+            if categoria_padre_id and int(categoria_padre_id) == categoria.pk:
+                messages.error(request, 'Una categoría no puede ser su propia categoría padre.')
+                return render(request, 'maestros/categoria_editar.html', {
+                    'categoria': categoria,
+                    'categorias_padre': Categoria.objects.filter(categoria_padre__isnull=True).exclude(pk=categoria.pk).order_by('nombre'),
+                    'form_data': request.POST
+                })
+            
+            # Actualizar la categoría
+            categoria.nombre = nombre
+            categoria.descripcion = descripcion if descripcion else None
+            categoria.categoria_padre_id = categoria_padre_id if categoria_padre_id else None
+            categoria.activo = activo
+            categoria.save()
+            
+            messages.success(request, f'Categoría "{categoria.nombre}" actualizada exitosamente.')
+            return redirect('maestros:categoria_detalle', pk=categoria.pk)
+            
+        except Exception as e:
+            messages.error(request, f'Error al actualizar la categoría: {str(e)}')
+    
+    context = {
+        'categoria': categoria,
+        'categorias_padre': Categoria.objects.filter(categoria_padre__isnull=True).exclude(pk=categoria.pk).order_by('nombre')
+    }
+    return render(request, 'maestros/categoria_editar.html', context)
+
+
+@login_required_custom
+@estado_usuario_activo
+@permiso_requerido('productos', 'eliminar')
+@csrf_protect
+def categoria_eliminar(request, pk):
+    """Eliminar categoría"""
+    categoria = get_object_or_404(Categoria, pk=pk)
+    
+    # Verificar que no tenga productos asociados
+    productos_count = categoria.productos.count()
+    subcategorias_count = categoria.subcategorias.count()
+    
+    if productos_count > 0 or subcategorias_count > 0:
+        messages.error(request, f'No se puede eliminar la categoría "{categoria.nombre}" porque tiene productos o subcategorías asociadas.')
+        return redirect('maestros:categoria_detalle', pk=pk)
+    
+    if request.method == 'POST':
+        nombre_categoria = categoria.nombre
+        try:
+            categoria.delete()
+            messages.success(request, f'Categoría "{nombre_categoria}" eliminada exitosamente.')
+            return redirect('maestros:categoria_listar')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar la categoría: {str(e)}')
+            return redirect('maestros:categoria_detalle', pk=pk)
+    
+    context = {
+        'categoria': categoria,
+        'productos_count': productos_count,
+        'subcategorias_count': subcategorias_count,
+    }
+    return render(request, 'maestros/categoria_eliminar.html', context)
+
+
 # ==================== MARCAS ====================
 
 @login_required_custom
@@ -935,6 +1102,142 @@ def marca_listar(request):
     
     context = {'marcas': marcas}
     return render(request, 'maestros/marca_listar.html', context)
+
+
+@login_required_custom
+@estado_usuario_activo
+@permiso_requerido('maestros', 'leer')
+def marca_detalle(request, pk):
+    """Detalle de marca"""
+    marca = get_object_or_404(Marca, pk=pk)
+    
+    # Contar productos asociados
+    productos_count = marca.productos.count()
+    
+    context = {
+        'marca': marca,
+        'productos_count': productos_count,
+    }
+    return render(request, 'maestros/marca_detalle.html', context)
+
+
+@login_required_custom
+@estado_usuario_activo
+@permiso_requerido('productos', 'crear')
+@csrf_protect
+def marca_crear(request):
+    """Crear nueva marca"""
+    if request.method == 'POST':
+        try:
+            # Validar campos requeridos
+            nombre = request.POST.get('nombre', '').strip()
+            descripcion = request.POST.get('descripcion', '').strip()
+            activo = request.POST.get('activo') == 'on'
+            
+            if not nombre:
+                messages.error(request, 'El nombre es obligatorio.')
+                return render(request, 'maestros/marca_crear.html')
+            
+            # Verificar que no exista una marca con el mismo nombre
+            if Marca.objects.filter(nombre__iexact=nombre).exists():
+                messages.error(request, f'Ya existe una marca con el nombre "{nombre}".')
+                return render(request, 'maestros/marca_crear.html', {
+                    'form_data': request.POST
+                })
+            
+            # Crear la marca
+            marca = Marca.objects.create(
+                nombre=nombre,
+                descripcion=descripcion if descripcion else None,
+                activo=activo
+            )
+            
+            messages.success(request, f'Marca "{marca.nombre}" creada exitosamente.')
+            return redirect('maestros:marca_detalle', pk=marca.pk)
+            
+        except Exception as e:
+            messages.error(request, f'Error al crear la marca: {str(e)}')
+    
+    return render(request, 'maestros/marca_crear.html')
+
+
+@login_required_custom
+@estado_usuario_activo
+@permiso_requerido('productos', 'actualizar')
+@csrf_protect
+def marca_editar(request, pk):
+    """Editar marca existente"""
+    marca = get_object_or_404(Marca, pk=pk)
+    
+    if request.method == 'POST':
+        try:
+            # Validar campos requeridos
+            nombre = request.POST.get('nombre', '').strip()
+            descripcion = request.POST.get('descripcion', '').strip()
+            activo = request.POST.get('activo') == 'on'
+            
+            if not nombre:
+                messages.error(request, 'El nombre es obligatorio.')
+                return render(request, 'maestros/marca_editar.html', {
+                    'marca': marca
+                })
+            
+            # Verificar que no exista otra marca con el mismo nombre
+            if Marca.objects.filter(nombre__iexact=nombre).exclude(pk=marca.pk).exists():
+                messages.error(request, f'Ya existe otra marca con el nombre "{nombre}".')
+                return render(request, 'maestros/marca_editar.html', {
+                    'marca': marca,
+                    'form_data': request.POST
+                })
+            
+            # Actualizar la marca
+            marca.nombre = nombre
+            marca.descripcion = descripcion if descripcion else None
+            marca.activo = activo
+            marca.save()
+            
+            messages.success(request, f'Marca "{marca.nombre}" actualizada exitosamente.')
+            return redirect('maestros:marca_detalle', pk=marca.pk)
+            
+        except Exception as e:
+            messages.error(request, f'Error al actualizar la marca: {str(e)}')
+    
+    context = {
+        'marca': marca
+    }
+    return render(request, 'maestros/marca_editar.html', context)
+
+
+@login_required_custom
+@estado_usuario_activo
+@permiso_requerido('productos', 'eliminar')
+@csrf_protect
+def marca_eliminar(request, pk):
+    """Eliminar marca"""
+    marca = get_object_or_404(Marca, pk=pk)
+    
+    # Verificar que no tenga productos asociados
+    productos_count = marca.productos.count()
+    
+    if productos_count > 0:
+        messages.error(request, f'No se puede eliminar la marca "{marca.nombre}" porque tiene productos asociados.')
+        return redirect('maestros:marca_detalle', pk=pk)
+    
+    if request.method == 'POST':
+        nombre_marca = marca.nombre
+        try:
+            marca.delete()
+            messages.success(request, f'Marca "{nombre_marca}" eliminada exitosamente.')
+            return redirect('maestros:marca_listar')
+        except Exception as e:
+            messages.error(request, f'Error al eliminar la marca: {str(e)}')
+            return redirect('maestros:marca_detalle', pk=pk)
+    
+    context = {
+        'marca': marca,
+        'productos_count': productos_count,
+    }
+    return render(request, 'maestros/marca_eliminar.html', context)
 
 
 # ==================== EXPORTACIÓN A EXCEL ====================
@@ -1120,6 +1423,7 @@ def productos_exportar_excel(request):
 
 @login_required_custom
 @estado_usuario_activo
+@permiso_requerido('proveedores', 'actualizar')
 def proveedor_editar(request, pk):
     """Editar proveedor existente"""
     proveedor = get_object_or_404(Proveedor, pk=pk)
@@ -1219,6 +1523,7 @@ def proveedor_editar(request, pk):
 
 @login_required_custom
 @estado_usuario_activo
+@permiso_requerido('proveedores', 'eliminar')
 def proveedor_eliminar(request, pk):
     """Eliminar proveedor con confirmación"""
     proveedor = get_object_or_404(Proveedor, pk=pk)

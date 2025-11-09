@@ -160,26 +160,23 @@
                                 <i class="fas fa-check-circle text-success"></i> Accesos Permitidos:
                             </h6>
                             <ul class="list-unstyled">
-                                {% if usuario.rol.nombre == 'ADMIN' or usuario.rol.nombre == 'Administrador' %}
-                                    <li><i class="fas fa-check text-success me-2"></i> Acceso completo al sistema</li>
+                                {% if usuario.rol.nombre == 'Administrador' %}
+                                    <li><i class="fas fa-check text-success me-2"></i> Acceso completo al sistema (CRUD completo)</li>
                                     <li><i class="fas fa-check text-success me-2"></i> Gestión de usuarios</li>
                                     <li><i class="fas fa-check text-success me-2"></i> Configuración del sistema</li>
                                     <li><i class="fas fa-check text-success me-2"></i> Reportes administrativos</li>
-                                {% elif usuario.rol.nombre == 'GERENTE' or usuario.rol.nombre == 'Gerente' %}
-                                    <li><i class="fas fa-check text-success me-2"></i> Gestión de ventas</li>
-                                    <li><i class="fas fa-check text-success me-2"></i> Gestión de compras</li>
-                                    <li><i class="fas fa-check text-success me-2"></i> Gestión de inventario</li>
-                                    <li><i class="fas fa-check text-success me-2"></i> Reportes gerenciales</li>
-                                {% elif usuario.rol.nombre == 'VENDEDOR' or usuario.rol.nombre == 'Vendedor' %}
-                                    <li><i class="fas fa-check text-success me-2"></i> Gestión de ventas</li>
-                                    <li><i class="fas fa-check text-success me-2"></i> Atención a clientes</li>
-                                    <li><i class="fas fa-check text-success me-2"></i> Consulta de productos</li>
-                                    <li><i class="fas fa-check text-success me-2"></i> Consulta de inventario</li>
-                                {% elif usuario.rol.nombre == 'BODEGUERO' or usuario.rol.nombre == 'Bodeguero' %}
-                                    <li><i class="fas fa-check text-success me-2"></i> Gestión de inventario</li>
-                                    <li><i class="fas fa-check text-success me-2"></i> Gestión de productos</li>
-                                    <li><i class="fas fa-check text-success me-2"></i> Movimientos de stock</li>
-                                    <li><i class="fas fa-check text-success me-2"></i> Recepción de mercancía</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Eliminar cualquier elemento</li>
+                                {% elif usuario.rol.nombre == 'Editor' %}
+                                    <li><i class="fas fa-check text-success me-2"></i> Crear nuevos elementos</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Editar elementos existentes</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Visualizar todos los datos</li>
+                                    <li><i class="fas fa-times text-danger me-2"></i> <s>No puede eliminar elementos</s></li>
+                                {% elif usuario.rol.nombre == 'Lector' %}
+                                    <li><i class="fas fa-check text-success me-2"></i> Visualizar todos los datos</li>
+                                    <li><i class="fas fa-check text-success me-2"></i> Consultar productos, proveedores, clientes</li>
+                                    <li><i class="fas fa-times text-danger me-2"></i> <s>No puede crear elementos</s></li>
+                                    <li><i class="fas fa-times text-danger me-2"></i> <s>No puede editar elementos</s></li>
+                                    <li><i class="fas fa-times text-danger me-2"></i> <s>No puede eliminar elementos</s></li>
                                 {% endif %}
                             </ul>
                         </div>
@@ -189,24 +186,27 @@
                                 <i class="fas fa-tools text-primary"></i> Funciones Disponibles:
                             </h6>
                             <div class="d-grid gap-2">
-                                {% if usuario.rol.nombre == 'ADMIN' or usuario.rol.nombre == 'GERENTE' or usuario.rol.nombre == 'BODEGUERO' %}
-                                    <a href="{% url 'maestros:producto_listar' %}" class="btn btn-outline-danger btn-sm">
-                                        <i class="fas fa-boxes"></i> Gestión de Productos
-                                    </a>
-                                {% endif %}
+                                <!-- Todos los usuarios pueden ver productos -->
+                                <a href="{% url 'maestros:producto_listar' %}" class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-boxes"></i> Ver Productos
+                                </a>
                                 
-                                {% if usuario.rol.nombre == 'ADMIN' or usuario.rol.nombre == 'SUPERVISOR' %}
-                                    <a href="{% url 'catalogo_listar' %}" class="btn btn-outline-primary btn-sm">
-                                        <i class="fas fa-book"></i> Gestión de Catálogo
-                                    </a>
-                                {% endif %}
+                                <!-- Todos los usuarios pueden ver proveedores -->
+                                <a href="{% url 'maestros:proveedor_listar' %}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-truck"></i> Ver Proveedores
+                                </a>
+                                
+                                <!-- Todos los usuarios pueden ver clientes -->
+                                <a href="{% url 'ventas:cliente_listar' %}" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-users"></i> Ver Clientes
+                                </a>
                                 
                                 <button onclick="mostrarCarrito()" class="btn btn-outline-warning btn-sm">
-                                    <i class="fas fa-shopping-cart"></i> Ver Carrito
+                                    <i class="fas fa-shopping-cart"></i> Ver Carrito ({{ carrito_count }})
                                 </button>
                                 
                                 <button onclick="mostrarNotificaciones()" class="btn btn-outline-info btn-sm">
-                                    <i class="fas fa-bell"></i> Ver Notificaciones
+                                    <i class="fas fa-bell"></i> Notificaciones ({{ notificaciones_count }})
                                 </button>
                             </div>
                         </div>

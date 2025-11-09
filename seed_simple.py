@@ -37,46 +37,42 @@ roles_data = [
         'nombre': 'Administrador',
         'descripcion': 'Acceso total (CRUD completo y gestión de usuarios)',
         'permisos': {
-            'admin': True,
-            'all_permissions': True,
-            'usuarios': True,
-            'productos': True,
-            'proveedores': True,
-            'clientes': True,
-            'ventas': True,
-            'compras': True,
-            'inventario': True,
-            'reportes': True,
-            'crear': True,
-            'editar': True,
-            'eliminar': True,
-            'ver': True,
-            'descripcion': 'Acceso total a todas las funciones del sistema'
+            'ventas': {'leer': True, 'crear': True, 'eliminar': True, 'actualizar': True},
+            'compras': {'leer': True, 'crear': True, 'eliminar': True, 'actualizar': True},
+            'reportes': {'leer': True, 'crear': True, 'eliminar': True, 'actualizar': True},
+            'usuarios': {'leer': True, 'crear': True, 'eliminar': True, 'actualizar': True},
+            'productos': {'leer': True, 'crear': True, 'eliminar': True, 'actualizar': True},
+            'inventario': {'leer': True, 'crear': True, 'eliminar': True, 'actualizar': True},
+            'proveedores': {'leer': True, 'crear': True, 'eliminar': True, 'actualizar': True},
+            'configuracion': {'leer': True, 'crear': True, 'eliminar': True, 'actualizar': True}
         }
     },
     {
         'nombre': 'Editor',
-        'descripcion': 'Solo puede crear y editar',
+        'descripcion': 'Solo puede crear y editar elementos (no puede eliminar)',
         'permisos': {
-            'productos': True,
-            'proveedores': True,
-            'clientes': True,
-            'crear': True,
-            'editar': True,
-            'ver': True,
-            'descripcion': 'Permisos de creación y edición'
+            'ventas': {'leer': True, 'crear': True, 'eliminar': False, 'actualizar': True},
+            'compras': {'leer': True, 'crear': True, 'eliminar': False, 'actualizar': True},
+            'reportes': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False},
+            'usuarios': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False},
+            'productos': {'leer': True, 'crear': True, 'eliminar': False, 'actualizar': True},
+            'inventario': {'leer': True, 'crear': True, 'eliminar': False, 'actualizar': True},
+            'proveedores': {'leer': True, 'crear': True, 'eliminar': False, 'actualizar': True},
+            'configuracion': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False}
         }
     },
     {
         'nombre': 'Lector',
-        'descripcion': 'Solo puede visualizar datos',
+        'descripcion': 'Solo puede visualizar datos (no puede crear, editar ni eliminar)',
         'permisos': {
-            'ver': True,
-            'productos_view': True,
-            'proveedores_view': True,
-            'clientes_view': True,
-            'reportes_view': True,
-            'descripcion': 'Solo permisos de visualización'
+            'ventas': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False},
+            'compras': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False},
+            'reportes': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False},
+            'usuarios': {'leer': False, 'crear': False, 'eliminar': False, 'actualizar': False},
+            'productos': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False},
+            'inventario': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False},
+            'proveedores': {'leer': True, 'crear': False, 'eliminar': False, 'actualizar': False},
+            'configuracion': {'leer': False, 'crear': False, 'eliminar': False, 'actualizar': False}
         }
     },
 ]
@@ -639,11 +635,23 @@ print("  🎨 Dashboard con z-index corregido (dropdown funcional)")
 print("  🚀 JavaScript simplificado sin AJAX problemático")
 print("  ✨ Templates corregidos sin errores de sintaxis")
 print("  💎 SweetAlert2 consistente en toda la aplicación")
+print("  🏷️ CRUD completo para Categorías y Marcas implementado")
+print("  🔐 Sistema de permisos integrado con decoradores")
 print()
 print("🎯 Funcionalidades principales:")
 print("  📦 Gestión de Productos - CRUD completo optimizado")
-print("  🏢 Gestión de Proveedores - Formularios mejorados")
+print("  �️ Gestión de Categorías - CRUD completo con jerarquía")
+print("  🏪 Gestión de Marcas - CRUD completo con validaciones")
+print("  �🏢 Gestión de Proveedores - Formularios mejorados")
 print("  👥 Gestión de Clientes - Validaciones simplificadas")
 print("  📊 Dashboard interactivo - Sin problemas de interfaz")
 print("  🔐 Sistema de roles y permisos - 3 roles: Administrador, Editor, Lector")
+print()
+print("🆕 NUEVAS FUNCIONALIDADES CRUD (Noviembre 2025):")
+print("  📂 Categorías: /maestros/categorias/ - Crear, ver, editar, eliminar")
+print("  🏷️ Marcas: /maestros/marcas/ - Crear, ver, editar, eliminar")
+print("  ✅ Templates profesionales con diseño responsivo")
+print("  🛡️ Validaciones de dependencias antes de eliminar")
+print("  🎨 Diseño diferenciado por módulo (verde/azul/rojo)")
+print("  ⚡ Animaciones y efectos visuales modernos")
 print()
