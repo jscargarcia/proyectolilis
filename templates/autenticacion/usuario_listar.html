@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load static %}
+{% csrf_token %}
 
 {% block title %}Gestión de Usuarios - Dulcería Lilis{% endblock %}
 
@@ -332,15 +333,12 @@ function confirmarEliminar(userId, username) {
             form.method = 'POST';
             form.action = `/auth/usuarios/${userId}/eliminar/`;
             
-            // Token CSRF
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-            if (csrfToken) {
-                const csrfInput = document.createElement('input');
-                csrfInput.type = 'hidden';
-                csrfInput.name = 'csrfmiddlewaretoken';
-                csrfInput.value = csrfToken.value;
-                form.appendChild(csrfInput);
-            }
+            // Token CSRF desde Django template
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = '{{ csrf_token }}';
+            form.appendChild(csrfInput);
             
             document.body.appendChild(form);
             form.submit();

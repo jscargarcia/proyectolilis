@@ -1,0 +1,264 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle Marca - {{ marca.nombre }} - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+.header-card {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.detail-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.detail-card .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    padding: 20px;
+}
+
+.detail-card .card-body {
+    padding: 25px;
+}
+
+.info-item {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f1f1f1;
+}
+
+.info-item:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.info-value {
+    color: #212529;
+    font-size: 1.05rem;
+}
+
+.status-badge {
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.status-activo {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-inactivo {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.stats-card {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.stats-number {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #17a2b8;
+}
+
+.marca-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+    margin: 0 auto 15px;
+}
+
+.action-buttons .btn {
+    margin-right: 10px;
+    margin-bottom: 10px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="header-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-copyright me-2"></i>{{ marca.nombre }}</h2>
+                <p class="mb-0">Información detallada de la marca</p>
+            </div>
+            <div>
+                <a href="{% url 'maestros:marca_editar' marca.pk %}" class="btn btn-light me-2">
+                    <i class="fas fa-edit me-2"></i>Editar
+                </a>
+                <a href="{% url 'maestros:marca_listar' %}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Información principal -->
+        <div class="col-md-8">
+            <div class="detail-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Información General
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <span class="info-label">Nombre:</span>
+                                <div class="info-value">{{ marca.nombre }}</div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-item">
+                                <span class="info-label">Estado:</span>
+                                <div class="info-value">
+                                    <span class="status-badge {% if marca.activo %}status-activo{% else %}status-inactivo{% endif %}">
+                                        {% if marca.activo %}
+                                            <i class="fas fa-check-circle me-1"></i>Activa
+                                        {% else %}
+                                            <i class="fas fa-times-circle me-1"></i>Inactiva
+                                        {% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label">Descripción:</span>
+                        <div class="info-value">
+                            {% if marca.descripcion %}
+                                {{ marca.descripcion }}
+                            {% else %}
+                                <span class="text-muted">Sin descripción</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="info-label">Fecha de Creación:</span>
+                        <div class="info-value">
+                            <i class="fas fa-calendar me-1"></i>
+                            {{ marca.created_at|date:"d/m/Y H:i" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel lateral -->
+        <div class="col-md-4">
+            <!-- Estadísticas -->
+            <div class="stats-card">
+                <div class="marca-icon">
+                    <i class="fas fa-copyright"></i>
+                </div>
+                <div class="stats-number">{{ productos_count }}</div>
+                <div>Productos Asociados</div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="detail-card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-cogs me-2"></i>Acciones
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="action-buttons">
+                        <a href="{% url 'maestros:marca_editar' marca.pk %}" class="btn btn-warning btn-sm w-100 mb-2">
+                            <i class="fas fa-edit me-2"></i>Editar Marca
+                        </a>
+                        
+                        {% if productos_count == 0 %}
+                            <button class="btn btn-danger btn-sm w-100 mb-2" onclick="confirmarEliminar()">
+                                <i class="fas fa-trash me-2"></i>Eliminar Marca
+                            </button>
+                        {% else %}
+                            <button class="btn btn-secondary btn-sm w-100 mb-2" disabled title="No se puede eliminar - tiene productos asociados">
+                                <i class="fas fa-ban me-2"></i>No Eliminable
+                            </button>
+                        {% endif %}
+                        
+                        <a href="{% url 'maestros:producto_listar' %}?marca={{ marca.pk }}" class="btn btn-info btn-sm w-100">
+                            <i class="fas fa-box me-2"></i>Ver Productos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmarEliminar() {
+    Swal.fire({
+        title: '¿Está seguro?',
+        text: `¿Desea eliminar la marca "{{ marca.nombre }}"? Esta acción no se puede deshacer.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            window.location.href = '{% url "maestros:marca_eliminar" marca.pk %}';
+        }
+    });
+}
+
+// Animaciones de entrada
+document.addEventListener('DOMContentLoaded', function() {
+    const cards = document.querySelectorAll('.detail-card, .stats-card');
+    cards.forEach((card, index) => {
+        setTimeout(() => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'all 0.5s ease';
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 50);
+        }, index * 100);
+    });
+});
+</script>
+{% endblock %}

@@ -93,17 +93,18 @@ python manage.py runserver
 
 El script de semillas crea automáticamente los siguientes usuarios:
 
-### 🔑 Administradores
-- **admin** / **admin123** - Acceso completo al sistema
-- **gerente** / **gerente123** - Funciones gerenciales y reportes
+### 🔑 Usuarios del Sistema
 
-### 👥 Usuarios Operativos  
-- **vendedor1** / **vendedor123** - Gestión de ventas y clientes
-- **bodeguero1** / **bodeguero123** - Gestión de inventario y productos
+| Usuario | Contraseña | Rol | Permisos |
+|---------|------------|-----|----------|
+| **admin** | admin123 | Administrador | ✅ Acceso completo (CRUD total + gestión usuarios) |
+| **editor** | editor123 | Editor | ✅ Crear y editar ❌ No eliminar |
+| **lector** | lector123 | Lector | ✅ Solo visualización ❌ No crear/editar/eliminar |
 
 ### 🏷️ Roles del Sistema
-- **Administrador**: Acceso completo al sistema
-- **Gerente**: Gestión general del negocio y reportes
+- **Administrador**: Acceso completo al sistema (CRUD completo y gestión de usuarios)
+- **Editor**: Solo puede crear y editar elementos (no puede eliminar)
+- **Lector**: Solo puede visualizar datos (no puede crear, editar ni eliminar)
 
 ## 🎨 SISTEMA DE ANIMACIONES Y DISEÑO PROFESIONAL
 
@@ -183,7 +184,51 @@ SISTEMA_ANIMACIONES_COMPLETO.md # Documentación completa
 
 ---
 
-## 🔧 CORRECCIONES Y MEJORAS RECIENTES (Noviembre 2025)
+## � SISTEMA DE PERFIL PERSONAL (8 de Noviembre 2025)
+
+### ✅ Gestión de Perfil para Todos los Usuarios
+- ✅ **Editor y Lector pueden editar su propio perfil**: Nombres, apellidos, email, teléfono y foto
+- ✅ **Campos protegidos**: Username, rol, estado y permisos no pueden ser modificados
+- ✅ **Validaciones completas**: Email único, formato de teléfono, tamaño de imagen
+- ✅ **Interfaz moderna**: Template responsivo con preview de avatar y validaciones en tiempo real
+
+### 🔑 Sistema de Cambio de Contraseña Seguro
+- ✅ **Verificación por identidad**: Usuario debe ingresar contraseña actual
+- ✅ **Código por email**: Envío de código de 6 dígitos válido por 10 minutos
+- ✅ **Proceso en dos pasos**: Solicitar código → Verificar código + nueva contraseña
+- ✅ **Mantener sesión**: Usuario sigue autenticado después del cambio
+- ✅ **Validación robusta**: Contraseña segura con mayúsculas, minúsculas, números
+
+### 🎯 Campos Editables en Perfil
+```
+✅ Nombres (obligatorio)
+✅ Apellidos (obligatorio) 
+✅ Email (obligatorio, único)
+✅ Teléfono (opcional)
+✅ Foto de perfil (JPG, PNG, WEBP, máximo 2MB)
+
+🔒 Campos protegidos (solo lectura):
+- Nombre de usuario
+- Rol asignado
+- Estado de la cuenta
+- Fecha de registro
+```
+
+### 🔗 URLs del Sistema de Perfil
+- **Ver perfil**: `/auth/perfil/`
+- **Editar perfil**: `/auth/perfil/editar/`
+- **Cambiar contraseña**: `/auth/solicitar-codigo-cambio/`
+- **Verificar código**: `/auth/verificar-codigo-cambio/`
+
+### 🛡️ Seguridad y Permisos
+- ✅ **Solo perfil propio**: Usuarios no pueden ver/editar perfiles de otros
+- ✅ **Administradores**: Mantienen acceso a gestión completa de usuarios
+- ✅ **Roles preservados**: No se pueden auto-asignar permisos o cambiar roles
+- ✅ **Sesiones seguras**: Validación de identidad antes de cambios críticos
+
+---
+
+## �🔧 CORRECCIONES Y MEJORAS RECIENTES (Noviembre 2025)
 
 ### ✅ Corrección de CRUDs - Sistema Simplificado
 - ✅ **Eliminación de JavaScript complejo**: Removido AJAX problemático
@@ -251,6 +296,8 @@ form.addEventListener('submit', function(e) {
 - ✅ 7 decoradores personalizados de permisos
 - ✅ Middleware de seguridad de sesiones
 - ✅ Cookies HttpOnly y SameSite
+- ✅ **Gestión de Perfil Personal**: Editor y Lector pueden editar su propio perfil
+- ✅ **Cambio de Contraseña Seguro**: Verificación por código enviado por email
 
 #### 📦 Módulo de Catálogo Completo
 - ✅ CRUD completo con validaciones
@@ -284,6 +331,20 @@ form.addEventListener('submit', function(e) {
 - ✅ Validaciones de unicidad (RUT/NIF y email)
 - ✅ Manejo de errores y preservación de datos
 
+#### 🏷️ Gestión de Categorías y Marcas - CRUD COMPLETO (Noviembre 2025)
+- ✅ **CRUD Completo Implementado**: Crear, leer, actualizar, eliminar para categorías y marcas
+- ✅ **Templates Profesionales**: Vista profesional con estadísticas y jerarquía
+- ✅ **Sistema de Permisos Integrado**: Respeta roles de administrador, editor y lector
+- ✅ **Diseño Responsivo**: Compatible con dispositivos móviles
+- ✅ **Estadísticas en Tiempo Real**: Contadores de activas/inactivas
+- ✅ **Jerarquía de Categorías**: Soporte para categorías padre e hijos
+- ✅ **Validación de Dependencias**: No eliminar si tienen productos asociados
+- ✅ **SweetAlert2 Integrado**: Confirmaciones elegantes y feedback visual
+- ✅ **Animaciones CSS**: Efectos de entrada y hover profesionales
+- ✅ **URLs Funcionales**: Todas las rutas CRUD configuradas y operativas
+- ✅ **Validaciones Completas**: Formularios con validación cliente/servidor
+- ✅ **Diseño Diferenciado**: Verde para categorías, azul para marcas, rojo para eliminar
+
 #### 🛒 Carrito de Compras
 - ✅ Carrito en sesión
 - ✅ API REST completa
@@ -309,26 +370,38 @@ form.addEventListener('submit', function(e) {
 
 ### 🚀 Configuración Rápida de Nuevas Funcionalidades
 
-#### 1. Ejecutar migraciones adicionales:
+#### 1. Configurar archivo de entorno:
 ```bash
-python manage.py makemigrations catalogo
+# Copiar archivo de configuración
+cp .env.example .env
+
+# Editar .env con tus credenciales de base de datos y email
+```
+
+#### 2. Ejecutar migraciones:
+```bash
+python manage.py makemigrations
 python manage.py migrate
 ```
 
-#### 2. Configurar sistema automáticamente:
+#### 3. Poblar base de datos con datos de prueba:
 ```bash
-python setup_inicial.py
+python seed_simple.py
 ```
 
 Este script crea:
-- 3 roles adicionales (ADMIN, SUPERVISOR, VENDEDOR)
-- Usuarios de prueba con permisos
-- 5 productos de demostración en catálogo
+- 3 roles con permisos: Administrador, Editor, Lector
+- Usuarios de prueba con permisos correctos
+- Categorías y marcas de ejemplo
+- Productos completos para dulcería
+- Proveedores con relaciones
 
-#### 3. Acceder a las nuevas funcionalidades:
-- **Login mejorado**: http://localhost:8000/auth/login/
-- **Dashboard nuevo**: http://localhost:8000/auth/dashboard/
-- **Catálogo**: http://localhost:8000/catalogo/
+#### 4. Acceder a las funcionalidades:
+- **Login**: http://127.0.0.1:8000/auth/login/
+- **Dashboard**: http://127.0.0.1:8000/auth/dashboard/
+- **Categorías**: http://127.0.0.1:8000/maestros/categorias/
+- **Marcas**: http://127.0.0.1:8000/maestros/marcas/
+- **Productos**: http://127.0.0.1:8000/maestros/productos/
 
 ### 👤 Nuevos Usuarios de Prueba (Sistema Ampliado)
 
@@ -392,46 +465,70 @@ templates/
 │   └── eliminar.html           # Confirmación
 └── maestros/
     ├── producto_*.html         # Templates de productos
-    ├── proveedor_crear.html    # Crear proveedor con validaciones
-    ├── proveedor_detalle.html  # Vista detallada de proveedor
-    └── proveedor_listar.html   # Lista de proveedores
+    ├── proveedor_*.html        # Templates de proveedores
+    ├── categoria_listar.html   # Lista de categorías con jerarquía ✅
+    ├── categoria_crear.html    # Crear categoría ✅
+    ├── categoria_editar.html   # Editar categoría ✅
+    ├── categoria_detalle.html  # Ver detalle categoría ✅
+    ├── marca_listar.html       # Lista de marcas con estadísticas ✅
+    ├── marca_crear.html        # Crear marca ✅
+    ├── marca_editar.html       # Editar marca ✅
+    ├── marca_detalle.html      # Ver detalle marca ✅
+    └── marca_eliminar.html     # Eliminar marca ✅
+
+maestros/
+├── views.py                    # Vistas CRUD completas con permisos
+├── urls.py                     # URLs configuradas para CRUD
+└── models.py                   # Modelos de Categoria y Marca
 
 autenticacion/
 ├── decorators.py               # 7 decoradores de permisos
-└── middleware.py               # 3 middlewares personalizados
+├── middleware.py               # 3 middlewares personalizados
+└── templatetags/               # Template tags para permisos
 
-catalogo/
-├── models.py                   # Modelo con 10+ validaciones
-├── views.py                    # 6 vistas CRUD
-└── urls.py                     # URLs del módulo
-
-sistema/
-├── views.py                    # APIs carrito y notificaciones
-└── urls.py                     # 10 endpoints API
+static/
+├── css/
+│   ├── animations.css          # Animaciones profesionales
+│   └── professional-components.css # Componentes mejorados
+└── js/
+    └── animations.js           # Sistema JavaScript de animaciones
 ```
 
 ### 🧪 Probar las Nuevas Funcionalidades
 
-#### Carrito:
+#### CRUD de Categorías:
 ```bash
-1. Login → Catálogo
-2. Agregar productos
-3. Ver carrito en navbar
-4. Gestionar items
+1. Login como admin → Maestros → Categorías
+2. Crear nueva categoría con validaciones
+3. Ver detalle con estadísticas
+4. Editar con preview de cambios
+5. Eliminar con validación de dependencias
 ```
 
-#### Notificaciones:
+#### CRUD de Marcas:
 ```bash
-1. Login → Ver notificación de bienvenida
-2. Dashboard → "Probar Notificación"
-3. Verificar contador
+1. Login como editor → Maestros → Marcas
+2. Crear nueva marca
+3. Ver listado con filtros
+4. Editar información
+5. Intentar eliminar (sin permisos)
 ```
 
-#### Permisos:
+#### Sistema de Permisos:
 ```bash
 1. Login con diferentes usuarios
-2. Verificar menú según rol
-3. Probar acciones permitidas/denegadas
+2. Verificar botones según rol:
+   - Admin: Ve todos los botones
+   - Editor: Ve crear/editar (no eliminar)
+   - Lector: Solo ve información
+```
+
+#### Carrito y Notificaciones:
+```bash
+1. Login → Catálogo
+2. Agregar productos al carrito
+3. Ver notificaciones en navbar
+4. Gestionar items del carrito
 ```
 
 ### 🚨 Comandos Útiles
@@ -488,7 +585,188 @@ python setup_inicial.py
 
 ---
 
+## 🆕 NUEVAS FUNCIONALIDADES - CRUD CATEGORÍAS Y MARCAS (8 de Noviembre 2025)
+
+### ✅ Sistema CRUD Completo Implementado
+
+#### 🏷️ **Gestión de Categorías**
+- ✅ **CRUD Completo**: Crear, leer, actualizar, eliminar con validaciones
+- ✅ **Jerarquía**: Soporte para categorías padre e hijas
+- ✅ **Validaciones**: No eliminar si tienen productos asociados
+- ✅ **Templates Profesionales**: Diseño verde corporativo con animaciones
+- ✅ **Estadísticas**: Contadores en tiempo real de activas/inactivas
+- ✅ **URLs Configuradas**: 
+  - `/maestros/categorias/` - Listar
+  - `/maestros/categorias/crear/` - Crear nueva
+  - `/maestros/categorias/{id}/` - Ver detalle
+  - `/maestros/categorias/{id}/editar/` - Editar
+  - `/maestros/categorias/{id}/eliminar/` - Eliminar
+
+#### 🏪 **Gestión de Marcas**
+- ✅ **CRUD Completo**: Crear, leer, actualizar, eliminar con validaciones
+- ✅ **Gestión Independiente**: Control total de marcas del sistema
+- ✅ **Validaciones**: No eliminar si tienen productos asociados
+- ✅ **Templates Profesionales**: Diseño azul corporativo con animaciones
+- ✅ **Estadísticas**: Contadores y métricas de uso
+- ✅ **URLs Configuradas**:
+  - `/maestros/marcas/` - Listar
+  - `/maestros/marcas/crear/` - Crear nueva
+  - `/maestros/marcas/{id}/` - Ver detalle
+  - `/maestros/marcas/{id}/editar/` - Editar
+  - `/maestros/marcas/{id}/eliminar/` - Eliminar
+
+#### 🔐 **Sistema de Permisos Integrado**
+- ✅ **Decoradores Aplicados**: `@permiso_requerido('productos', 'crear|actualizar|eliminar')`
+- ✅ **Roles Configurados**: Admin (total), Editor (crear/editar), Lector (solo ver)
+- ✅ **Templates Dinámicos**: Botones aparecen según permisos del usuario
+- ✅ **Seguridad Multinivel**: Vista + Template + URL + Formulario
+
+#### 🎨 **Características Visuales**
+- ✅ **Diseño Diferenciado**: Verde para categorías, azul para marcas
+- ✅ **Animaciones Profesionales**: Efectos de entrada y hover
+- ✅ **SweetAlert2**: Confirmaciones elegantes para eliminar
+- ✅ **Responsive**: Compatible con móviles y tablets
+- ✅ **Bootstrap 5**: Framework moderno y consistente
+
+#### 🔧 **Corrección de Problemas**
+- ✅ **JavaScript "Función en desarrollo"**: Corregido a URLs reales
+- ✅ **Permisos 'maestros'**: Cambiado a 'productos' para consistencia
+- ✅ **Templates Funcionales**: Todos los botones redirigen correctamente
+- ✅ **Validaciones**: Formularios con doble validación cliente/servidor
+
+---
+
+## 🐛 CORRECCIONES DE URLS - SISTEMA DE NAMESPACES (8 de Noviembre 2025)
+
+### ✅ Problemas de URLs Sin Namespace Resueltos
+- ✅ **Corrección `cliente_listar`**: Cambiado de `{% url 'cliente_listar' %}` a `{% url 'ventas:cliente_listar' %}` en template de perfil
+- ✅ **Corrección `verificar_codigo_cambio`**: Todos los redirects de autenticación ahora usan namespace `autenticacion:`
+- ✅ **Sistema de recuperación de contraseña**: URLs corregidas en todas las vistas
+- ✅ **Gestión de usuarios y roles**: Redirects actualizados con namespace correcto
+
+### 🔧 Archivos Corregidos
+- `templates/autenticacion/perfil.html`: URL de clientes con namespace `ventas:`
+- `autenticacion/views.py`: 12 redirects corregidos con namespace `autenticacion:`
+  - `solicitar_codigo_cambio` → `verificar_codigo_cambio`
+  - `verificar_codigo_cambio` → `perfil_usuario`
+  - `recuperar_password` → `verificar_codigo_recuperacion`
+  - `usuario_listar`, `rol_listar` y otros redirects administrativos
+
+### 🎯 Estructura de Namespaces Implementada
+```python
+# URLs principales con namespaces
+autenticacion:*     # Sistema de usuarios y autenticación
+ventas:*           # Gestión de clientes y ventas
+maestros:*         # Productos y proveedores
+catalogo:*         # Catálogo público
+sistema:*          # APIs y funciones del sistema
+```
+
+### 🛡️ Beneficios de la Corrección
+- ✅ **Eliminación de NoReverseMatch**: Sin más errores de URLs no encontradas
+- ✅ **Consistencia**: Todas las URLs usan namespaces apropiados
+- ✅ **Mantenibilidad**: Código más organizado y fácil de mantener
+- ✅ **Escalabilidad**: Preparado para nuevos módulos sin conflictos de nombres
+
+---
+
+## 📧 SISTEMA DE EMAILS MÚLTIPLES - CÓDIGOS DE VERIFICACIÓN (8 de Noviembre 2025)
+
+### ✅ **SISTEMA COMPLETAMENTE FUNCIONAL - EMAILS MÚLTIPLES**
+
+#### 🎯 **Cómo Funciona:**
+- **Remitente único**: `dilannavid@gmail.com` (cuenta Gmail configurada)
+- **Destinatarios múltiples**: Cada usuario recibe códigos en su email personal
+- **Envío automático**: Los códigos se envían al email del usuario logueado
+
+#### 📧 **Configuración Gmail SMTP Activa:**
+```properties
+# ✅ YA CONFIGURADO EN .env
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=dilannavid@gmail.com
+EMAIL_HOST_PASSWORD=pvsh iodk ctkp faet
+DEFAULT_FROM_EMAIL=Dulcería Lilis <dilannavid@gmail.com>
+```
+
+#### 👥 **Usuarios Actuales y Sus Emails:**
+| Usuario | Email Destinatario | Recibe Códigos |
+|---------|-------------------|----------------|
+| admin | admin@dulcerialilis.cl | ✅ |
+| dulans | dilannavid@gmail.com | ✅ |
+| editor | editor@dulcerialilis.cl | ✅ |
+| lector | dilan2navid@gmail.com | ✅ |
+| nabhid | dilan1navid@gmail.com | ✅ |
+
+#### 🛠️ **Scripts de Gestión de Usuarios:**
+- ✅ **crear_usuarios_emails.py**: Crear usuarios con emails personalizados
+- ✅ **actualizar_emails_usuarios.py**: Actualizar emails de usuarios existentes
+- ✅ **probar_emails_multiples.py**: Probar envío a múltiples destinatarios
+
+### 🎯 **Cómo Usar el Sistema Multi-Email:**
+
+#### **Para Usuarios Existentes:**
+1. 🌐 Login en http://127.0.0.1:8000/auth/login/
+2. � Usar cualquier usuario (admin, editor, lector, etc.)
+3. �🔄 Ir a "Cambiar Contraseña" 
+4. 📝 Ingresar contraseña actual
+5. 📧 **El código llega al email personal del usuario**
+
+#### **Para Agregar Nuevos Usuarios:**
+```bash
+# Crear usuarios con emails reales
+python crear_usuarios_emails.py
+
+# Actualizar emails de usuarios existentes  
+python actualizar_emails_usuarios.py
+
+# Probar envío a múltiples emails
+python probar_emails_multiples.py
+```
+
+### 🔑 **Usuarios de Prueba Multi-Email:**
+| Usuario | Contraseña | Email Personal | Estado |
+|---------|------------|----------------|--------|
+| **admin** | admin123 | admin@dulcerialilis.cl | ✅ Activo |
+| **editor** | editor123 | editor@dulcerialilis.cl | ✅ Activo |
+| **lector** | lector123 | dilan2navid@gmail.com | ✅ Activo |
+| **dulans** | dulans123 | dilannavid@gmail.com | ✅ Activo |
+| **nabhid** | nabhid123 | dilan1navid@gmail.com | ✅ Activo |
+
+### 📊 **Comandos Útiles Multi-Email:**
+```bash
+# Ver todos los usuarios y sus emails
+python -c "import os,django; os.environ.setdefault('DJANGO_SETTINGS_MODULE','config.settings'); django.setup(); from autenticacion.models import Usuario; [print(f'{u.username}: {u.email}') for u in Usuario.objects.all()]"
+
+# Probar envío de códigos a múltiples usuarios
+python probar_emails_multiples.py
+
+# Ver códigos activos por usuario
+python manage.py shell
+>>> from autenticacion.models import PasswordChangeCode, Usuario
+>>> for u in Usuario.objects.all(): print(f"{u.username}: {PasswordChangeCode.objects.filter(usuario=u, usado=False).count()} códigos activos")
+```
+
+### 🛡️ **Características de Seguridad Multi-Usuario:**
+- ✅ **Códigos personalizados**: Cada usuario recibe su propio código único
+- ✅ **Emails individuales**: Códigos enviados solo al email del usuario solicitante
+- ✅ **Expiración automática**: 10 minutos de validez por código
+- ✅ **Un solo uso**: Se invalidan después de usar
+- ✅ **Invalidación por usuario**: Códigos anteriores del mismo usuario se cancelan
+- ✅ **IP tracking**: Registro de dirección IP para auditoría por usuario
+- ✅ **Aislamiento**: Cada usuario solo puede usar sus propios códigos
+
+### 🎉 **SISTEMA LISTO PARA PRODUCCIÓN:**
+- ✅ **Gmail SMTP**: Configurado y funcionando
+- ✅ **Múltiples destinatarios**: Cada usuario en su email
+- ✅ **Escalable**: Fácil agregar más usuarios con emails únicos
+- ✅ **Seguro**: Códigos individuales y validación por usuario
+
+---
+
 **⚡ Sistema completamente corregido, optimizado y funcional** 🚀
 
-**Última actualización**: 7 de noviembre de 2025
-**Estado**: ✅ Todas las funcionalidades operativas sin errores conocidos
+**Última actualización**: 8 de noviembre de 2025
+**Estado**: ✅ Todas las funcionalidades operativas - URLs con namespaces corregidos

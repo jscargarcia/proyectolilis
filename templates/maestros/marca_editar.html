@@ -1,0 +1,382 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Editar Marca - {{ marca.nombre }} - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+.header-card {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    border-radius: 20px;
+    padding: 30px;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.form-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.form-card .card-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
+    padding: 20px;
+}
+
+.form-card .card-body {
+    padding: 30px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+}
+
+.form-control {
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+    padding: 12px 16px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    border-color: #ffc107;
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+}
+
+.form-check {
+    margin-top: 15px;
+}
+
+.form-check-input {
+    border-radius: 6px;
+    border: 2px solid #e9ecef;
+    width: 20px;
+    height: 20px;
+}
+
+.form-check-input:checked {
+    background-color: #ffc107;
+    border-color: #ffc107;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 12px 30px;
+    font-weight: 600;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-warning:hover {
+    background: linear-gradient(135deg, #fd7e14 0%, #e83e8c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+    color: white;
+}
+
+.btn-secondary {
+    border-radius: 25px;
+    padding: 12px 30px;
+    font-weight: 600;
+}
+
+.required {
+    color: #dc3545;
+}
+
+.form-text {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 5px;
+}
+
+.marca-preview {
+    background: #fff3cd;
+    border-radius: 10px;
+    padding: 15px;
+    border-left: 4px solid #ffc107;
+    margin-top: 15px;
+}
+
+.current-info {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-left: 4px solid #17a2b8;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="header-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2><i class="fas fa-edit me-2"></i>Editar Marca</h2>
+                <p class="mb-0">Modificar información de: <strong>{{ marca.nombre }}</strong></p>
+            </div>
+            <div>
+                <a href="{% url 'maestros:marca_detalle' marca.pk %}" class="btn btn-outline-light me-2">
+                    <i class="fas fa-eye me-2"></i>Ver Detalle
+                </a>
+                <a href="{% url 'maestros:marca_listar' %}" class="btn btn-outline-light">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a Lista
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-copyright me-2"></i>Información de la Marca
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Información actual -->
+                    <div class="current-info">
+                        <h6><i class="fas fa-info-circle me-2"></i>Información Actual</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Nombre:</strong> {{ marca.nombre }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Estado:</strong> 
+                                <span class="badge {% if marca.activo %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {% if marca.activo %}Activa{% else %}Inactiva{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        {% if marca.descripcion %}
+                        <div class="mt-2">
+                            <strong>Descripción:</strong> {{ marca.descripcion }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <form method="post" id="marcaForm">
+                        {% csrf_token %}
+                        
+                        <!-- Nombre -->
+                        <div class="form-group">
+                            <label for="nombre" class="form-label">
+                                Nombre <span class="required">*</span>
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="nombre" 
+                                   name="nombre" 
+                                   value="{{ form_data.nombre|default:marca.nombre }}"
+                                   required 
+                                   maxlength="100"
+                                   placeholder="Ej: Nestlé, Coca-Cola, Ferrero...">
+                            <div class="form-text">Nombre único para identificar la marca</div>
+                        </div>
+
+                        <!-- Descripción -->
+                        <div class="form-group">
+                            <label for="descripcion" class="form-label">
+                                Descripción
+                            </label>
+                            <textarea class="form-control" 
+                                      id="descripcion" 
+                                      name="descripcion" 
+                                      rows="3"
+                                      maxlength="255"
+                                      placeholder="Descripción opcional de la marca">{{ form_data.descripcion|default:marca.descripcion }}</textarea>
+                            <div class="form-text">Descripción opcional de la marca (máximo 255 caracteres)</div>
+                        </div>
+
+                        <!-- Estado -->
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input class="form-check-input" 
+                                       type="checkbox" 
+                                       id="activo" 
+                                       name="activo"
+                                       {% if form_data.activo != 'off' %}
+                                           {% if form_data.activo == 'on' or marca.activo %}checked{% endif %}
+                                       {% endif %}>
+                                <label class="form-check-label" for="activo">
+                                    <strong>Marca Activa</strong>
+                                </label>
+                            </div>
+                            <div class="form-text">Las marcas inactivas no aparecerán en los formularios de productos</div>
+                        </div>
+
+                        <!-- Preview -->
+                        <div id="marcaPreview" class="marca-preview" style="display: none;">
+                            <h6><i class="fas fa-eye me-2"></i>Vista Previa de Cambios</h6>
+                            <div id="previewContent"></div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex justify-content-end gap-3 mt-4">
+                            <a href="{% url 'maestros:marca_detalle' marca.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-warning" id="submitBtn">
+                                <i class="fas fa-save me-2"></i>Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('marcaForm');
+    const nombreInput = document.getElementById('nombre');
+    const descripcionInput = document.getElementById('descripcion');
+    const activoCheck = document.getElementById('activo');
+    const preview = document.getElementById('marcaPreview');
+    const previewContent = document.getElementById('previewContent');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // Valores originales
+    const originalValues = {
+        nombre: '{{ marca.nombre }}',
+        descripcion: '{{ marca.descripcion|default:"" }}',
+        activo: {{ marca.activo|yesno:"true,false" }}
+    };
+
+    // Validación en tiempo real
+    function validateForm() {
+        const nombre = nombreInput.value.trim();
+        let isValid = true;
+
+        // Validar nombre
+        if (!nombre) {
+            nombreInput.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            nombreInput.classList.remove('is-invalid');
+            nombreInput.classList.add('is-valid');
+        }
+
+        submitBtn.disabled = !isValid;
+        updatePreview();
+    }
+
+    // Verificar si hay cambios
+    function hasChanges() {
+        const currentValues = {
+            nombre: nombreInput.value.trim(),
+            descripcion: descripcionInput.value.trim(),
+            activo: activoCheck.checked
+        };
+
+        return (
+            currentValues.nombre !== originalValues.nombre ||
+            currentValues.descripcion !== originalValues.descripcion ||
+            currentValues.activo !== originalValues.activo
+        );
+    }
+
+    // Actualizar preview
+    function updatePreview() {
+        if (hasChanges()) {
+            const nombre = nombreInput.value.trim();
+            const descripcion = descripcionInput.value.trim();
+            const activo = activoCheck.checked;
+
+            if (nombre) {
+                let html = `
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="marca-icon me-3" style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, #ffc107, #fd7e14); display: flex; align-items: center; justify-content: center; color: white;">
+                            <i class="fas fa-copyright" style="font-size: 0.8rem;"></i>
+                        </div>
+                        <div>
+                            <strong>${nombre}</strong>
+                            <span class="badge ${activo ? 'bg-success' : 'bg-secondary'} ms-2">
+                                ${activo ? 'Activa' : 'Inactiva'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+
+                if (descripcion) {
+                    html += `<p class="text-muted mb-0">${descripcion}</p>`;
+                }
+
+                previewContent.innerHTML = html;
+                preview.style.display = 'block';
+            }
+        } else {
+            preview.style.display = 'none';
+        }
+    }
+
+    // Event listeners
+    nombreInput.addEventListener('input', validateForm);
+    descripcionInput.addEventListener('input', updatePreview);
+    activoCheck.addEventListener('change', updatePreview);
+
+    // Validación inicial
+    validateForm();
+
+    // Validación del formulario antes de enviar
+    form.addEventListener('submit', function(e) {
+        const nombre = nombreInput.value.trim();
+
+        if (!nombre) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'error',
+                title: 'Datos incompletos',
+                text: 'El nombre de la marca es obligatorio.',
+                confirmButtonColor: '#ffc107'
+            });
+            nombreInput.focus();
+            return;
+        }
+
+        if (!hasChanges()) {
+            e.preventDefault();
+            Swal.fire({
+                icon: 'info',
+                title: 'Sin cambios',
+                text: 'No se han detectado cambios en la información.',
+                confirmButtonColor: '#ffc107'
+            });
+            return;
+        }
+
+        // Mostrar loading
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+        submitBtn.disabled = true;
+    });
+
+    // Animación de entrada
+    const formCard = document.querySelector('.form-card');
+    formCard.style.opacity = '0';
+    formCard.style.transform = 'translateY(30px)';
+    formCard.style.transition = 'all 0.5s ease';
+    
+    setTimeout(() => {
+        formCard.style.opacity = '1';
+        formCard.style.transform = 'translateY(0)';
+    }, 100);
+});
+</script>
+{% endblock %}

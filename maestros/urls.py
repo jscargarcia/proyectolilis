@@ -23,7 +23,15 @@ urlpatterns = [
     
     # Categorías
     path('categorias/', views.categoria_listar, name='categoria_listar'),
+    path('categorias/crear/', views.categoria_crear, name='categoria_crear'),
+    path('categorias/<int:pk>/', views.categoria_detalle, name='categoria_detalle'),
+    path('categorias/<int:pk>/editar/', views.categoria_editar, name='categoria_editar'),
+    path('categorias/<int:pk>/eliminar/', views.categoria_eliminar, name='categoria_eliminar'),
     
     # Marcas
     path('marcas/', views.marca_listar, name='marca_listar'),
+    path('marcas/crear/', views.marca_crear, name='marca_crear'),
+    path('marcas/<int:pk>/', views.marca_detalle, name='marca_detalle'),
+    path('marcas/<int:pk>/editar/', views.marca_editar, name='marca_editar'),
+    path('marcas/<int:pk>/eliminar/', views.marca_eliminar, name='marca_eliminar'),
 ]

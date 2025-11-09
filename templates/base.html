@@ -678,8 +678,8 @@
                             </li>
                         {% endif %}
                         
-                        <!-- Menú Maestros -->
-                        {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' or user.rol and user.rol.nombre == 'GERENTE' or user.rol and user.rol.nombre == 'BODEGUERO' %}
+                        <!-- Menú Maestros - Todos pueden ver, algunos pueden crear/editar -->
+                        {% if user.is_authenticated %}
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                                     <i class="fas fa-boxes"></i> Maestros
@@ -689,7 +689,8 @@
                                     <li><a class="dropdown-item" href="{% url 'maestros:producto_listar' %}">
                                         <i class="fas fa-box"></i> Lista de Productos
                                     </a></li>
-                                    {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' or user.rol and user.rol.nombre == 'GERENTE' %}
+                                    {% tiene_permiso 'productos' 'crear' as puede_crear_productos %}
+                                    {% if puede_crear_productos %}
                                     <li><a class="dropdown-item" href="{% url 'maestros:producto_crear' %}">
                                         <i class="fas fa-plus"></i> Nuevo Producto
                                     </a></li>
@@ -700,7 +701,8 @@
                                     <li><a class="dropdown-item" href="{% url 'maestros:proveedor_listar' %}">
                                         <i class="fas fa-truck"></i> Lista de Proveedores
                                     </a></li>
-                                    {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' or user.rol and user.rol.nombre == 'GERENTE' %}
+                                    {% tiene_permiso 'proveedores' 'crear' as puede_crear_proveedores %}
+                                    {% if puede_crear_proveedores %}
                                     <li><a class="dropdown-item" href="{% url 'maestros:proveedor_crear' %}">
                                         <i class="fas fa-plus"></i> Nuevo Proveedor
                                     </a></li>
@@ -800,11 +802,14 @@
                                 <i class="fas fa-user"></i> {{ user.get_full_name }}
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="{% url 'autenticacion:usuario_detalle' user.pk %}">
+                                <li><a class="dropdown-item" href="{% url 'autenticacion:perfil_usuario' %}">
                                     <i class="fas fa-user-circle"></i> Mi Perfil
                                 </a></li>
-                                <li><a class="dropdown-item" href="#">
-                                    <i class="fas fa-cog"></i> Configuración
+                                <li><a class="dropdown-item" href="{% url 'autenticacion:editar_perfil' %}">
+                                    <i class="fas fa-edit"></i> Editar Perfil
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'autenticacion:solicitar_codigo_cambio' %}">
+                                    <i class="fas fa-key"></i> Cambiar Contraseña
                                 </a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li><a class="dropdown-item" href="{% url 'autenticacion:logout' %}">

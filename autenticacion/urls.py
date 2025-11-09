@@ -1,5 +1,6 @@
 from django.urls import path
 from . import views
+from . import views_debug
 
 app_name = 'autenticacion'
 
@@ -15,6 +16,7 @@ urlpatterns = [
     path('perfil/editar/', views.editar_perfil, name='editar_perfil'),
     path('perfil/cambiar-password/', views.cambiar_password, name='cambiar_password'),
     path('solicitar-codigo-cambio/', views.solicitar_codigo_cambio, name='solicitar_codigo_cambio'),
+    path('solicitar-codigo-cambio-debug/', views_debug.solicitar_codigo_cambio_debug, name='solicitar_codigo_cambio_debug'),
     path('verificar-codigo-cambio/', views.verificar_codigo_cambio, name='verificar_codigo_cambio'),
     path('recuperar-password/', views.recuperar_password, name='recuperar_password'),
     path('verificar-codigo-recuperacion/', views.verificar_codigo_recuperacion, name='verificar_codigo_recuperacion'),
