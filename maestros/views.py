@@ -405,6 +405,13 @@ def producto_editar(request, pk):
     producto = get_object_or_404(Producto, pk=pk)
     
     if request.method == 'POST':
+        print(f"[DEBUG] 🚀 Vista producto_editar ejecutada - POST para producto {pk}")
+        print(f"[DEBUG] User: {request.user}")
+        print(f"[DEBUG] Content Type: {request.content_type}")
+        print(f"[DEBUG] Headers: {dict(request.headers)}")
+        print(f"[DEBUG] POST data: {dict(request.POST)}")
+        print(f"[DEBUG] FILES: {dict(request.FILES)}")
+        print(f"[DEBUG] Producto actual: {producto.nombre} - Estado: {producto.estado}")
         errores = []
         
         # Validar campos requeridos
@@ -527,9 +534,11 @@ def producto_editar(request, pk):
         
         # Si hay errores, mostrarlos
         if errores:
+            print(f"[DEBUG] ❌ Errores de validación: {errores}")
             for error in errores:
                 messages.error(request, error)
         else:
+            print(f"[DEBUG] ✅ Validaciones pasadas, procediendo a actualizar producto")
             # Actualizar producto
             try:
                 with transaction.atomic():
@@ -574,6 +583,7 @@ def producto_editar(request, pk):
                     producto.imagen_url = imagen_url if imagen_url else None
                     
                     producto.save()
+                    print(f"[DEBUG] ✅ Producto guardado exitosamente: {producto.nombre} - Estado: {producto.estado}")
                     
                     messages.success(request, f'Producto "{producto.nombre}" actualizado exitosamente.')
                     return JsonResponse({
@@ -591,6 +601,7 @@ def producto_editar(request, pk):
                 })
         
         # Si llegamos aquí, hay errores
+        print(f"[DEBUG] ❌ Devolviendo errores JSON: {errores}")
         return JsonResponse({
             'success': False,
             'errors': errores
@@ -638,19 +649,64 @@ def producto_test_estado(request, pk):
 
 @login_required_custom
 @estado_usuario_activo
+@permiso_requerido('productos', 'editar')
+def producto_desactivar(request, pk):
+    """Desactivar producto como alternativa a eliminación"""
+    producto = get_object_or_404(Producto, pk=pk)
+    
+    if request.method == 'POST':
+        try:
+            print(f"[DEBUG] Desactivando producto: {producto.pk} - {producto.nombre}")
+            
+            producto.estado = 'Inactivo'
+            producto.save()
+            
+            messages.success(request, f'Producto "{producto.nombre}" desactivado exitosamente.')
+            return JsonResponse({
+                'success': True,
+                'message': f'Producto "{producto.nombre}" desactivado exitosamente.',
+                'redirect_url': reverse('maestros:producto_listar')
+            })
+            
+        except Exception as e:
+            print(f"[DEBUG] Error al desactivar producto: {str(e)}")
+            messages.error(request, f'Error al desactivar producto: {str(e)}')
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al desactivar producto: {str(e)}'
+            })
+    
+    # Contar registros relacionados para mostrar información
+    relaciones = []
+    try:
+        from inventario.models import MovimientoInventario
+        movimientos_count = MovimientoInventario.objects.filter(producto=producto).count()
+        if movimientos_count > 0:
+            relaciones.append(f"{movimientos_count} movimientos de inventario")
+    except ImportError:
+        pass
+    
+    context = {
+        'producto': producto,
+        'relaciones': relaciones,
+        'accion': 'desactivar'
+    }
+    return render(request, 'maestros/producto_desactivar.html', context)
+
+
+@login_required_custom
+@estado_usuario_activo
 @permiso_requerido('productos', 'eliminar')
 def producto_eliminar(request, pk):
-    """Eliminar producto con confirmación"""
+    """Eliminar producto con confirmación y limpieza automática"""
     producto = get_object_or_404(Producto, pk=pk)
     
     if request.method == 'POST':
         try:
             print(f"[DEBUG] Intentando eliminar producto: {producto.pk} - {producto.nombre}")
-            
-            # Verificar si el producto tiene movimientos
-            # En un sistema real verificarías inventario, compras, ventas, etc.
             nombre_producto = producto.nombre
             
+            # Primero intentar eliminación directa
             with transaction.atomic():
                 producto.delete()
                 print(f"[DEBUG] Producto eliminado exitosamente: {nombre_producto}")
@@ -663,12 +719,55 @@ def producto_eliminar(request, pk):
             }
             print(f"[DEBUG] Respuesta JSON: {response_data}")
             return JsonResponse(response_data)
+            
         except Exception as e:
             print(f"[DEBUG] Error al eliminar producto: {str(e)}")
-            messages.error(request, f'Error al eliminar producto: {str(e)}')
+            error_message = str(e)
+            
+            if "protected foreign keys" in error_message or "FOREIGN KEY constraint" in error_message:
+                # Intentar limpieza automática de registros de inventario
+                try:
+                    from inventario.models import MovimientoInventario, StockActual
+                    
+                    with transaction.atomic():
+                        # Eliminar movimientos y stock
+                        movimientos_eliminados = MovimientoInventario.objects.filter(producto=producto).count()
+                        stock_eliminado = StockActual.objects.filter(producto=producto).count()
+                        
+                        MovimientoInventario.objects.filter(producto=producto).delete()
+                        StockActual.objects.filter(producto=producto).delete()
+                        
+                        print(f"[DEBUG] Limpieza automática: {movimientos_eliminados} movimientos, {stock_eliminado} registros de stock")
+                        
+                        # Intentar eliminar el producto de nuevo
+                        producto.delete()
+                        print(f"[DEBUG] Producto eliminado exitosamente después de limpieza: {nombre_producto}")
+                        
+                    messages.success(request, f'Producto "{nombre_producto}" eliminado exitosamente (se limpiaron registros de inventario asociados).')
+                    return JsonResponse({
+                        'success': True,
+                        'message': f'Producto eliminado exitosamente.',
+                        'redirect_url': reverse('maestros:producto_listar')
+                    })
+                    
+                except Exception as cleanup_error:
+                    print(f"[DEBUG] Error en limpieza automática: {str(cleanup_error)}")
+                    mensaje_amigable = (
+                        f'No se puede eliminar el producto "{nombre_producto}" porque tiene '
+                        f'registros históricos asociados que no se pueden eliminar automáticamente. '
+                        f'Para mantener la integridad de los datos, puede desactivar el producto en su lugar.'
+                    )
+                    error_type = 'integrity_constraint'
+            else:
+                mensaje_amigable = f'Error al eliminar producto: {error_message}'
+                error_type = 'general_error'
+            
+            messages.error(request, mensaje_amigable)
             return JsonResponse({
                 'success': False,
-                'message': f'Error al eliminar producto: {str(e)}'
+                'message': mensaje_amigable,
+                'error_type': error_type,
+                'alternativa': 'desactivar'
             })
     
     context = {
@@ -920,6 +1019,7 @@ def proveedor_detalle(request, pk):
 
 @login_required_custom
 @estado_usuario_activo
+@permission_required('categorias.leer')
 def categoria_listar(request):
     """Lista de categorías"""
     categorias = Categoria.objects.all().order_by('nombre')
@@ -930,7 +1030,7 @@ def categoria_listar(request):
 
 @login_required_custom
 @estado_usuario_activo
-@permiso_requerido('maestros', 'leer')
+@permission_required('categorias.leer')
 def categoria_detalle(request, pk):
     """Detalle de categoría"""
     categoria = get_object_or_404(Categoria, pk=pk)
@@ -951,7 +1051,7 @@ def categoria_detalle(request, pk):
 
 @login_required_custom
 @estado_usuario_activo
-@permiso_requerido('productos', 'crear')
+@permission_required('categorias.crear')
 @csrf_protect
 def categoria_crear(request):
     """Crear nueva categoría"""
@@ -999,7 +1099,7 @@ def categoria_crear(request):
 
 @login_required_custom
 @estado_usuario_activo
-@permiso_requerido('productos', 'actualizar')
+@permission_required('categorias.actualizar')
 @csrf_protect
 def categoria_editar(request, pk):
     """Editar categoría existente"""
@@ -1060,7 +1160,7 @@ def categoria_editar(request, pk):
 
 @login_required_custom
 @estado_usuario_activo
-@permiso_requerido('productos', 'eliminar')
+@permission_required('categorias.eliminar')
 @csrf_protect
 def categoria_eliminar(request, pk):
     """Eliminar categoría"""
@@ -1096,6 +1196,7 @@ def categoria_eliminar(request, pk):
 
 @login_required_custom
 @estado_usuario_activo
+@permission_required('marcas.leer')
 def marca_listar(request):
     """Lista de marcas"""
     marcas = Marca.objects.all().order_by('nombre')
@@ -1106,7 +1207,7 @@ def marca_listar(request):
 
 @login_required_custom
 @estado_usuario_activo
-@permiso_requerido('maestros', 'leer')
+@permission_required('marcas.leer')
 def marca_detalle(request, pk):
     """Detalle de marca"""
     marca = get_object_or_404(Marca, pk=pk)
@@ -1123,7 +1224,7 @@ def marca_detalle(request, pk):
 
 @login_required_custom
 @estado_usuario_activo
-@permiso_requerido('productos', 'crear')
+@permission_required('marcas.crear')
 @csrf_protect
 def marca_crear(request):
     """Crear nueva marca"""
@@ -1163,7 +1264,7 @@ def marca_crear(request):
 
 @login_required_custom
 @estado_usuario_activo
-@permiso_requerido('productos', 'actualizar')
+@permission_required('marcas.actualizar')
 @csrf_protect
 def marca_editar(request, pk):
     """Editar marca existente"""
@@ -1210,7 +1311,7 @@ def marca_editar(request, pk):
 
 @login_required_custom
 @estado_usuario_activo
-@permiso_requerido('productos', 'eliminar')
+@permission_required('marcas.eliminar')
 @csrf_protect
 def marca_eliminar(request, pk):
     """Eliminar marca"""

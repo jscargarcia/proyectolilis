@@ -289,12 +289,48 @@ function eliminarProducto() {
                 });
             } else {
                 console.error('Error en response:', response);
-                Swal.fire({
-                    title: 'No se pudo eliminar',
-                    text: response.message || 'Error desconocido',
-                    icon: 'error',
-                    confirmButtonColor: '#dc3545'
-                });
+                
+                // Si el error sugiere desactivar como alternativa  
+                if (response.alternativa === 'desactivar' || response.error_type === 'integrity_constraint') {
+                    Swal.fire({
+                        title: 'No se puede eliminar',
+                        html: `
+                            ${response.message}
+                            <br><br>
+                            <div class="alert alert-info mt-3" style="text-align: left;">
+                                <h6><i class="fas fa-lightbulb me-2"></i>Opción disponible:</h6>
+                                <ul class="mb-0">
+                                    <li><strong>Desactivar:</strong> El producto se oculta pero conserva todo el historial</li>
+                                </ul>
+                            </div>
+                        `,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#f39c12',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: '<i class="fas fa-pause-circle me-2"></i>Desactivar producto',
+                        cancelButtonText: '<i class="fas fa-times me-2"></i>Cancelar',
+                        customClass: {
+                            confirmButton: 'btn btn-warning btn-lg',
+                            denyButton: 'btn btn-info btn-lg',
+                            cancelButton: 'btn btn-secondary btn-lg'
+                        },
+                        buttonsStyling: false,
+                        width: '600px'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Redirigir a la página de desactivación
+                            window.location.href = '{% url "maestros:producto_desactivar" producto.pk %}';
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'No se pudo eliminar',
+                        text: response.message || 'Error desconocido',
+                        icon: 'error',
+                        confirmButtonColor: '#dc3545'
+                    });
+                }
             }
         },
         error: function(xhr) {

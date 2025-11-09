@@ -8,15 +8,16 @@ from django.utils import timezone
 from datetime import datetime, timedelta
 import json
 
-from autenticacion.decorators import permiso_requerido
+from autenticacion.decorators import login_required_custom, permission_required, estado_usuario_activo
 from .models import (
     MovimientoInventario, Bodega, Lote, StockActual, AlertaStock
 )
 from maestros.models import Producto, Proveedor
 
 
-@login_required
-@permiso_requerido('inventario', 'listar')
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.listar')
 def movimiento_listar(request):
     """Lista movimientos de inventario con filtros"""
     try:
@@ -97,8 +98,9 @@ def movimiento_listar(request):
         return render(request, 'inventario/movimiento_listar.html', {'page_obj': None})
 
 
-@login_required  
-@permiso_requerido('inventario', 'crear')
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.crear')
 def movimiento_crear(request):
     """Crear nuevo movimiento de inventario"""
     if request.method == 'POST':
@@ -132,6 +134,9 @@ def movimiento_crear(request):
             bodega_destino = get_object_or_404(Bodega, pk=bodega_destino_id) if bodega_destino_id else None
             lote = get_object_or_404(Lote, pk=lote_id) if lote_id else None
             
+            # Usar la unidad de medida de stock del producto
+            unidad_medida = producto.uom_stock
+            
             # Calcular costo total
             costo_total = None
             if costo_unitario:
@@ -146,7 +151,7 @@ def movimiento_crear(request):
                 bodega_origen=bodega_origen,
                 bodega_destino=bodega_destino,
                 cantidad=cantidad,
-                unidad_medida_id=unidad_medida_id,
+                unidad_medida=unidad_medida,
                 costo_unitario=costo_unitario,
                 costo_total=costo_total,
                 lote=lote,
@@ -177,8 +182,9 @@ def movimiento_crear(request):
     return render(request, 'inventario/movimiento_crear.html', context)
 
 
-@login_required
-@permiso_requerido('inventario', 'ver')
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.ver')
 def movimiento_detalle(request, pk):
     """Detalle de movimiento de inventario"""
     try:
@@ -201,8 +207,9 @@ def movimiento_detalle(request, pk):
         return redirect('inventario:movimiento_listar')
 
 
-@login_required
-@permiso_requerido('inventario', 'confirmar')
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.confirmar')
 def movimiento_confirmar(request, pk):
     """Confirmar movimiento de inventario"""
     if request.method == 'POST':
@@ -230,8 +237,9 @@ def movimiento_confirmar(request, pk):
     return redirect('inventario:movimiento_detalle', pk=pk)
 
 
-@login_required
-@permiso_requerido('inventario', 'listar')
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.listar')
 def stock_listar(request):
     """Lista stock actual por producto y bodega"""
     try:
@@ -291,8 +299,9 @@ def stock_listar(request):
         return render(request, 'inventario/stock_listar.html', {'page_obj': None})
 
 
-@login_required
-@permiso_requerido('inventario', 'listar')
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.listar')
 def alerta_listar(request):
     """Lista alertas de stock"""
     try:
@@ -359,8 +368,9 @@ def alerta_listar(request):
         return render(request, 'inventario/alerta_listar.html', {'page_obj': None})
 
 
-@login_required
-@permiso_requerido('inventario', 'resolver')
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.resolver')
 def alerta_resolver(request, pk):
     """Resolver alerta de stock"""
     if request.method == 'POST':
@@ -384,3 +394,44 @@ def alerta_resolver(request, pk):
             messages.error(request, f'Error al resolver alerta: {str(e)}')
     
     return redirect('inventario:alerta_listar')
+
+
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.listar')  
+def alerta_regenerar(request):
+    """Regenerar alertas de stock vía AJAX"""
+    if request.method == 'POST':
+        try:
+            from .signals import generar_alertas_stock, generar_alertas_vencimiento
+            from maestros.models import Producto
+            
+            # Generar alertas de stock
+            productos = Producto.objects.filter(estado='ACTIVO')
+            for producto in productos:
+                generar_alertas_stock(producto)
+            
+            # Generar alertas de vencimiento
+            generar_alertas_vencimiento()
+            
+            # Contar alertas activas
+            total_alertas = AlertaStock.objects.filter(estado='ACTIVA').count()
+            alertas_criticas = AlertaStock.objects.filter(
+                estado='ACTIVA', 
+                prioridad='CRITICA'
+            ).count()
+            
+            return JsonResponse({
+                'success': True,
+                'message': f'Alertas regeneradas correctamente',
+                'total_alertas': total_alertas,
+                'alertas_criticas': alertas_criticas
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al regenerar alertas: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})

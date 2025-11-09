@@ -16,4 +16,5 @@ urlpatterns = [
     # Alertas de stock
     path('alertas/', views.alerta_listar, name='alerta_listar'),
     path('alertas/<int:pk>/resolver/', views.alerta_resolver, name='alerta_resolver'),
+    path('alertas/regenerar/', views.alerta_regenerar, name='alerta_regenerar'),
 ]

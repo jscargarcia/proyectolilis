@@ -60,13 +60,13 @@
                 </button>
                 
                 {% if user.rol.permisos.catalogo.editar %}
-                    <a href="{% url 'catalogo_editar' catalogo.pk %}" class="btn btn-warning">
+                    <a href="{% url 'catalogo:catalogo_editar' catalogo.pk %}" class="btn btn-warning">
                         <i class="fas fa-edit"></i> Editar
                     </a>
                 {% endif %}
                 
                 {% if catalogo.puede_publicarse and catalogo.estado != 'PUBLICADO' and user.rol.permisos.catalogo.publicar %}
-                    <form method="POST" action="{% url 'catalogo_publicar' catalogo.pk %}">
+                    <form method="POST" action="{% url 'catalogo:catalogo_publicar' catalogo.pk %}">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-primary w-100">
                             <i class="fas fa-check"></i> Publicar
@@ -75,7 +75,7 @@
                 {% endif %}
                 
                 {% if user.rol.permisos.catalogo.eliminar %}
-                    <a href="{% url 'catalogo_eliminar' catalogo.pk %}" class="btn btn-danger">
+                    <a href="{% url 'catalogo:catalogo_eliminar' catalogo.pk %}" class="btn btn-danger">
                         <i class="fas fa-trash"></i> Eliminar
                     </a>
                 {% endif %}

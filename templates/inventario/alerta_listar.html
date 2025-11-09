@@ -1,0 +1,367 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Alertas de Stock - Dulcería Lilis{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-exclamation-triangle"></i> Alertas de Stock</h2>
+        <div>
+            <button type="button" class="btn btn-warning me-2" onclick="regenerarAlertas()" title="Regenerar alertas automáticamente">
+                <i class="fas fa-sync"></i> Regenerar Alertas
+            </button>
+            <a href="{% url 'inventario:stock_listar' %}" class="btn btn-info me-2">
+                <i class="fas fa-boxes"></i> Ver Stock
+            </a>
+            <a href="{% url 'autenticacion:dashboard' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Volver al Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-filter"></i> Filtros</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-2">
+                            <label for="tipo" class="form-label">Tipo de Alerta:</label>
+                            <select name="tipo" id="tipo" class="form-select">
+                                <option value="">Todos los tipos</option>
+                                {% for valor, etiqueta in tipos_alerta %}
+                                    <option value="{{ valor }}" {% if valor == filtro_tipo %}selected{% endif %}>
+                                        {{ etiqueta }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="prioridad" class="form-label">Prioridad:</label>
+                            <select name="prioridad" id="prioridad" class="form-select">
+                                <option value="">Todas las prioridades</option>
+                                {% for valor, etiqueta in prioridades %}
+                                    <option value="{{ valor }}" {% if valor == filtro_prioridad %}selected{% endif %}>
+                                        {{ etiqueta }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="estado" class="form-label">Estado:</label>
+                            <select name="estado" id="estado" class="form-select">
+                                {% for valor, etiqueta in estados_alerta %}
+                                    <option value="{{ valor }}" {% if valor == filtro_estado %}selected{% endif %}>
+                                        {{ etiqueta }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="bodega" class="form-label">Bodega:</label>
+                            <select name="bodega" id="bodega" class="form-select">
+                                <option value="">Todas las bodegas</option>
+                                {% for bodega in bodegas %}
+                                    <option value="{{ bodega.id }}" {% if bodega.id|stringformat:"s" == filtro_bodega %}selected{% endif %}>
+                                        {{ bodega.nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="q" class="form-label">Buscar:</label>
+                            <input type="text" name="q" id="q" class="form-control" 
+                                   value="{{ buscar }}" placeholder="Buscar producto...">
+                        </div>
+                        <div class="col-md-1">
+                            <label class="form-label">&nbsp;</label>
+                            <div class="d-flex gap-1">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                                <a href="{% url 'inventario:alerta_listar' %}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-times"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Alertas -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i> Alertas de Stock
+                        {% if page_obj %}
+                            <span class="badge bg-primary">{{ page_obj.paginator.count }} alertas</span>
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if page_obj and page_obj.object_list %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Prioridad</th>
+                                    <th>Tipo</th>
+                                    <th>Producto</th>
+                                    <th>Bodega</th>
+                                    <th>Cantidad Actual</th>
+                                    <th>Límite</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for alerta in page_obj %}
+                                <tr class="{% if alerta.prioridad == 'CRITICA' %}table-danger{% elif alerta.prioridad == 'ALTA' %}table-warning{% endif %}">
+                                    <td>
+                                        <span class="badge 
+                                            {% if alerta.prioridad == 'CRITICA' %}bg-danger
+                                            {% elif alerta.prioridad == 'ALTA' %}bg-warning
+                                            {% elif alerta.prioridad == 'MEDIA' %}bg-info
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ alerta.get_prioridad_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if alerta.tipo_alerta == 'SIN_STOCK' %}bg-danger
+                                            {% elif alerta.tipo_alerta == 'BAJO_STOCK' %}bg-warning
+                                            {% elif alerta.tipo_alerta == 'VENCIDO' %}bg-dark
+                                            {% elif alerta.tipo_alerta == 'POR_VENCER' %}bg-info
+                                            {% else %}bg-primary{% endif %}">
+                                            {{ alerta.get_tipo_alerta_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <strong>{{ alerta.producto.nombre|truncatechars:30 }}</strong>
+                                        <br><small class="text-muted">{{ alerta.producto.sku }}</small>
+                                    </td>
+                                    <td>
+                                        {% if alerta.bodega %}
+                                            {{ alerta.bodega.nombre }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ alerta.cantidad_actual|floatformat:2 }}</strong>
+                                    </td>
+                                    <td>
+                                        {% if alerta.cantidad_limite %}
+                                            {{ alerta.cantidad_limite|floatformat:2 }}
+                                        {% elif alerta.fecha_vencimiento %}
+                                            {{ alerta.fecha_vencimiento|date:"d/m/Y" }}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ alerta.fecha_generacion|date:"d/m/Y H:i" }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if alerta.estado == 'ACTIVA' %}bg-danger
+                                            {% elif alerta.estado == 'RESUELTA' %}bg-success
+                                            {% else %}bg-secondary{% endif %}">
+                                            {{ alerta.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if alerta.estado == 'ACTIVA' %}
+                                            <button type="button" class="btn btn-outline-success btn-sm" 
+                                                    onclick="resolverAlerta({{ alerta.pk }})" title="Resolver">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Paginación -->
+                    {% if page_obj.has_other_pages %}
+                    <nav aria-label="Paginación de alertas">
+                        <ul class="pagination justify-content-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if buscar %}&q={{ buscar }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_prioridad %}&prioridad={{ filtro_prioridad }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if filtro_bodega %}&bodega={{ filtro_bodega }}{% endif %}">Primera</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if buscar %}&q={{ buscar }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_prioridad %}&prioridad={{ filtro_prioridad }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if filtro_bodega %}&bodega={{ filtro_bodega }}{% endif %}">Anterior</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if buscar %}&q={{ buscar }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_prioridad %}&prioridad={{ filtro_prioridad }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if filtro_bodega %}&bodega={{ filtro_bodega }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if buscar %}&q={{ buscar }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_prioridad %}&prioridad={{ filtro_prioridad }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if filtro_bodega %}&bodega={{ filtro_bodega }}{% endif %}">Siguiente</a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if buscar %}&q={{ buscar }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_prioridad %}&prioridad={{ filtro_prioridad }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if filtro_bodega %}&bodega={{ filtro_bodega }}{% endif %}">Última</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <h5 class="text-success">¡No hay alertas activas!</h5>
+                        <p class="text-muted">Todo tu inventario está en orden.</p>
+                        <a href="{% url 'inventario:stock_listar' %}" class="btn btn-info">
+                            <i class="fas fa-boxes"></i> Ver Stock Actual
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para resolver alerta -->
+<div class="modal fade" id="resolverModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Resolver Alerta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" id="resolverForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="motivo_resolucion" class="form-label">Motivo de Resolución *</label>
+                        <textarea name="motivo_resolucion" id="motivo_resolucion" class="form-control" rows="3" 
+                                  placeholder="Explique cómo se resolvió la alerta..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Resolver Alerta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-submit form when filters change
+    $('#tipo, #prioridad, #estado, #bodega').change(function() {
+        $(this).closest('form').submit();
+    });
+});
+
+function resolverAlerta(id) {
+    $('#resolverForm').attr('action', `/inventario/alertas/${id}/resolver/`);
+    $('#resolverModal').modal('show');
+}
+
+function regenerarAlertas() {
+    Swal.fire({
+        title: '¿Regenerar alertas?',
+        text: 'Se actualizarán todas las alertas de stock según los niveles actuales',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#f0ad4e',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, regenerar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Mostrar loading
+            Swal.fire({
+                title: 'Regenerando alertas...',
+                text: 'Por favor espera mientras se procesan las alertas',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Llamada AJAX real
+            fetch('{% url "inventario:alerta_regenerar" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        title: '¡Alertas regeneradas!',
+                        text: `${data.total_alertas} alertas procesadas (${data.alertas_criticas} críticas)`,
+                        icon: 'success',
+                        timer: 3000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: data.message,
+                        icon: 'error'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Error de conexión al regenerar alertas',
+                    icon: 'error'
+                });
+                console.error('Error:', error);
+            });
+        }
+    });
+}
+
+// Función para obtener cookie CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

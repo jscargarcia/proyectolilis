@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Detalle Movimiento #{{ movimiento.id }} - Inventario{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exchange-alt"></i> 
+                        Movimiento #{{ movimiento.id }}
+                        <span class="badge 
+                            {% if movimiento.estado == 'CONFIRMADO' %}bg-success
+                            {% elif movimiento.estado == 'PENDIENTE' %}bg-warning
+                            {% else %}bg-danger{% endif %} ms-2">
+                            {{ movimiento.get_estado_display }}
+                        </span>
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Información General</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Tipo:</strong></td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if movimiento.tipo_movimiento == 'INGRESO' %}bg-success
+                                            {% elif movimiento.tipo_movimiento == 'SALIDA' %}bg-danger
+                                            {% elif movimiento.tipo_movimiento == 'TRANSFERENCIA' %}bg-primary
+                                            {% elif movimiento.tipo_movimiento == 'AJUSTE' %}bg-warning
+                                            {% else %}bg-info{% endif %}">
+                                            {{ movimiento.get_tipo_movimiento_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Fecha:</strong></td>
+                                    <td>{{ movimiento.fecha_movimiento|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Usuario:</strong></td>
+                                    <td>{{ movimiento.usuario.get_full_name|default:movimiento.usuario.username }}</td>
+                                </tr>
+                                {% if movimiento.fecha_confirmacion %}
+                                <tr>
+                                    <td><strong>Confirmado:</strong></td>
+                                    <td>{{ movimiento.fecha_confirmacion|date:"d/m/Y H:i" }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if movimiento.usuario_confirmacion %}
+                                <tr>
+                                    <td><strong>Confirmado por:</strong></td>
+                                    <td>{{ movimiento.usuario_confirmacion.get_full_name|default:movimiento.usuario_confirmacion.username }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Producto</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>SKU:</strong></td>
+                                    <td>{{ movimiento.producto.sku }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Nombre:</strong></td>
+                                    <td>{{ movimiento.producto.nombre }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Cantidad:</strong></td>
+                                    <td>
+                                        <strong>{{ movimiento.cantidad|floatformat:2 }}</strong>
+                                        {{ movimiento.unidad_medida.simbolo|default:"UND" }}
+                                    </td>
+                                </tr>
+                                {% if movimiento.costo_unitario %}
+                                <tr>
+                                    <td><strong>Costo Unitario:</strong></td>
+                                    <td>${{ movimiento.costo_unitario|floatformat:2 }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if movimiento.costo_total %}
+                                <tr>
+                                    <td><strong>Costo Total:</strong></td>
+                                    <td><strong>${{ movimiento.costo_total|floatformat:2 }}</strong></td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Bodegas</h6>
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Bodega Origen:</strong></td>
+                                    <td>
+                                        {% if movimiento.bodega_origen %}
+                                            {{ movimiento.bodega_origen.codigo }} - {{ movimiento.bodega_origen.nombre }}
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Bodega Destino:</strong></td>
+                                    <td>
+                                        {% if movimiento.bodega_destino %}
+                                            {{ movimiento.bodega_destino.codigo }} - {{ movimiento.bodega_destino.nombre }}
+                                        {% else %}
+                                            <span class="text-muted">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-muted">Información Adicional</h6>
+                            <table class="table table-sm">
+                                {% if movimiento.proveedor %}
+                                <tr>
+                                    <td><strong>Proveedor:</strong></td>
+                                    <td>{{ movimiento.proveedor.razon_social }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if movimiento.documento_referencia %}
+                                <tr>
+                                    <td><strong>Documento:</strong></td>
+                                    <td>{{ movimiento.documento_referencia }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if movimiento.documento_padre_tipo %}
+                                <tr>
+                                    <td><strong>Tipo Documento:</strong></td>
+                                    <td>{{ movimiento.get_documento_padre_tipo_display }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if movimiento.lote %}
+                                <tr>
+                                    <td><strong>Lote:</strong></td>
+                                    <td>{{ movimiento.lote.codigo_lote }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if movimiento.serie %}
+                                <tr>
+                                    <td><strong>Serie:</strong></td>
+                                    <td>{{ movimiento.serie }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+
+                    {% if movimiento.motivo_ajuste %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-muted">Motivo de Ajuste</h6>
+                            <div class="alert alert-warning">
+                                {{ movimiento.motivo_ajuste }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if movimiento.observaciones %}
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h6 class="text-muted">Observaciones</h6>
+                            <div class="alert alert-info">
+                                {{ movimiento.observaciones }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="d-grid gap-2">
+                        {% if movimiento.estado == 'PENDIENTE' %}
+                            <button type="button" class="btn btn-success" onclick="confirmarMovimiento()">
+                                <i class="fas fa-check"></i> Confirmar Movimiento
+                            </button>
+                        {% endif %}
+                        
+                        <div class="btn-group">
+                            <a href="{% url 'inventario:movimiento_listar' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Volver a Movimientos
+                            </a>
+                            <a href="{% url 'inventario:stock_listar' %}" class="btn btn-info">
+                                <i class="fas fa-boxes"></i> Ver Stock
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para confirmar movimiento -->
+<div class="modal fade" id="confirmarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Movimiento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro que desea confirmar este movimiento?</p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Atención:</strong> Esta acción actualizará el stock y no se puede deshacer.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <form method="POST" action="{% url 'inventario:movimiento_confirmar' movimiento.pk %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check"></i> Sí, Confirmar
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmarMovimiento() {
+    $('#confirmarModal').modal('show');
+}
+</script>
+{% endblock %}

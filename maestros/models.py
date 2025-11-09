@@ -161,6 +161,55 @@ class Producto(models.Model):
 
     def __str__(self):
         return f"{self.sku} - {self.nombre}"
+    
+    def get_stock_total(self):
+        """
+        Obtiene el stock total del producto desde todas las bodegas
+        """
+        from inventario.models import StockActual
+        return StockActual.objects.filter(
+            producto=self
+        ).aggregate(
+            total=models.Sum('cantidad_disponible')
+        )['total'] or 0
+    
+    def get_stock_por_bodega(self):
+        """
+        Obtiene el stock del producto por bodega
+        """
+        from inventario.models import StockActual
+        return StockActual.objects.filter(producto=self).select_related('bodega')
+    
+    def get_stock_en_bodega(self, bodega):
+        """
+        Obtiene el stock del producto en una bodega específica
+        """
+        from inventario.models import StockActual
+        stock = StockActual.objects.filter(
+            producto=self,
+            bodega=bodega
+        ).first()
+        return stock.cantidad_disponible if stock else 0
+    
+    def tiene_stock_suficiente(self, cantidad_requerida, bodega=None):
+        """
+        Verifica si hay stock suficiente
+        """
+        if bodega:
+            stock_disponible = self.get_stock_en_bodega(bodega)
+        else:
+            stock_disponible = self.get_stock_total()
+        return stock_disponible >= cantidad_requerida
+    
+    def actualizar_stock_desde_inventario(self):
+        """
+        Actualiza el campo stock_actual con la suma del inventario
+        """
+        nuevo_stock = self.get_stock_total()
+        if self.stock_actual != nuevo_stock:
+            self.stock_actual = nuevo_stock
+            self.save(update_fields=['stock_actual'])
+        return nuevo_stock
 
 
 class Proveedor(models.Model):

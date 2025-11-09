@@ -1,3 +1,4 @@
+import re
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib import messages
@@ -702,9 +703,8 @@ def eliminar_avatar(request):
 
 from django.core.paginator import Paginator
 from django.db.models import Q, Count
-from .decorators import admin_only, permission_required
+from .decorators import admin_only, permission_required, login_required_custom, estado_usuario_activo
 from .models import Rol, Sesion
-import re
 
 
 @login_required
@@ -895,14 +895,16 @@ def usuario_detalle(request, pk):
     return render(request, 'autenticacion/usuario_detalle.html', context)
 
 
-@login_required
-@permission_required('usuarios.editar')
+@login_required_custom
+@estado_usuario_activo
 def usuario_editar(request, pk):
     """Editar usuario existente"""
     usuario = get_object_or_404(Usuario, pk=pk)
     
-    # Solo administradores o el mismo usuario pueden editar
-    if not (request.user.rol.nombre == 'Administrador' or request.user.pk == usuario.pk):
+    # Solo administradores, superusuarios o el mismo usuario pueden editar
+    if not (request.user.is_superuser or 
+            (request.user.rol and request.user.rol.nombre == 'Administrador') or 
+            request.user.pk == usuario.pk):
         messages.error(request, 'No tienes permisos para editar este usuario')
         return redirect('autenticacion:usuario_detalle', pk=pk)
     
@@ -912,23 +914,34 @@ def usuario_editar(request, pk):
         
         try:
             # Capturar datos
+            print(f"=== DATOS POST RECIBIDOS ===")
+            for key, value in request.POST.items():
+                print(f"{key}: '{value}'")
+            print(f"=== FIN DATOS POST ===")
+            
             datos = {
                 'nombres': request.POST.get('nombres', '').strip(),
                 'apellidos': request.POST.get('apellidos', '').strip(),
                 'email': request.POST.get('email', '').strip(),
                 'telefono': request.POST.get('telefono', '').strip(),
-                'area_unidad': request.POST.get('area_unidad', '').strip(),
-                'observaciones': request.POST.get('observaciones', '').strip(),
+                'direccion': request.POST.get('direccion', '').strip(),
                 'rol_id': request.POST.get('rol_id', ''),
                 'estado': request.POST.get('estado', 'ACTIVO'),
             }
             
+            print(f"=== DATOS PROCESADOS ===")
+            for key, value in datos.items():
+                print(f"{key}: '{value}'")
+            
             # Validaciones
+            print(f"=== VALIDACIONES ===")
             if not datos['nombres']:
                 errores['nombres'] = 'Los nombres son obligatorios'
+                print(f"ERROR: Nombres vacío")
                 
             if not datos['apellidos']:
                 errores['apellidos'] = 'Los apellidos son obligatorios'
+                print(f"ERROR: Apellidos vacío")
                 
             if datos['email']:
                 if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', datos['email']):
@@ -937,7 +950,7 @@ def usuario_editar(request, pk):
                     errores['email'] = 'Ya existe otro usuario con este email'
                     
             # Solo administradores pueden cambiar rol y estado
-            if request.user.rol.nombre == 'Administrador':
+            if request.user.is_superuser or (request.user.rol and request.user.rol.nombre == 'Administrador'):
                 if not datos['rol_id']:
                     errores['rol_id'] = 'Debe seleccionar un rol'
                 else:
@@ -952,36 +965,76 @@ def usuario_editar(request, pk):
                 datos['estado'] = usuario.estado
                 
             if errores:
+                print(f"=== ERRORES ENCONTRADOS ===")
+                for campo, error in errores.items():
+                    print(f"{campo}: {error}")
+                print(f"=== FIN ERRORES ===")
+                
                 messages.error(request, 'Corrija los errores en el formulario')
+                
+                # Si es petición AJAX, devolver JSON con errores
+                if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Corrija los errores en el formulario',
+                        'errors': errores
+                    })
+                
                 context = {
                     'usuario': usuario,
                     'errores': errores,
                     'datos': datos,
                     'roles': Rol.objects.all(),
                     'estados': Usuario.ESTADO_CHOICES,
-                    'es_admin': request.user.rol.nombre == 'Administrador',
+                    'es_admin': request.user.is_superuser or (request.user.rol and request.user.rol.nombre == 'Administrador'),
                 }
                 return render(request, 'autenticacion/usuario_editar.html', context)
             
             # Actualizar usuario
+            print(f"=== ACTUALIZANDO USUARIO ===")
+            print(f"Nombres: '{datos['nombres']}' -> usuario.nombres antes: '{usuario.nombres}'")
+            print(f"Apellidos: '{datos['apellidos']}' -> usuario.apellidos antes: '{usuario.apellidos}'")
+            
             usuario.nombres = datos['nombres']
-            usuario.apellidos = datos['apellidos']
+            usuario.apellidos = datos['apellidos'] 
             usuario.email = datos['email'] or ''
             usuario.telefono = datos['telefono'] or None
-            usuario.area_unidad = datos['area_unidad'] or None
-            usuario.observaciones = datos['observaciones'] or None
+            usuario.direccion = datos['direccion'] or None
             
-            if request.user.rol.nombre == 'Administrador':
+            print(f"Después de asignar - Nombres: '{usuario.nombres}', Apellidos: '{usuario.apellidos}'")
+            
+            if request.user.is_superuser or (request.user.rol and request.user.rol.nombre == 'Administrador'):
                 usuario.rol = datos['rol']
                 usuario.estado = datos['estado']
+                print(f"Admin - Rol: {usuario.rol}, Estado: {usuario.estado}")
             
             usuario.save()
+            print(f"Usuario guardado - ID: {usuario.pk}")
+            
+            # Recargar desde DB para verificar
+            usuario.refresh_from_db()
+            print(f"Después de refresh - Nombres: '{usuario.nombres}', Apellidos: '{usuario.apellidos}'")
             
             messages.success(request, f'Usuario "{usuario.username}" actualizado exitosamente')
+            
+            # Si es petición AJAX, devolver JSON
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': True,
+                    'message': f'Usuario "{usuario.username}" actualizado exitosamente'
+                })
+            
             return redirect('autenticacion:usuario_detalle', pk=usuario.pk)
             
         except Exception as e:
             messages.error(request, f'Error al actualizar usuario: {str(e)}')
+            
+            # Si es petición AJAX, devolver JSON con error
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'message': f'Error al actualizar usuario: {str(e)}'
+                })
     
     # GET request
     context = {

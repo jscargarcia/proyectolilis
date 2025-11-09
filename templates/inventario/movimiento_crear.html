@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nuevo Movimiento - Inventario{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-plus"></i> Nuevo Movimiento de Inventario</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Tipo de Movimiento *</label>
+                                <select name="tipo_movimiento" class="form-select" required>
+                                    <option value="">Seleccionar tipo</option>
+                                    {% for valor, etiqueta in tipos_movimiento %}
+                                        <option value="{{ valor }}">{{ etiqueta }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Fecha y Hora *</label>
+                                <input type="datetime-local" name="fecha_movimiento" class="form-control" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">Producto *</label>
+                                <select name="producto" class="form-select" required>
+                                    <option value="">Seleccionar producto</option>
+                                    {% for producto in productos %}
+                                        <option value="{{ producto.id }}">{{ producto.sku }} - {{ producto.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Bodega Origen</label>
+                                <select name="bodega_origen" class="form-select">
+                                    <option value="">Seleccionar bodega origen</option>
+                                    {% for bodega in bodegas %}
+                                        <option value="{{ bodega.id }}">{{ bodega.codigo }} - {{ bodega.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Para SALIDA, AJUSTE y TRANSFERENCIA</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Bodega Destino</label>
+                                <select name="bodega_destino" class="form-select">
+                                    <option value="">Seleccionar bodega destino</option>
+                                    {% for bodega in bodegas %}
+                                        <option value="{{ bodega.id }}">{{ bodega.codigo }} - {{ bodega.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Para INGRESO y TRANSFERENCIA</small>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Proveedor</label>
+                                <select name="proveedor" class="form-select">
+                                    <option value="">Seleccionar proveedor</option>
+                                    {% for proveedor in proveedores %}
+                                        <option value="{{ proveedor.id }}">{{ proveedor.razon_social }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-muted">Para INGRESO y DEVOLUCION</small>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Cantidad *</label>
+                                <input type="number" name="cantidad" class="form-control" step="0.01" min="0.01" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Costo Unitario</label>
+                                <input type="number" name="costo_unitario" class="form-control" step="0.01" min="0">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Documento Referencia</label>
+                                <input type="text" name="documento_referencia" class="form-control" placeholder="Factura, Guía, etc.">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Documento</label>
+                            <select name="documento_padre_tipo" class="form-select">
+                                <option value="">Seleccionar tipo</option>
+                                {% for valor, etiqueta in tipos_documento %}
+                                    <option value="{{ valor }}">{{ etiqueta }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Motivo de Ajuste</label>
+                            <textarea name="motivo_ajuste" class="form-control" rows="2" placeholder="Obligatorio para AJUSTE y DEVOLUCION"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones</label>
+                            <textarea name="observaciones" class="form-control" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Crear Movimiento
+                            </button>
+                            <a href="{% url 'inventario:movimiento_listar' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Establecer fecha y hora actual
+    const now = new Date();
+    const formattedDate = now.toISOString().slice(0, 16);
+    $('input[name="fecha_movimiento"]').val(formattedDate);
+    
+    // Lógica para mostrar/ocultar campos según tipo de movimiento
+    $('select[name="tipo_movimiento"]').change(function() {
+        const tipo = $(this).val();
+        
+        // Reset required fields
+        $('select[name="bodega_origen"]').prop('required', false);
+        $('select[name="bodega_destino"]').prop('required', false);
+        $('select[name="proveedor"]').prop('required', false);
+        $('textarea[name="motivo_ajuste"]').prop('required', false);
+        
+        // Set required based on movement type
+        if (tipo === 'SALIDA' || tipo === 'AJUSTE' || tipo === 'TRANSFERENCIA') {
+            $('select[name="bodega_origen"]').prop('required', true);
+        }
+        
+        if (tipo === 'INGRESO' || tipo === 'TRANSFERENCIA') {
+            $('select[name="bodega_destino"]').prop('required', true);
+        }
+        
+        if (tipo === 'INGRESO' || tipo === 'DEVOLUCION') {
+            $('select[name="proveedor"]').prop('required', true);
+        }
+        
+        if (tipo === 'AJUSTE' || tipo === 'DEVOLUCION') {
+            $('textarea[name="motivo_ajuste"]').prop('required', true);
+        }
+    });
+});
+</script>
+{% endblock %}
