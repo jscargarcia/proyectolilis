@@ -35,12 +35,12 @@ python -m venv .venv
 Activar entorno virtual
 
 - Windows (PowerShell)
+```bash
+.venv\Scripts\activate
+```
 Si obtienes un error de permisos, ejecuta primero:
 ```bash
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-```bash
-.venv\Scripts\activate
 ```
 
 - Windows (Git Bash)
@@ -53,7 +53,7 @@ source .venv/Scripts/activate
 source .venv/bin/activate
 ```
 
-### 3️.Instalar dependencias
+### 3️. Instalar dependencias
 ```bash
 pip install -r requirements.txt
 ```
@@ -70,17 +70,12 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 6️. Crear superusuario (si no existe)
-```bash
-python manage.py createsuperuser
-```
-
-### 7️. Ejecutar el servidor local
+### 6. Ejecutar el servidor local
 ```bash
 python manage.py runserver
 ```
 
-Luego abre en tu navegador:
+### 7. Luego abre en tu navegador:
 
 <http://127.0.0.1:8000/>
 
