@@ -43,4 +43,7 @@ django-compressor>=4.4.0
 # - Sistema de permisos granular para marcas/categorías
 # - Eliminación segura de productos con limpieza automática
 # - UX mejorada con mensajes amigables y botones condicionados
+# - CRUD completo de Marcas y Categorías integrado al dashboard
+# - Sistema de exportación a Excel con openpyxl (profesional con estilos)
+# - Dashboard actualizado con módulos de Marcas y Categorías en acciones rápidas
 

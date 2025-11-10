@@ -26,6 +26,7 @@ urlpatterns = [
     # Gestión de usuarios (CRUD)
     path('usuarios/', views.usuario_listar, name='usuario_listar'),
     path('usuarios/crear/', views.usuario_crear, name='usuario_crear'),
+    path('usuarios/exportar-excel/', views.export_usuarios_excel, name='export_usuarios_excel'),
     path('usuarios/<int:pk>/', views.usuario_detalle, name='usuario_detalle'),
     path('usuarios/<int:pk>/editar/', views.usuario_editar, name='usuario_editar'),
     path('usuarios/<int:pk>/cambiar-estado/', views.usuario_cambiar_estado, name='usuario_cambiar_estado'),
