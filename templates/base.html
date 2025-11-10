@@ -661,22 +661,6 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     {% if user.is_authenticated %}
-                        <!-- Menú dinámico según roles -->
-                        {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' or user.rol and user.rol.nombre == 'SUPERVISOR' %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-book"></i> Catálogo
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><a class="dropdown-item" href="{% url 'catalogo:catalogo_listar' %}">
-                                        <i class="fas fa-list"></i> Listar
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'catalogo:catalogo_crear' %}">
-                                        <i class="fas fa-plus"></i> Crear
-                                    </a></li>
-                                </ul>
-                            </li>
-                        {% endif %}
                         
                         <!-- Menú Maestros - Todos pueden ver, algunos pueden crear/editar -->
                         {% if user.is_authenticated %}
@@ -719,35 +703,7 @@
                                 </ul>
                             </li>
                         {% endif %}
-                        
-                        <!-- Menú Inventario -->
-                        {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' or user.rol and user.rol.nombre == 'GERENTE' or user.rol and user.rol.nombre == 'BODEGUERO' %}
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                    <i class="fas fa-warehouse"></i> Inventario
-                                </a>
-                                <ul class="dropdown-menu">
-                                    <li><h6 class="dropdown-header">Movimientos</h6></li>
-                                    <li><a class="dropdown-item" href="{% url 'inventario:movimiento_listar' %}">
-                                        <i class="fas fa-list"></i> Lista de Movimientos
-                                    </a></li>
-                                    {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' or user.rol and user.rol.nombre == 'GERENTE' %}
-                                    <li><a class="dropdown-item" href="{% url 'inventario:movimiento_crear' %}">
-                                        <i class="fas fa-plus"></i> Nuevo Movimiento
-                                    </a></li>
-                                    {% endif %}
-                                    
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><h6 class="dropdown-header">Stock</h6></li>
-                                    <li><a class="dropdown-item" href="{% url 'inventario:stock_listar' %}">
-                                        <i class="fas fa-boxes"></i> Stock Actual
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'inventario:alerta_listar' %}">
-                                        <i class="fas fa-exclamation-triangle"></i> Alertas de Stock
-                                    </a></li>
-                                </ul>
-                            </li>
-                        {% endif %}
+
                         
                         {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' %}
                             <li class="nav-item dropdown">
@@ -769,11 +725,6 @@
                                         <i class="fas fa-plus"></i> Nuevo Rol
                                     </a></li>
                                 </ul>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#">
-                                    <i class="fas fa-chart-bar"></i> Reportes
-                                </a>
                             </li>
                         {% endif %}
                     {% endif %}

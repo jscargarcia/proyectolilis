@@ -1020,11 +1020,17 @@ def proveedor_detalle(request, pk):
 @login_required_custom
 @estado_usuario_activo
 @permission_required('categorias.leer')
+@login_required_custom
+@estado_usuario_activo
+@permission_required('categorias.leer')
 def categoria_listar(request):
     """Lista de categorías"""
     categorias = Categoria.objects.all().order_by('nombre')
     
-    context = {'categorias': categorias}
+    context = {
+        'categorias': categorias,
+        'request': request,  # Asegurar que el request esté en el contexto
+    }
     return render(request, 'maestros/categoria_listar.html', context)
 
 
@@ -1197,11 +1203,17 @@ def categoria_eliminar(request, pk):
 @login_required_custom
 @estado_usuario_activo
 @permission_required('marcas.leer')
+@login_required_custom
+@estado_usuario_activo
+@permission_required('marcas.leer')
 def marca_listar(request):
     """Lista de marcas"""
     marcas = Marca.objects.all().order_by('nombre')
     
-    context = {'marcas': marcas}
+    context = {
+        'marcas': marcas,
+        'request': request,  # Asegurar que el request esté en el contexto
+    }
     return render(request, 'maestros/marca_listar.html', context)
 
 
@@ -1665,4 +1677,271 @@ def proveedor_eliminar(request, pk):
         'productos_asociados': productos_asociados,
     }
     return render(request, 'maestros/proveedor_eliminar.html', context)
+
+
+# ==================== EXPORTACIONES A EXCEL ====================
+
+def crear_estilos_excel():
+    """Crear estilos reutilizables para Excel"""
+    return {
+        'header': {
+            'font': Font(bold=True, color="FFFFFF", size=12),
+            'alignment': Alignment(horizontal="center", vertical="center"),
+            'fill': PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid"),
+            'border': Border(
+                left=Side(style='thin'),
+                right=Side(style='thin'), 
+                top=Side(style='thin'),
+                bottom=Side(style='thin')
+            )
+        },
+        'data': {
+            'alignment': Alignment(horizontal="left", vertical="center"),
+            'border': Border(
+                left=Side(style='thin'),
+                right=Side(style='thin'),
+                top=Side(style='thin'), 
+                bottom=Side(style='thin')
+            )
+        }
+    }
+
+
+@login_required_custom
+@estado_usuario_activo
+@permiso_requerido('marcas', 'leer')
+def export_marcas_excel(request):
+    """Exportar marcas a Excel"""
+    try:
+        # Crear workbook y worksheet
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Marcas"
+        
+        # Estilos
+        estilos = crear_estilos_excel()
+        
+        # Encabezados
+        headers = [
+            'ID', 'Nombre', 'Descripción', 'Estado', 
+            'Productos Asociados', 'Fecha Creación', 'Última Modificación'
+        ]
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.font = estilos['header']['font']
+            cell.alignment = estilos['header']['alignment']
+            cell.fill = estilos['header']['fill']
+            cell.border = estilos['header']['border']
+        
+        # Obtener datos
+        marcas = Marca.objects.annotate(
+            total_productos=Count('productos')
+        ).order_by('nombre')
+        
+        # Agregar datos
+        for row_num, marca in enumerate(marcas, 2):
+            data = [
+                marca.id,
+                marca.nombre,
+                marca.descripcion or 'Sin descripción',
+                'Activa' if marca.activo else 'Inactiva',
+                marca.total_productos,
+                marca.created_at.strftime('%d/%m/%Y %H:%M') if marca.created_at else '',
+                'Sin fecha modificación'  # No existe campo fecha_modificacion
+            ]
+            
+            for col_num, value in enumerate(data, 1):
+                cell = ws.cell(row=row_num, column=col_num, value=value)
+                cell.alignment = estilos['data']['alignment']
+                cell.border = estilos['data']['border']
+        
+        # Ajustar ancho de columnas
+        for column in ws.columns:
+            max_length = 0
+            column_letter = get_column_letter(column[0].column)
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column_letter].width = adjusted_width
+        
+        # Configurar respuesta HTTP
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="marcas_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        
+        wb.save(response)
+        return response
+        
+    except Exception as e:
+        messages.error(request, f'Error al exportar marcas: {str(e)}')
+        return redirect('maestros:marca_listar')
+
+
+@login_required_custom
+@estado_usuario_activo
+@permiso_requerido('categorias', 'leer')
+def export_categorias_excel(request):
+    """Exportar categorías a Excel"""
+    try:
+        # Crear workbook y worksheet
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Categorías"
+        
+        # Estilos
+        estilos = crear_estilos_excel()
+        
+        # Encabezados
+        headers = [
+            'ID', 'Nombre', 'Descripción', 'Categoría Padre', 
+            'Estado', 'Productos Asociados', 'Fecha Creación', 'Última Modificación'
+        ]
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.font = estilos['header']['font']
+            cell.alignment = estilos['header']['alignment']
+            cell.fill = estilos['header']['fill']
+            cell.border = estilos['header']['border']
+        
+        # Obtener datos
+        categorias = Categoria.objects.annotate(
+            total_productos=Count('productos')
+        ).select_related('categoria_padre').order_by('nombre')
+        
+        # Agregar datos
+        for row_num, categoria in enumerate(categorias, 2):
+            data = [
+                categoria.id,
+                categoria.nombre,
+                categoria.descripcion or 'Sin descripción',
+                categoria.categoria_padre.nombre if categoria.categoria_padre else 'Categoría Principal',
+                'Activa' if categoria.activo else 'Inactiva',
+                categoria.total_productos,
+                categoria.created_at.strftime('%d/%m/%Y %H:%M') if categoria.created_at else '',
+                'Sin fecha modificación'  # No existe campo fecha_modificacion
+            ]
+            
+            for col_num, value in enumerate(data, 1):
+                cell = ws.cell(row=row_num, column=col_num, value=value)
+                cell.alignment = estilos['data']['alignment']
+                cell.border = estilos['data']['border']
+        
+        # Ajustar ancho de columnas
+        for column in ws.columns:
+            max_length = 0
+            column_letter = get_column_letter(column[0].column)
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column_letter].width = adjusted_width
+        
+        # Configurar respuesta HTTP
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="categorias_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        
+        wb.save(response)
+        return response
+        
+    except Exception as e:
+        messages.error(request, f'Error al exportar categorías: {str(e)}')
+        return redirect('maestros:categoria_listar')
+
+
+@login_required_custom
+@estado_usuario_activo
+@permiso_requerido('proveedores', 'leer')
+def export_proveedores_excel(request):
+    """Exportar proveedores a Excel"""
+    try:
+        # Crear workbook y worksheet
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Proveedores"
+        
+        # Estilos
+        estilos = crear_estilos_excel()
+        
+        # Encabezados
+        headers = [
+            'ID', 'Razón Social', 'RUT/NIF', 'Email', 'Teléfono',
+            'Dirección', 'Ciudad', 'País', 'Código Postal',
+            'Contacto Principal', 'Estado', 'Condiciones de Pago',
+            'Productos Asociados', 'Fecha Creación', 'Última Modificación'
+        ]
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.font = estilos['header']['font']
+            cell.alignment = estilos['header']['alignment']
+            cell.fill = estilos['header']['fill']
+            cell.border = estilos['header']['border']
+        
+        # Obtener datos
+        proveedores = Proveedor.objects.annotate(
+            total_productos=Count('productos')
+        ).order_by('razon_social')
+        
+        # Agregar datos
+        for row_num, proveedor in enumerate(proveedores, 2):
+            data = [
+                proveedor.id,
+                proveedor.razon_social,
+                proveedor.rut_nif,
+                proveedor.email,
+                proveedor.telefono or 'Sin teléfono',
+                proveedor.direccion or 'Sin dirección',
+                proveedor.ciudad or 'Sin ciudad',
+                proveedor.pais,
+                'Sin código postal',  # No existe en el modelo
+                proveedor.contacto_principal_nombre or 'Sin contacto',
+                'Activo' if proveedor.estado == 'ACTIVO' else 'Inactivo',
+                proveedor.get_condiciones_pago_display(),
+                proveedor.total_productos,
+                proveedor.created_at.strftime('%d/%m/%Y %H:%M') if proveedor.created_at else '',
+                proveedor.updated_at.strftime('%d/%m/%Y %H:%M') if proveedor.updated_at else ''
+            ]
+            
+            for col_num, value in enumerate(data, 1):
+                cell = ws.cell(row=row_num, column=col_num, value=value)
+                cell.alignment = estilos['data']['alignment']
+                cell.border = estilos['data']['border']
+        
+        # Ajustar ancho de columnas
+        for column in ws.columns:
+            max_length = 0
+            column_letter = get_column_letter(column[0].column)
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column_letter].width = adjusted_width
+        
+        # Configurar respuesta HTTP
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="proveedores_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        
+        wb.save(response)
+        return response
+        
+    except Exception as e:
+        messages.error(request, f'Error al exportar proveedores: {str(e)}')
+        return redirect('maestros:proveedor_listar')
 

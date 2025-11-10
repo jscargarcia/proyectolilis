@@ -40,8 +40,14 @@ def tiene_permiso(usuario, modulo, accion):
         'productos': 'productos',
         'marcas': 'marcas',
         'categorias': 'categorias',
-        'proveedores': 'productos',  # Los proveedores pueden estar bajo productos o su propio módulo
-        'clientes': 'ventas',  # Los clientes están bajo ventas
+        'proveedores': 'proveedores',
+        'clientes': 'ventas',
+        'ventas': 'ventas',
+        'compras': 'compras',
+        'inventario': 'inventario',
+        'reportes': 'reportes',
+        'usuarios': 'usuarios',
+        'configuracion': 'configuracion',
     }
     
     # Convertir la acción del template a la acción del JSON

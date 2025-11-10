@@ -920,6 +920,7 @@ def usuario_editar(request, pk):
             print(f"=== FIN DATOS POST ===")
             
             datos = {
+                'username': request.POST.get('username', '').strip(),
                 'nombres': request.POST.get('nombres', '').strip(),
                 'apellidos': request.POST.get('apellidos', '').strip(),
                 'email': request.POST.get('email', '').strip(),
@@ -927,6 +928,11 @@ def usuario_editar(request, pk):
                 'direccion': request.POST.get('direccion', '').strip(),
                 'rol_id': request.POST.get('rol_id', ''),
                 'estado': request.POST.get('estado', 'ACTIVO'),
+                'nueva_password': request.POST.get('nueva_password', '').strip(),
+                'confirmar_password': request.POST.get('confirmar_password', '').strip(),
+                'is_active': request.POST.get('is_active') == 'on',
+                'is_staff': request.POST.get('is_staff') == 'on',
+                'is_superuser': request.POST.get('is_superuser') == 'on',
             }
             
             print(f"=== DATOS PROCESADOS ===")
@@ -935,6 +941,15 @@ def usuario_editar(request, pk):
             
             # Validaciones
             print(f"=== VALIDACIONES ===")
+            
+            # Validar username
+            if not datos['username']:
+                errores['username'] = 'El nombre de usuario es obligatorio'
+                print(f"ERROR: Username vacío")
+            elif Usuario.objects.filter(username=datos['username']).exclude(pk=usuario.pk).exists():
+                errores['username'] = 'Ya existe otro usuario con este nombre de usuario'
+                print(f"ERROR: Username duplicado")
+                
             if not datos['nombres']:
                 errores['nombres'] = 'Los nombres son obligatorios'
                 print(f"ERROR: Nombres vacío")
@@ -943,11 +958,24 @@ def usuario_editar(request, pk):
                 errores['apellidos'] = 'Los apellidos son obligatorios'
                 print(f"ERROR: Apellidos vacío")
                 
-            if datos['email']:
-                if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', datos['email']):
-                    errores['email'] = 'Email inválido'
-                elif Usuario.objects.filter(email=datos['email']).exclude(pk=usuario.pk).exists():
-                    errores['email'] = 'Ya existe otro usuario con este email'
+            if not datos['email']:
+                errores['email'] = 'El email es obligatorio'
+                print(f"ERROR: Email vacío")
+            elif not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', datos['email']):
+                errores['email'] = 'Email inválido'
+                print(f"ERROR: Email formato inválido")
+            elif Usuario.objects.filter(email=datos['email']).exclude(pk=usuario.pk).exists():
+                errores['email'] = 'Ya existe otro usuario con este email'
+                print(f"ERROR: Email duplicado")
+                
+            # Validar contraseñas si se proporcionaron
+            if datos['nueva_password'] or datos['confirmar_password']:
+                if datos['nueva_password'] != datos['confirmar_password']:
+                    errores['confirmar_password'] = 'Las contraseñas no coinciden'
+                    print(f"ERROR: Contraseñas no coinciden")
+                elif len(datos['nueva_password']) < 8:
+                    errores['nueva_password'] = 'La contraseña debe tener al menos 8 caracteres'
+                    print(f"ERROR: Contraseña muy corta")
                     
             # Solo administradores pueden cambiar rol y estado
             if request.user.is_superuser or (request.user.rol and request.user.rol.nombre == 'Administrador'):
@@ -992,21 +1020,46 @@ def usuario_editar(request, pk):
             
             # Actualizar usuario
             print(f"=== ACTUALIZANDO USUARIO ===")
+            print(f"Username: '{datos['username']}' -> usuario.username antes: '{usuario.username}'")
             print(f"Nombres: '{datos['nombres']}' -> usuario.nombres antes: '{usuario.nombres}'")
             print(f"Apellidos: '{datos['apellidos']}' -> usuario.apellidos antes: '{usuario.apellidos}'")
+            print(f"Email: '{datos['email']}' -> usuario.email antes: '{usuario.email}'")
             
+            # Actualizar campos básicos
+            usuario.username = datos['username']
             usuario.nombres = datos['nombres']
             usuario.apellidos = datos['apellidos'] 
-            usuario.email = datos['email'] or ''
+            usuario.email = datos['email']
             usuario.telefono = datos['telefono'] or None
             usuario.direccion = datos['direccion'] or None
+            usuario.is_active = datos['is_active']
             
-            print(f"Después de asignar - Nombres: '{usuario.nombres}', Apellidos: '{usuario.apellidos}'")
+            # Cambiar contraseña si se proporcionó
+            if datos['nueva_password']:
+                usuario.set_password(datos['nueva_password'])
+                print(f"Contraseña actualizada")
             
+            print(f"Después de asignar - Username: '{usuario.username}', Nombres: '{usuario.nombres}', Apellidos: '{usuario.apellidos}'")
+            
+            # Solo administradores pueden cambiar rol, estado y permisos especiales
             if request.user.is_superuser or (request.user.rol and request.user.rol.nombre == 'Administrador'):
                 usuario.rol = datos['rol']
                 usuario.estado = datos['estado']
-                print(f"Admin - Rol: {usuario.rol}, Estado: {usuario.estado}")
+                
+                # Solo superusuarios pueden cambiar is_staff e is_superuser
+                if request.user.is_superuser:
+                    usuario.is_staff = datos['is_staff']
+                    usuario.is_superuser = datos['is_superuser']
+                    
+                print(f"Admin - Rol: {usuario.rol}, Estado: {usuario.estado}, is_staff: {usuario.is_staff}, is_superuser: {usuario.is_superuser}")
+            
+            # Procesar avatar si se subió uno nuevo
+            if 'avatar' in request.FILES:
+                from .utils import procesar_avatar
+                avatar_procesado = procesar_avatar(request.FILES['avatar'], usuario)
+                if avatar_procesado:
+                    usuario.avatar = avatar_procesado
+                    print(f"Avatar actualizado: {usuario.avatar}")
             
             usuario.save()
             print(f"Usuario guardado - ID: {usuario.pk}")
@@ -1041,7 +1094,8 @@ def usuario_editar(request, pk):
         'usuario': usuario,
         'roles': Rol.objects.all(),
         'estados': Usuario.ESTADO_CHOICES,
-        'es_admin': request.user.rol.nombre == 'Administrador',
+        'es_admin': request.user.is_superuser or (request.user.rol and request.user.rol.nombre == 'Administrador'),
+        'es_superuser': request.user.is_superuser,
     }
     return render(request, 'autenticacion/usuario_editar.html', context)
 
@@ -1266,3 +1320,121 @@ def rol_editar(request, pk):
         'permisos_json': json.dumps(rol.permisos or {}, indent=2),
     }
     return render(request, 'autenticacion/rol_editar.html', context)
+
+
+# ==================== EXPORTACIÓN A EXCEL ====================
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+from openpyxl.utils import get_column_letter
+from datetime import datetime
+from django.http import HttpResponse
+
+
+def crear_estilos_excel():
+    """Crear estilos reutilizables para Excel"""
+    return {
+        'header': {
+            'font': Font(bold=True, color="FFFFFF", size=12),
+            'alignment': Alignment(horizontal="center", vertical="center"),
+            'fill': PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid"),
+            'border': Border(
+                left=Side(style='thin'),
+                right=Side(style='thin'), 
+                top=Side(style='thin'),
+                bottom=Side(style='thin')
+            )
+        },
+        'data': {
+            'alignment': Alignment(horizontal="left", vertical="center"),
+            'border': Border(
+                left=Side(style='thin'),
+                right=Side(style='thin'),
+                top=Side(style='thin'), 
+                bottom=Side(style='thin')
+            )
+        }
+    }
+
+
+@login_required
+def export_usuarios_excel(request):
+    """Exportar usuarios a Excel - Solo administradores"""
+    # Verificar que sea administrador
+    if not request.user.is_superuser and (not hasattr(request.user, 'rol') or not request.user.rol or request.user.rol.nombre != 'ADMIN'):
+        messages.error(request, 'No tienes permisos para exportar usuarios.')
+        return redirect('autenticacion:usuario_listar')
+    
+    try:
+        # Crear workbook y worksheet
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "Usuarios"
+        
+        # Estilos
+        estilos = crear_estilos_excel()
+        
+        # Encabezados
+        headers = [
+            'ID', 'Usuario', 'Nombres', 'Apellidos', 'Email', 'Teléfono',
+            'Rol', 'Estado', 'Es Superusuario', 'Último Acceso',
+            'Fecha Registro', 'Última Modificación'
+        ]
+        
+        for col_num, header in enumerate(headers, 1):
+            cell = ws.cell(row=1, column=col_num, value=header)
+            cell.font = estilos['header']['font']
+            cell.alignment = estilos['header']['alignment']
+            cell.fill = estilos['header']['fill']
+            cell.border = estilos['header']['border']
+        
+        # Obtener datos
+        usuarios = Usuario.objects.select_related('rol').order_by('username')
+        
+        # Agregar datos
+        for row_num, usuario in enumerate(usuarios, 2):
+            data = [
+                usuario.id,
+                usuario.username,
+                usuario.nombres,  # Usar 'nombres' en lugar de 'first_name'
+                usuario.apellidos,  # Usar 'apellidos' en lugar de 'last_name'
+                usuario.email,
+                usuario.telefono or 'Sin teléfono',
+                usuario.rol.nombre if usuario.rol else 'Sin rol',
+                usuario.get_estado_display(),
+                'Sí' if usuario.is_superuser else 'No',
+                usuario.ultimo_acceso.strftime('%d/%m/%Y %H:%M') if usuario.ultimo_acceso else 'Nunca',
+                usuario.date_joined.strftime('%d/%m/%Y %H:%M') if usuario.date_joined else '',
+                usuario.updated_at.strftime('%d/%m/%Y %H:%M') if usuario.updated_at else ''  # Usar 'updated_at' en lugar de 'fecha_modificacion'
+            ]
+            
+            for col_num, value in enumerate(data, 1):
+                cell = ws.cell(row=row_num, column=col_num, value=value)
+                cell.alignment = estilos['data']['alignment']
+                cell.border = estilos['data']['border']
+        
+        # Ajustar ancho de columnas
+        for column in ws.columns:
+            max_length = 0
+            column_letter = get_column_letter(column[0].column)
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(str(cell.value))
+                except:
+                    pass
+            adjusted_width = min(max_length + 2, 50)
+            ws.column_dimensions[column_letter].width = adjusted_width
+        
+        # Configurar respuesta HTTP
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="usuarios_{datetime.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        
+        wb.save(response)
+        return response
+        
+    except Exception as e:
+        messages.error(request, f'Error al exportar usuarios: {str(e)}')
+        return redirect('autenticacion:usuario_listar')

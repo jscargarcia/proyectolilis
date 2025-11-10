@@ -845,3 +845,96 @@ python manage.py shell
 
 **Última actualización**: 9 de noviembre de 2025
 **Estado**: ✅ Sistema simplificado - Movimientos eliminados - Permisos completos - Eliminación de productos corregida
+
+---
+
+## 🆕 **FUNCIONALIDADES DASHBOARD - MARCAS Y CATEGORÍAS (9 Noviembre 2025)**
+
+### ✅ **Dashboard Actualizado con Nuevos Módulos**
+
+#### 🏠 **Módulos del Sistema - Nuevas Tarjetas**
+- ✅ **Tarjeta de Marcas**: Diseño azul profesional con enlace directo a gestión de marcas
+- ✅ **Tarjeta de Categorías**: Diseño verde profesional con enlace directo a gestión de categorías
+- ✅ **Permisos integrados**: Solo visible para usuarios con `can_manage_products`
+- ✅ **Responsive**: Compatible con dispositivos móviles y tablets
+
+#### ⚡ **Acciones Rápidas Ampliadas**
+- ✅ **Sección Marcas**: Botones para Listar y Crear marcas desde el dashboard
+- ✅ **Sección Categorías**: Botones para Listar y Crear categorías desde el dashboard
+- ✅ **Acceso directo**: Navegación rápida sin necesidad de menús desplegables
+- ✅ **Colores diferenciados**: Azul para marcas, verde para categorías
+
+### ✅ **Sistema de Exportación a Excel Profesional**
+
+#### 📊 **Exportación Completa Implementada**
+- ✅ **4 Módulos exportables**: Marcas, Categorías, Proveedores, Usuarios
+- ✅ **Biblioteca openpyxl 3.1.5**: Archivos Excel con estilos profesionales
+- ✅ **Headers personalizados**: Fondos grises, bordes y auto-width
+- ✅ **Botones verdes**: "Exportar Excel" en todas las listas CRUD
+- ✅ **Permisos por rol**: Solo usuarios autorizados pueden exportar
+
+#### 🔗 **URLs de Exportación Configuradas**
+```
+/maestros/marcas/export-excel/        # Exportar marcas
+/maestros/categorias/export-excel/    # Exportar categorías  
+/maestros/proveedores/export-excel/   # Exportar proveedores
+/auth/usuarios/export-excel/          # Exportar usuarios (solo admins)
+```
+
+#### 📁 **Funciones de Exportación Implementadas**
+- `export_marcas_excel()` - Exporta todas las marcas con información completa
+- `export_categorias_excel()` - Exporta categorías con jerarquía y estadísticas  
+- `export_proveedores_excel()` - Exporta proveedores con datos comerciales
+- `export_usuarios_excel()` - Exporta usuarios con roles (solo administradores)
+
+### ✅ **Mejoras en Datos de Prueba**
+
+#### 🏷️ **Marcas Ampliadas (27 marcas)**
+- Marcas internacionales: Nestlé, Ferrero, Hershey, Cadbury, Lindt
+- Marcas chilenas: Costa, Ambrosoli, Arcor, Calaf, Bresler
+- Marcas de chicles: Trident, Orbit, Halls, Mentos
+- Marcas de bebidas: Coca-Cola, Pepsi, Bilz & Pap
+- **Marca propia**: Dulcería Lilis, Lilis Artesanal
+
+#### 📦 **Categorías Mejoradas (12 categorías)**  
+- Categorías tradicionales: Chocolates, Caramelos, Gomitas, Chicles
+- Categorías especializadas: Repostería, Artesanales Lilis, Sin Azúcar
+- Descripciones detalladas para mejor organización de productos
+
+### 🎨 **Diseño y Experiencia de Usuario**
+
+#### 🌈 **Paleta de Colores Diferenciada**
+- **Marcas**: Azul (`#2563eb`) - Profesional y tecnológico
+- **Categorías**: Verde (`#059669`) - Natural y organizacional  
+- **Exportar**: Verde (`#28a745`) - Acción positiva y confiable
+
+#### 🔒 **Sistema de Permisos Granular**
+- **Administrador**: Ve todas las tarjetas y puede exportar todo
+- **Editor**: Ve tarjetas pero no puede eliminar, puede exportar
+- **Lector**: No ve tarjetas de gestión (sin permisos can_manage_products)
+
+### 🧪 **Instrucciones de Uso**
+
+#### 📋 **Para Probar las Nuevas Funcionalidades**
+1. **Iniciar servidor**: `python manage.py runserver`
+2. **Login**: http://127.0.0.1:8000/auth/login/
+3. **Dashboard**: Ver nuevas tarjetas de Marcas y Categorías
+4. **Acciones rápidas**: Probar botones de listar y crear
+5. **Exportación**: Ir a cualquier lista CRUD y probar "Exportar Excel"
+
+#### 👥 **Usuarios de Prueba**
+| Usuario | Contraseña | Ve Marcas/Categorías | Puede Exportar |
+|---------|------------|---------------------|----------------|
+| admin   | admin123   | ✅ Sí               | ✅ Todo        |
+| editor  | editor123  | ✅ Sí               | ✅ Sus módulos |
+| lector  | lector123  | ❌ No               | ❌ No          |
+
+### 📁 **Archivos de Documentación**
+- **[FUNCIONALIDADES_DASHBOARD_MARCAS_CATEGORIAS.md](FUNCIONALIDADES_DASHBOARD_MARCAS_CATEGORIAS.md)** - Documentación técnica completa
+- **requirements.txt** - Dependencias actualizadas con comentarios
+- **.env.example** - Variables de entorno documentadas
+- **seed_simple.py** - Datos de prueba ampliados
+
+---
+
+**🎉 Dashboard completamente modernizado con acceso rápido a Marcas, Categorías y exportación Excel profesional** ✨

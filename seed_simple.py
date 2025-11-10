@@ -2,6 +2,15 @@
 Script de Semillas Simplificado - Dulcería Lilis
 Solo usa los modelos de la app 'productos' que están correctamente migrados
 Ejecutar con: python seed_simple.py
+
+FUNCIONALIDADES INCLUIDAS (9 Noviembre 2025):
+✅ Roles optimizados con permisos para Marcas y Categorías
+✅ Usuarios del sistema (admin, editor, lector) con emails configurados
+✅ Categorías mejoradas (12 categorías incluyendo productos artesanales)
+✅ Marcas ampliadas (27 marcas incluyendo marca propia "Dulcería Lilis")
+✅ Datos de prueba listos para CRUD de Marcas/Categorías
+✅ Preparado para exportación a Excel de todos los módulos
+✅ Dashboard con accesos rápidos a Marcas y Categorías integrados
 """
 import os
 import django
@@ -182,16 +191,18 @@ print("📦 3. Creando Categorías...")
 print("-" * 80)
 
 categorias_data = [
-    {'nombre': 'Chocolates', 'descripcion': 'Todo tipo de chocolates'},
-    {'nombre': 'Caramelos', 'descripcion': 'Caramelos y dulces duros'},
-    {'nombre': 'Gomitas', 'descripcion': 'Gomitas y gelatinas'},
-    {'nombre': 'Chicles', 'descripcion': 'Chicles y gomas de mascar'},
-    {'nombre': 'Galletas', 'descripcion': 'Galletas dulces'},
-    {'nombre': 'Snacks', 'descripcion': 'Snacks salados y dulces'},
-    {'nombre': 'Bebidas', 'descripcion': 'Bebidas y refrescos'},
-    {'nombre': 'Helados', 'descripcion': 'Helados y postres congelados'},
-    {'nombre': 'Pasteles', 'descripcion': 'Pasteles y tortas'},
-    {'nombre': 'Otros', 'descripcion': 'Otros productos'},
+    {'nombre': 'Chocolates', 'descripcion': 'Todo tipo de chocolates y productos de cacao'},
+    {'nombre': 'Caramelos', 'descripcion': 'Caramelos duros, blandos y masticables'},
+    {'nombre': 'Gomitas', 'descripcion': 'Gomitas, gelatinas y dulces con sabor a frutas'},
+    {'nombre': 'Chicles', 'descripcion': 'Chicles, gomas de mascar y productos para refrescar'},
+    {'nombre': 'Galletas', 'descripcion': 'Galletas dulces, cookies y productos horneados'},
+    {'nombre': 'Snacks Dulces', 'descripcion': 'Snacks dulces, barras energéticas y cereales'},
+    {'nombre': 'Bebidas', 'descripcion': 'Bebidas gaseosas, jugos y refrescos'},
+    {'nombre': 'Helados', 'descripcion': 'Helados, paletas y postres congelados'},
+    {'nombre': 'Repostería', 'descripcion': 'Pasteles, tortas y productos de repostería'},
+    {'nombre': 'Artesanales Lilis', 'descripcion': 'Productos artesanales fabricados por Dulcería Lilis'},
+    {'nombre': 'Dulces Tradicionales', 'descripcion': 'Dulces tradicionales chilenos y regionales'},
+    {'nombre': 'Sin Azúcar', 'descripcion': 'Productos dietéticos y sin azúcar añadida'},
 ]
 
 for cat_data in categorias_data:
@@ -210,9 +221,23 @@ print("🏷️  4. Creando Marcas...")
 print("-" * 80)
 
 marcas_data = [
-    'Nestlé', 'Costa', 'Ambrosoli', 'Arcor', 'Sahne-Nuss',
-    'Trident', 'Coca-Cola', 'Pepsi', 'Savory', 'McKay',
-    'Ferrero', 'Hershey', 'Cadbury', 'Toblerone', 'Milka'
+    # Marcas internacionales de chocolate
+    'Nestlé', 'Ferrero', 'Hershey', 'Cadbury', 'Toblerone', 'Milka', 'Lindt',
+    
+    # Marcas chilenas y latinoamericanas
+    'Costa', 'Ambrosoli', 'Arcor', 'Sahne-Nuss', 'Calaf', 'Bresler',
+    
+    # Marcas de chicles y caramelos
+    'Trident', 'Orbit', 'Halls', 'Ricola', 'Mentos',
+    
+    # Marcas de bebidas
+    'Coca-Cola', 'Pepsi', 'Fanta', 'Sprite', 'Bilz & Pap',
+    
+    # Marcas de snacks
+    'Savory', 'McKay', 'Lays', 'Cheetos', 'Doritos',
+    
+    # Marca propia de la dulcería
+    'Dulcería Lilis', 'Lilis Artesanal'
 ]
 
 for marca_nombre in marcas_data:
