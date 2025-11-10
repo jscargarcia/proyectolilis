@@ -22,8 +22,8 @@ Aplicación web desarrollada en **Django** para la administración integral de l
 
 ### 1️. Clonar el repositorio
 ```bash
-git clone https://github.com/tuusuario/dulceria-lilis.git
-cd dulceria-lilis
+git clone https://github.com/jscargarcia/proyectolilis.git
+cd proyectolilis
 ```
 
 ## 2️. Crear y activar el entorno virtual en Python
