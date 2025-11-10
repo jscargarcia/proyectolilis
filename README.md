@@ -88,78 +88,16 @@ Activar entorno virtual:
 cd ~/proyectolilis
 source .venv/bin/activate
 ```
-
-Ejecuta migraciones
-```bash
-python manage.py migrate
-```
-Corre el script de semillas:
-```bash
-python seed_simple.py
-```
-Ejecutar Gunicorn:
-```bash
-gunicorn --bind 0.0.0.0:8000 config.wsgi
-```
-Configurar Nginx:
-```bash
-
-server {
-    listen 80;
-    server_name ec2-xx-xx-xx.compute.amazonaws.com;
-    location /static/ {
-        alias /home/admin/proyectolilis/static/;
-    }
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-    }
-}
-```
-
-Recargar Nginx:
-```bash
-sudo systemctl reload nginx
-```
 En producción no se “refresca solo”: cuando haces cambios o un git pull en el servidor
 debes reiniciar gunicorn (y, según el cambio, correr migraciones/collectstatic y/o
 recargar Nginx)
 
-### Flujo de despliegue manual
-- Ir al proyecto y traer cambios
-```bash
-cd proyectolilis
-git pull origin main # o la rama que uses
-```
-- (Si cambian dependencias) actualizar venv
- ```bash
-source /home/admin/Unidad_1_python_JA/.venv/bin/activate
-pip install -r requirements.txt
-```
-- Migraciones (si hay cambios de modelo)
-```bash
-python manage.py migrate
-```
-- Estáticos (si cambió CSS/JS/plantillas estáticas)
- ```bash
-python manage.py collectstatic --noinput
-```
-- Reiniciar gunicorn para que cargue el nuevo código
-```bash
-sudo systemctl restart proyecto
-```
-- (Solo si cambiaste Nginx) recargar Nginx
- ```bash
-sudo nginx -t && sudo systemctl reload nginx
-```
-- Verificar
- ```bash
-sudo systemctl status proyecto --no-pager
-curl -I http://127.0.0.1:8000/ # respuesta 200/301 esperado
-```
 ## Script de despliegue 
  ```bash
 bash /home/admin/deploy.sh
 ```
+<http://54.89.47.212/auth/login/>
+
  ### Roles y Permisos
 - Administrador: Control total del sistema (CRUD completo en todas las apps).
 - Editor: Gestión de inventario, productos y proveedores	(Crear, editar, actualizar).
