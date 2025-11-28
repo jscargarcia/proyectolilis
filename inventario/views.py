@@ -151,7 +151,8 @@ def registrar_ingreso(request):
         # GET request - mostrar formulario
         productos = Producto.objects.filter(estado='ACTIVO').order_by('nombre')
         bodegas = Bodega.objects.filter(activo=True).order_by('nombre')
-        proveedores = Proveedor.objects.filter(estado='ACTIVO').order_by('nombre')
+        proveedores = Proveedor.objects.filter(estado='ACTIVO').order_by('razon_social')
+
         
         context = {
             'productos': productos,
