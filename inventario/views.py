@@ -3,7 +3,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.core.paginator import Paginator
-from django.db.models import Q, Sum, Count
+from django.db.models import Q, Sum, Count, F
+from django.db import models
 from django.utils import timezone
 from datetime import datetime, timedelta
 import json
@@ -13,6 +14,563 @@ from .models import (
     MovimientoInventario, Bodega, Lote, StockActual, AlertaStock
 )
 from maestros.models import Producto, Proveedor
+
+
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.listar')
+def dashboard_inventario(request):
+    """Dashboard principal del módulo de inventario"""
+    try:
+        # Estadísticas generales
+        total_productos = Producto.objects.filter(estado='ACTIVO').count()
+        total_bodegas = Bodega.objects.filter(activo=True).count()
+        
+        # Movimientos del mes actual
+        inicio_mes = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        movimientos_mes = MovimientoInventario.objects.filter(
+            fecha_movimiento__gte=inicio_mes,
+            estado='CONFIRMADO'
+        ).count()
+        
+        # Stock crítico
+        alertas_criticas = AlertaStock.objects.filter(
+            estado='ACTIVA',
+            prioridad='CRITICA'
+        ).count()
+        
+        # Productos con stock bajo
+        productos_stock_bajo = StockActual.objects.filter(
+            cantidad_disponible__lte=F('producto__stock_minimo'),
+            producto__estado='ACTIVO'
+        ).count() if hasattr(StockActual, 'objects') else 0
+        
+        # Últimos movimientos
+        ultimos_movimientos = MovimientoInventario.objects.select_related(
+            'producto', 'bodega_origen', 'bodega_destino', 'usuario'
+        ).filter(estado='CONFIRMADO').order_by('-fecha_movimiento')[:5]
+        
+        # Alertas recientes
+        alertas_recientes = AlertaStock.objects.select_related(
+            'producto', 'bodega', 'lote'
+        ).filter(estado='ACTIVA').order_by('-fecha_generacion')[:5]
+        
+        # Estadísticas de movimientos por tipo (últimos 30 días)
+        hace_30_dias = timezone.now() - timedelta(days=30)
+        stats_movimientos = MovimientoInventario.objects.filter(
+            fecha_movimiento__gte=hace_30_dias,
+            estado='CONFIRMADO'
+        ).values('tipo_movimiento').annotate(
+            total=Count('id'),
+            cantidad_total=Sum('cantidad')
+        )
+        
+        context = {
+            'total_productos': total_productos,
+            'total_bodegas': total_bodegas,
+            'movimientos_mes': movimientos_mes,
+            'alertas_criticas': alertas_criticas,
+            'productos_stock_bajo': productos_stock_bajo,
+            'ultimos_movimientos': ultimos_movimientos,
+            'movimientos_recientes': ultimos_movimientos,  # Alias para el template
+            'alertas_recientes': alertas_recientes,
+            'stats_movimientos': stats_movimientos,
+        }
+        
+        return render(request, 'inventario/dashboard.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Error al cargar el dashboard: {str(e)}')
+        return render(request, 'inventario/dashboard.html', {})
+
+
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.add')
+def registrar_ingreso(request):
+    """Registrar ingreso de productos al inventario"""
+    try:
+        if request.method == 'POST':
+            # Verificar si es JSON o form data
+            if request.content_type == 'application/json':
+                data = json.loads(request.body)
+                producto_id = data.get('producto_id')
+                cantidad = data.get('cantidad')
+                precio_unitario = data.get('precio_unitario', 0)
+                bodega_id = data.get('bodega_id')
+                proveedor_id = data.get('proveedor_id')
+                observaciones = data.get('observaciones', '')
+                documento_referencia = data.get('documento_referencia', '')
+            else:
+                # Form data tradicional
+                producto_id = request.POST.get('producto')
+                cantidad = request.POST.get('cantidad')
+                precio_unitario = request.POST.get('costo_unitario', 0) or 0
+                bodega_id = request.POST.get('bodega_destino')
+                proveedor_id = request.POST.get('proveedor') or None
+                observaciones = request.POST.get('observaciones', '')
+                documento_referencia = request.POST.get('documento_referencia', '')
+            
+            # Validar datos obligatorios
+            if not all([producto_id, cantidad, bodega_id]):
+                if request.content_type == 'application/json':
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Faltan datos obligatorios: producto, cantidad y bodega'
+                    })
+                messages.error(request, 'Faltan datos obligatorios: producto, cantidad y bodega')
+                return redirect('inventario:registrar_ingreso')
+            
+            # Obtener el producto para la unidad de medida
+            producto = Producto.objects.get(id=producto_id)
+            
+            # Crear el movimiento
+            movimiento = MovimientoInventario.objects.create(
+                tipo_movimiento='INGRESO',
+                producto=producto,
+                cantidad=cantidad,
+                unidad_medida=producto.uom_stock,
+                costo_unitario=precio_unitario if precio_unitario else None,
+                costo_total=float(cantidad) * float(precio_unitario) if precio_unitario else None,
+                bodega_destino_id=bodega_id,
+                proveedor_id=proveedor_id,
+                documento_referencia=documento_referencia,
+                observaciones=observaciones,
+                usuario=request.user,
+                estado='CONFIRMADO',
+                fecha_movimiento=timezone.now()
+            )
+            
+            messages.success(request, f'Ingreso registrado correctamente: {movimiento.producto.nombre}')
+            
+            if request.content_type == 'application/json':
+                return JsonResponse({'success': True, 'movimiento_id': movimiento.id})
+            
+            return redirect('inventario:dashboard')
+            
+        # GET request - mostrar formulario
+        productos = Producto.objects.filter(estado='ACTIVO').order_by('nombre')
+        bodegas = Bodega.objects.filter(activo=True).order_by('nombre')
+        proveedores = Proveedor.objects.filter(estado='ACTIVO').order_by('nombre')
+        
+        context = {
+            'productos': productos,
+            'bodegas': bodegas,
+            'proveedores': proveedores,
+            'tipo_operacion': 'ingreso'
+        }
+        
+        return render(request, 'inventario/registrar_movimiento.html', context)
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        messages.error(request, f'Error al registrar ingreso: {str(e)}')
+        
+        if request.method == 'POST' and request.content_type == 'application/json':
+            return JsonResponse({'success': False, 'message': str(e)})
+        
+        return redirect('inventario:registrar_ingreso')
+
+
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.add')
+def registrar_salida(request):
+    """Registrar salida de productos del inventario"""
+    try:
+        if request.method == 'POST':
+            # Verificar si es JSON o form data
+            if request.content_type == 'application/json':
+                data = json.loads(request.body)
+                producto_id = data.get('producto_id')
+                cantidad = data.get('cantidad')
+                precio_unitario = data.get('precio_unitario', 0)
+                bodega_id = data.get('bodega_id')
+                observaciones = data.get('observaciones', '')
+                documento_referencia = data.get('documento_referencia', '')
+            else:
+                # Form data tradicional
+                producto_id = request.POST.get('producto')
+                cantidad = request.POST.get('cantidad')
+                precio_unitario = request.POST.get('precio_unitario', 0) or 0
+                bodega_id = request.POST.get('bodega_origen')
+                observaciones = request.POST.get('observaciones', '')
+                motivo_ajuste = request.POST.get('motivo_ajuste', '')
+                if motivo_ajuste:
+                    observaciones = f"{motivo_ajuste}\n{observaciones}" if observaciones else motivo_ajuste
+                documento_referencia = request.POST.get('documento_referencia', '')
+            
+            # Validar datos obligatorios
+            if not all([producto_id, cantidad, bodega_id]):
+                if request.content_type == 'application/json':
+                    return JsonResponse({
+                        'success': False,
+                        'message': 'Faltan datos obligatorios: producto, cantidad y bodega'
+                    })
+                messages.error(request, 'Faltan datos obligatorios: producto, cantidad y bodega')
+                return redirect('inventario:registrar_salida')
+            
+            # Verificar stock disponible
+            stock_actual = StockActual.objects.filter(
+                producto_id=producto_id,
+                bodega_id=bodega_id
+            ).first()
+            
+            cantidad_float = float(cantidad)
+            
+            if not stock_actual or stock_actual.cantidad_disponible < cantidad_float:
+                mensaje = 'Stock insuficiente para realizar la salida'
+                if stock_actual:
+                    mensaje += f'. Stock disponible: {stock_actual.cantidad_disponible}'
+                
+                if request.content_type == 'application/json':
+                    return JsonResponse({
+                        'success': False,
+                        'message': mensaje
+                    })
+                messages.error(request, mensaje)
+                return redirect('inventario:registrar_salida')
+            
+            # Obtener el producto para la unidad de medida
+            producto = Producto.objects.get(id=producto_id)
+            
+            # Crear el movimiento
+            movimiento = MovimientoInventario.objects.create(
+                tipo_movimiento='SALIDA',
+                producto=producto,
+                cantidad=cantidad,
+                unidad_medida=producto.uom_stock,
+                costo_unitario=precio_unitario if precio_unitario else None,
+                costo_total=float(cantidad) * float(precio_unitario) if precio_unitario else None,
+                bodega_origen_id=bodega_id,
+                documento_referencia=documento_referencia,
+                observaciones=observaciones,
+                usuario=request.user,
+                estado='CONFIRMADO',
+                fecha_movimiento=timezone.now()
+            )
+            
+            messages.success(request, f'Salida registrada correctamente: {movimiento.producto.nombre}')
+            
+            if request.content_type == 'application/json':
+                return JsonResponse({'success': True, 'movimiento_id': movimiento.id})
+            
+            return redirect('inventario:dashboard')
+            
+        # GET request - mostrar formulario
+        productos = Producto.objects.filter(estado='ACTIVO').order_by('nombre')
+        bodegas = Bodega.objects.filter(activo=True).order_by('nombre')
+        
+        context = {
+            'productos': productos,
+            'bodegas': bodegas,
+            'tipo_operacion': 'salida'
+        }
+        
+        return render(request, 'inventario/registrar_movimiento.html', context)
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        messages.error(request, f'Error al registrar salida: {str(e)}')
+        
+        if request.method == 'POST' and request.content_type == 'application/json':
+            return JsonResponse({'success': False, 'message': str(e)})
+        
+        return redirect('inventario:registrar_salida')
+
+
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.view')
+def vista_stock_actual(request):
+    """Vista de stock actual con filtros"""
+    try:
+        # Filtros
+        filtro_producto = request.GET.get('producto', '')
+        filtro_bodega = request.GET.get('bodega', '')
+        filtro_categoria = request.GET.get('categoria', '')
+        solo_criticos = request.GET.get('solo_criticos', '')
+        buscar = request.GET.get('q', '')
+        
+        # Consulta base - MOSTRAR TODOS los productos, no solo con stock > 0
+        stocks = StockActual.objects.select_related(
+            'producto', 'bodega', 'producto__categoria'
+        ).all()
+        
+        # Aplicar filtros
+        if filtro_producto:
+            stocks = stocks.filter(producto_id=filtro_producto)
+        
+        if filtro_bodega:
+            stocks = stocks.filter(bodega_id=filtro_bodega)
+        
+        if filtro_categoria:
+            stocks = stocks.filter(producto__categoria_id=filtro_categoria)
+        
+        if solo_criticos:
+            stocks = stocks.filter(cantidad_disponible__lte=F('producto__stock_minimo'))
+        
+        if buscar:
+            stocks = stocks.filter(
+                Q(producto__nombre__icontains=buscar) |
+                Q(producto__sku__icontains=buscar)
+            )
+        
+        # Ordenar
+        stocks = stocks.order_by('producto__nombre', 'bodega__nombre')
+        
+        # Paginación
+        paginator = Paginator(stocks, 50)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        # Datos adicionales
+        productos = Producto.objects.filter(estado='ACTIVO').order_by('nombre')
+        bodegas = Bodega.objects.filter(activo=True).order_by('nombre')
+        
+        context = {
+            'stocks': page_obj,
+            'productos': productos,
+            'bodegas': bodegas,
+            'is_paginated': page_obj.has_other_pages(),
+            'page_obj': page_obj,
+            'tiene_datos': page_obj.paginator.count > 0,
+        }
+        
+        return render(request, 'inventario/stock_actual.html', context)
+        
+    except Exception as e:
+        import traceback
+        print("="*50)
+        print(f"ERROR en vista_stock_actual: {str(e)}")
+        print(traceback.format_exc())
+        print("="*50)
+        
+        # Crear contexto vacío pero válido
+        try:
+            productos = Producto.objects.filter(estado='ACTIVO').order_by('nombre')
+            bodegas = Bodega.objects.filter(activo=True).order_by('nombre')
+        except Exception:
+            productos = []
+            bodegas = []
+        
+        # Crear paginator vacío
+        empty_stocks = StockActual.objects.none()
+        empty_paginator = Paginator(empty_stocks, 50)
+        page_obj = empty_paginator.get_page(1)
+        
+        context = {
+            'stocks': page_obj,
+            'productos': productos,
+            'bodegas': bodegas,
+            'is_paginated': False,
+            'page_obj': page_obj,
+            'tiene_datos': False,
+            'error_message': str(e),
+        }
+        return render(request, 'inventario/stock_actual.html', context)
+
+
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.view')
+def historial_movimientos(request):
+    """Historial de movimientos con filtros avanzados"""
+    try:
+        # Filtros
+        filtro_tipo = request.GET.get('tipo', '')
+        filtro_producto = request.GET.get('producto', '')
+        filtro_bodega = request.GET.get('bodega', '')
+        fecha_desde = request.GET.get('fecha_desde', '')
+        fecha_hasta = request.GET.get('fecha_hasta', '')
+        buscar = request.GET.get('q', '')
+        
+        # Consulta base
+        movimientos = MovimientoInventario.objects.select_related(
+            'producto', 'bodega_origen', 'bodega_destino', 'proveedor', 'usuario'
+        ).filter(estado='CONFIRMADO')
+        
+        # Aplicar filtros
+        if filtro_tipo:
+            movimientos = movimientos.filter(tipo_movimiento=filtro_tipo)
+        
+        if filtro_producto:
+            movimientos = movimientos.filter(producto_id=filtro_producto)
+        
+        if filtro_bodega:
+            movimientos = movimientos.filter(
+                Q(bodega_origen_id=filtro_bodega) | Q(bodega_destino_id=filtro_bodega)
+            )
+        
+        if fecha_desde:
+            fecha_desde_dt = datetime.strptime(fecha_desde, '%Y-%m-%d')
+            movimientos = movimientos.filter(fecha_movimiento__gte=fecha_desde_dt)
+        
+        if fecha_hasta:
+            fecha_hasta_dt = datetime.strptime(fecha_hasta, '%Y-%m-%d')
+            movimientos = movimientos.filter(fecha_movimiento__lte=fecha_hasta_dt)
+        
+        if buscar:
+            movimientos = movimientos.filter(
+                Q(producto__nombre__icontains=buscar) |
+                Q(producto__sku__icontains=buscar) |
+                Q(observaciones__icontains=buscar)
+            )
+        
+        # Ordenar por fecha más reciente
+        movimientos = movimientos.order_by('-fecha_movimiento')
+        
+        # Paginación
+        paginator = Paginator(movimientos, 25)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        
+        # Datos adicionales
+        productos = Producto.objects.filter(estado='ACTIVO')
+        bodegas = Bodega.objects.filter(activo=True)
+        tipos_movimiento = MovimientoInventario.TIPO_MOVIMIENTO_CHOICES
+        
+        context = {
+            'movimientos': page_obj,
+            'productos': productos,
+            'bodegas': bodegas,
+            'tipos_movimiento': tipos_movimiento,
+            'is_paginated': page_obj.has_other_pages(),
+            'page_obj': page_obj,
+            'filtro_tipo': filtro_tipo,
+            'filtro_bodega': filtro_bodega,
+            'fecha_desde': fecha_desde,
+            'fecha_hasta': fecha_hasta,
+            'buscar': buscar,
+        }
+        
+        return render(request, 'inventario/historial_movimientos.html', context)
+        
+    except Exception as e:
+        messages.error(request, f'Error al cargar historial: {str(e)}')
+        return render(request, 'inventario/historial_movimientos.html', {})
+
+
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.add')
+def alerta_resolver(request, pk):
+    """Resolver una alerta específica"""
+    if request.method == 'POST':
+        try:
+            alerta = get_object_or_404(AlertaStock, pk=pk)
+            data = json.loads(request.body)
+            
+            alerta.estado = 'RESUELTA'
+            alerta.fecha_resolucion = timezone.now()
+            alerta.resuelto_por = request.user
+            alerta.observaciones_resolucion = data.get('observaciones', '')
+            alerta.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Alerta resuelta correctamente'
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error al resolver alerta: {str(e)}'
+            })
+    
+    return JsonResponse({'success': False, 'message': 'Método no permitido'})
+
+
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.view')
+def obtener_stock_producto(request):
+    """API endpoint para obtener stock de un producto en una bodega"""
+    producto_id = request.GET.get('producto_id')
+    bodega_id = request.GET.get('bodega_id')
+    
+    if not producto_id or not bodega_id:
+        return JsonResponse({'error': 'Parámetros requeridos: producto_id y bodega_id'})
+    
+    try:
+        stock = StockActual.objects.filter(
+            producto_id=producto_id,
+            bodega_id=bodega_id
+        ).first()
+        
+        if stock:
+            return JsonResponse({
+                'cantidad': float(stock.cantidad_disponible),
+                'stock_minimo': float(stock.producto.stock_minimo or 0),
+                'unidad_medida': stock.producto.uom_stock.nombre if stock.producto.uom_stock else '',
+            })
+        else:
+            return JsonResponse({
+                'cantidad': 0,
+                'stock_minimo': 0,
+                'unidad_medida': '',
+            })
+            
+    except Exception as e:
+        return JsonResponse({'error': str(e)})
+
+
+# API endpoints para formularios dinámicos
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.view')
+def productos_search_api(request):
+    """API para búsqueda de productos"""
+    query = request.GET.get('q', '')
+    productos = Producto.objects.filter(
+        Q(nombre__icontains=query) | Q(sku__icontains=query),
+        estado='ACTIVO'
+    )[:20]
+    
+    data = [{
+        'id': p.id,
+        'text': f"{p.sku} - {p.nombre}",
+        'nombre': p.nombre,
+        'sku': p.sku,
+        'unidad_medida': p.uom_stock.nombre if p.uom_stock else '',
+        'stock_minimo': float(p.stock_minimo or 0),
+    } for p in productos]
+    
+    return JsonResponse({'results': data})
+
+
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.view')
+def bodegas_api(request):
+    """API para obtener bodegas activas"""
+    bodegas = Bodega.objects.filter(activo=True)
+    
+    data = [{
+        'id': b.id,
+        'nombre': b.nombre,
+        'direccion': b.direccion or '',
+    } for b in bodegas]
+    
+    return JsonResponse({'results': data})
+
+
+@login_required_custom
+@estado_usuario_activo
+@permission_required('inventario.view')
+def proveedores_api(request):
+    """API para obtener proveedores activos"""
+    proveedores = Proveedor.objects.filter(estado='ACTIVO')
+    
+    data = [{
+        'id': p.id,
+        'nombre': p.nombre,
+        'documento': p.documento or '',
+    } for p in proveedores]
+    
+    return JsonResponse({'results': data})
 
 
 @login_required_custom
@@ -290,13 +848,47 @@ def stock_listar(request):
             'filtro_bodega': filtro_bodega,
             'buscar': buscar,
             'solo_con_stock': solo_con_stock,
+            'tiene_datos': page_obj.paginator.count > 0,
         }
         
         return render(request, 'inventario/stock_listar.html', context)
         
     except Exception as e:
-        messages.error(request, f'Error al cargar stock: {str(e)}')
-        return render(request, 'inventario/stock_listar.html', {'page_obj': None})
+        import traceback
+        print("="*50)
+        print(f"ERROR en stock_listar: {str(e)}")
+        print(traceback.format_exc())
+        print("="*50)
+        
+        # Enviar contexto mínimo para evitar errores en template
+        try:
+            productos = Producto.objects.filter(estado='ACTIVO').order_by('nombre')
+            bodegas = Bodega.objects.filter(activo=True).order_by('nombre')
+        except Exception:
+            productos = []
+            bodegas = []
+        
+        # Crear un paginator vacío
+        from django.core.paginator import Paginator, EmptyPage
+        empty_stocks = StockActual.objects.none()
+        paginator = Paginator(empty_stocks, 50)
+        try:
+            page_obj = paginator.get_page(1)
+        except EmptyPage:
+            page_obj = paginator.get_page(paginator.num_pages)
+        
+        context = {
+            'page_obj': page_obj,
+            'productos': productos,
+            'bodegas': bodegas,
+            'filtro_producto': '',
+            'filtro_bodega': '',
+            'buscar': '',
+            'solo_con_stock': '',
+            'tiene_datos': False,
+            'error_message': str(e),
+        }
+        return render(request, 'inventario/stock_listar.html', context)
 
 
 @login_required_custom

@@ -1,0 +1,457 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Historial de Movimientos - Inventario{% endblock %}
+
+{% block extra_css %}
+<style>
+    .header-card {
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
+        color: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    }
+    
+    .filters-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .movements-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .movement-item {
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+        transition: background-color 0.3s ease;
+    }
+    
+    .movement-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .movement-item:last-child {
+        border-bottom: none;
+    }
+    
+    .movement-ingreso {
+        border-left: 4px solid #28a745;
+    }
+    
+    .movement-salida {
+        border-left: 4px solid #dc3545;
+    }
+    
+    .movement-ajuste {
+        border-left: 4px solid #ffc107;
+    }
+    
+    .movement-devolucion {
+        border-left: 4px solid #17a2b8;
+    }
+    
+    .movement-transferencia {
+        border-left: 4px solid #6f42c1;
+    }
+    
+    .estado-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .badge-pendiente {
+        background: #fff3cd;
+        color: #856404;
+    }
+    
+    .badge-confirmado {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .badge-anulado {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .btn-filters {
+        background: linear-gradient(135deg, #6f42c1, #e83e8c);
+        border: none;
+        color: white;
+        border-radius: 8px;
+        padding: 8px 20px;
+        font-weight: 500;
+    }
+    
+    .btn-filters:hover {
+        background: linear-gradient(135deg, #5a2d91, #d91a72);
+        color: white;
+    }
+    
+    .movement-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: white;
+    }
+    
+    .icon-ingreso {
+        background: #28a745;
+    }
+    
+    .icon-salida {
+        background: #dc3545;
+    }
+    
+    .icon-ajuste {
+        background: #ffc107;
+    }
+    
+    .icon-devolucion {
+        background: #17a2b8;
+    }
+    
+    .icon-transferencia {
+        background: #6f42c1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="header-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-0" style="color: white;">
+                    <i class="fas fa-history me-2" style="color: white;"></i>
+                    Historial de Movimientos
+                </h2>
+                <p class="mb-0" style="color: white;">Registro completo de todos los movimientos de inventario</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'inventario:dashboard' %}" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-card">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label for="q" class="form-label">Buscar</label>
+                <input type="text" class="form-control" id="q" name="q" 
+                       value="{{ buscar }}" placeholder="Producto, SKU o documento">
+            </div>
+            
+            <div class="col-md-2">
+                <label for="tipo" class="form-label">Tipo</label>
+                <select class="form-select" id="tipo" name="tipo">
+                    <option value="">Todos los tipos</option>
+                    {% for tipo in tipos_movimiento %}
+                        <option value="{{ tipo.0 }}" {% if filtro_tipo == tipo.0 %}selected{% endif %}>
+                            {{ tipo.1 }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-2">
+                <label for="bodega" class="form-label">Bodega</label>
+                <select class="form-select" id="bodega" name="bodega">
+                    <option value="">Todas las bodegas</option>
+                    {% for bodega in bodegas %}
+                        <option value="{{ bodega.id }}" {% if filtro_bodega == bodega.id|stringformat:"s" %}selected{% endif %}>
+                            {{ bodega.codigo }} - {{ bodega.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-2">
+                <label for="fecha_desde" class="form-label">Desde</label>
+                <input type="date" class="form-control" id="fecha_desde" name="fecha_desde" 
+                       value="{{ fecha_desde }}">
+            </div>
+            
+            <div class="col-md-2">
+                <label for="fecha_hasta" class="form-label">Hasta</label>
+                <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta" 
+                       value="{{ fecha_hasta }}">
+            </div>
+            
+            <div class="col-md-1">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-filters">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Resultados -->
+    {% if page_obj %}
+        <div class="movements-card">
+            {% for movimiento in page_obj %}
+                <div class="movement-item movement-{{ movimiento.tipo_movimiento|lower }}">
+                    <div class="row align-items-center">
+                        <div class="col-md-1 text-center">
+                            <div class="movement-icon icon-{{ movimiento.tipo_movimiento|lower }}">
+                                {% if movimiento.tipo_movimiento == 'INGRESO' %}
+                                    <i class="fas fa-arrow-up"></i>
+                                {% elif movimiento.tipo_movimiento == 'SALIDA' %}
+                                    <i class="fas fa-arrow-down"></i>
+                                {% elif movimiento.tipo_movimiento == 'AJUSTE' %}
+                                    <i class="fas fa-edit"></i>
+                                {% elif movimiento.tipo_movimiento == 'DEVOLUCION' %}
+                                    <i class="fas fa-undo"></i>
+                                {% elif movimiento.tipo_movimiento == 'TRANSFERENCIA' %}
+                                    <i class="fas fa-exchange-alt"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <h6 class="mb-1">{{ movimiento.producto.nombre }}</h6>
+                            <p class="text-muted mb-1">
+                                <strong>SKU:</strong> {{ movimiento.producto.sku }}
+                            </p>
+                            <small class="text-muted">
+                                <strong>Folio:</strong> #{{ movimiento.id }}
+                            </small>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <span class="fw-bold">{{ movimiento.cantidad }} {{ movimiento.unidad_medida.simbolo }}</span>
+                            <br>
+                            <small class="text-muted">{{ movimiento.get_tipo_movimiento_display }}</small>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            {% if movimiento.bodega_origen %}
+                                <span class="text-danger">
+                                    <i class="fas fa-arrow-left me-1"></i>{{ movimiento.bodega_origen.nombre }}
+                                </span>
+                                <br>
+                            {% endif %}
+                            {% if movimiento.bodega_destino %}
+                                <span class="text-success">
+                                    <i class="fas fa-arrow-right me-1"></i>{{ movimiento.bodega_destino.nombre }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <small class="text-muted">{{ movimiento.fecha_movimiento|date:"d/m/Y H:i" }}</small>
+                            <br>
+                            <small class="text-muted">
+                                <i class="fas fa-user me-1"></i>{{ movimiento.usuario.get_full_name|default:movimiento.usuario.username }}
+                            </small>
+                        </div>
+                        
+                        <div class="col-md-2 text-end">
+                            <span class="estado-badge badge-{{ movimiento.estado|lower }}">
+                                {{ movimiento.get_estado_display }}
+                            </span>
+                            
+                            {% if movimiento.documento_referencia %}
+                                <br>
+                                <small class="text-muted">
+                                    <i class="fas fa-file-alt me-1"></i>{{ movimiento.documento_referencia }}
+                                </small>
+                            {% endif %}
+                            
+                            {% if movimiento.costo_total %}
+                                <br>
+                                <small class="text-success">
+                                    <i class="fas fa-dollar-sign me-1"></i>${{ movimiento.costo_total|floatformat:0 }}
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if movimiento.observaciones %}
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <small class="text-muted">
+                                    <i class="fas fa-comment me-1"></i>
+                                    <strong>Observaciones:</strong> {{ movimiento.observaciones }}
+                                </small>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    {% if movimiento.motivo_ajuste %}
+                        <div class="row mt-2">
+                            <div class="col-12">
+                                <small class="text-warning">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                    <strong>Motivo:</strong> {{ movimiento.motivo_ajuste }}
+                                </small>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No se encontraron movimientos</h5>
+                    <p class="text-muted">No hay movimientos que coincidan con los filtros aplicados.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Paginación Mejorada -->
+        {% if page_obj.has_other_pages %}
+            <nav aria-label="Paginación" class="mt-4">
+                <div class="row align-items-center">
+                    <div class="col-md-4 text-start mb-2 mb-md-0">
+                        <span class="text-muted">
+                            Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} movimientos
+                        </span>
+                    </div>
+                    <div class="col-md-4">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.bodega %}&bodega={{ request.GET.bodega }}{% endif %}{% if request.GET.fecha_desde %}&fecha_desde={{ request.GET.fecha_desde }}{% endif %}{% if request.GET.fecha_hasta %}&fecha_hasta={{ request.GET.fecha_hasta }}{% endif %}" title="Primera página">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.bodega %}&bodega={{ request.GET.bodega }}{% endif %}{% if request.GET.fecha_desde %}&fecha_desde={{ request.GET.fecha_desde }}{% endif %}{% if request.GET.fecha_hasta %}&fecha_hasta={{ request.GET.fecha_hasta }}{% endif %}" title="Página anterior">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                                </li>
+                            {% endif %}
+                            
+                            <!-- Páginas numeradas con lógica inteligente -->
+                            {% if page_obj.number > 3 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.bodega %}&bodega={{ request.GET.bodega }}{% endif %}{% if request.GET.fecha_desde %}&fecha_desde={{ request.GET.fecha_desde }}{% endif %}{% if request.GET.fecha_hasta %}&fecha_hasta={{ request.GET.fecha_hasta }}{% endif %}">1</a>
+                                </li>
+                                {% if page_obj.number > 4 %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if num == page_obj.number %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.bodega %}&bodega={{ request.GET.bodega }}{% endif %}{% if request.GET.fecha_desde %}&fecha_desde={{ request.GET.fecha_desde }}{% endif %}{% if request.GET.fecha_hasta %}&fecha_hasta={{ request.GET.fecha_hasta }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.number < page_obj.paginator.num_pages|add:"-2" %}
+                                {% if page_obj.number < page_obj.paginator.num_pages|add:"-3" %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.bodega %}&bodega={{ request.GET.bodega }}{% endif %}{% if request.GET.fecha_desde %}&fecha_desde={{ request.GET.fecha_desde }}{% endif %}{% if request.GET.fecha_hasta %}&fecha_hasta={{ request.GET.fecha_hasta }}{% endif %}">{{ page_obj.paginator.num_pages }}</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.bodega %}&bodega={{ request.GET.bodega }}{% endif %}{% if request.GET.fecha_desde %}&fecha_desde={{ request.GET.fecha_desde }}{% endif %}{% if request.GET.fecha_hasta %}&fecha_hasta={{ request.GET.fecha_hasta }}{% endif %}" title="Página siguiente">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.bodega %}&bodega={{ request.GET.bodega }}{% endif %}{% if request.GET.fecha_desde %}&fecha_desde={{ request.GET.fecha_desde }}{% endif %}{% if request.GET.fecha_hasta %}&fecha_hasta={{ request.GET.fecha_hasta }}{% endif %}" title="Última página">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <form method="GET" class="d-inline-flex align-items-center">
+                            {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
+                            {% if request.GET.tipo %}<input type="hidden" name="tipo" value="{{ request.GET.tipo }}">{% endif %}
+                            {% if request.GET.bodega %}<input type="hidden" name="bodega" value="{{ request.GET.bodega }}">{% endif %}
+                            {% if request.GET.fecha_desde %}<input type="hidden" name="fecha_desde" value="{{ request.GET.fecha_desde }}">{% endif %}
+                            {% if request.GET.fecha_hasta %}<input type="hidden" name="fecha_hasta" value="{{ request.GET.fecha_hasta }}">{% endif %}
+                            <label for="page-jump" class="me-2 mb-0 text-muted">Ir a página:</label>
+                            <input type="number" id="page-jump" name="page" class="form-control form-control-sm" 
+                                   style="width: 80px;" min="1" max="{{ page_obj.paginator.num_pages }}" 
+                                   placeholder="{{ page_obj.number }}">
+                            <button type="submit" class="btn btn-sm btn-primary ms-2">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="movements-card">
+            <div class="text-center py-5">
+                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                <h5 class="text-muted">Error al cargar movimientos</h5>
+                <p class="text-muted">Hubo un problema al cargar el historial. Por favor, intente nuevamente.</p>
+                <a href="{% url 'inventario:historial_movimientos' %}" class="btn btn-primary">
+                    <i class="fas fa-refresh me-2"></i>Recargar
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Establecer fecha por defecto (últimos 30 días)
+    const fechaDesde = document.getElementById('fecha_desde');
+    const fechaHasta = document.getElementById('fecha_hasta');
+    
+    if (!fechaDesde.value && !fechaHasta.value) {
+        const hoy = new Date();
+        const hace30Dias = new Date();
+        hace30Dias.setDate(hoy.getDate() - 30);
+        
+        fechaHasta.value = hoy.toISOString().split('T')[0];
+        fechaDesde.value = hace30Dias.toISOString().split('T')[0];
+    }
+});
+</script>
+{% endblock %}

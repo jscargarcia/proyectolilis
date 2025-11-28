@@ -13,120 +13,7 @@ from datetime import datetime
 import json
 
 from maestros.models import Categoria, Marca, UnidadMedida, Producto
-
-
-@login_required
-@permission_required('productos.crear')
-def crear_producto(request):
-    """Vista para crear un nuevo producto"""
-    
-    if request.method == 'POST':
-        try:
-            # Validar datos obligatorios
-            sku = request.POST.get('sku', '').strip()
-            nombre = request.POST.get('nombre', '').strip()
-            categoria_id = request.POST.get('categoria')
-            precio_venta = request.POST.get('precio_venta')
-            costo_estandar = request.POST.get('costo_estandar', '') or None
-            
-            if not all([sku, nombre, categoria_id]):
-                return JsonResponse({
-                    'success': False,
-                    'message': 'Los campos SKU, nombre y categoría son obligatorios'
-                })
-            
-            # Validar precio de venta
-            try:
-                precio_venta = float(precio_venta)
-                if precio_venta <= 0:
-                    return JsonResponse({
-                        'success': False,
-                        'message': 'El precio de venta debe ser mayor que 0'
-                    })
-            except (ValueError, TypeError):
-                return JsonResponse({
-                    'success': False,
-                    'message': 'El precio de venta debe ser un número válido'
-                })
-            
-            # Validar costo estándar si se proporciona
-            if costo_estandar:
-                try:
-                    costo_estandar = float(costo_estandar)
-                    if costo_estandar <= 0:
-                        return JsonResponse({
-                            'success': False,
-                            'message': 'El costo estándar debe ser mayor que 0'
-                        })
-                except (ValueError, TypeError):
-                    return JsonResponse({
-                        'success': False,
-                        'message': 'El costo estándar debe ser un número válido'
-                    })
-            
-            # Verificar que el SKU no exista
-            if Producto.objects.filter(sku=sku).exists():
-                return JsonResponse({
-                    'success': False,
-                    'message': f'Ya existe un producto con el SKU: {sku}'
-                })
-            
-            # Obtener objetos relacionados
-            categoria = get_object_or_404(Categoria, id=categoria_id)
-            marca_id = request.POST.get('marca') or None
-            marca = get_object_or_404(Marca, id=marca_id) if marca_id else None
-            
-            # Obtener unidad de medida por defecto
-            try:
-                unidad_unidad = UnidadMedida.objects.get(codigo='UND')
-            except UnidadMedida.DoesNotExist:
-                unidad_unidad = UnidadMedida.objects.first()
-            
-            # Crear el producto
-            producto = Producto.objects.create(
-                sku=sku,
-                nombre=nombre,
-                descripcion=request.POST.get('descripcion', '').strip(),
-                categoria=categoria,
-                marca=marca,
-                modelo=request.POST.get('modelo', '').strip(),
-                uom_compra=unidad_unidad,
-                uom_venta=unidad_unidad,
-                uom_stock=unidad_unidad,
-                precio_venta=precio_venta,
-                costo_estandar=costo_estandar,
-                impuesto_iva=float(request.POST.get('impuesto_iva', 19)),
-                estado=request.POST.get('estado', 'ACTIVO'),
-                perishable=request.POST.get('perishable') == 'on',
-                control_por_lote=request.POST.get('control_por_lote') == 'on',
-                control_por_serie=request.POST.get('control_por_serie') == 'on',
-                imagen_url=request.POST.get('imagen_url', '').strip() or None
-            )
-            
-            return JsonResponse({
-                'success': True,
-                'message': f'Producto "{producto.nombre}" creado exitosamente'
-            })
-            
-        except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'message': f'Error al crear el producto: {str(e)}'
-            })
-    
-    # GET request - mostrar formulario
-    categorias = Categoria.objects.filter(activo=True).order_by('nombre')
-    marcas = Marca.objects.filter(activo=True).order_by('nombre')
-    unidades = UnidadMedida.objects.filter(activo=True).order_by('nombre')
-    
-    context = {
-        'categorias': categorias,
-        'marcas': marcas,
-        'unidades': unidades,
-        'estados': Producto.ESTADO_CHOICES,
-    }
-    
-    return render(request, 'productos/crear.html', context)
+from inventario.models import Bodega, StockActual
 
 
 @login_required
@@ -241,6 +128,13 @@ def crear_producto(request):
     
     if request.method == 'POST':
         try:
+            # Debug: imprimir datos recibidos
+            print("=== DEBUG CREAR PRODUCTO ===")
+            print("POST data:", dict(request.POST))
+            print("Bodega inicial:", request.POST.get('bodega_inicial'))
+            print("Cantidad inicial:", request.POST.get('cantidad_inicial'))
+            print("===========================")
+            
             # Validar datos obligatorios
             sku = request.POST.get('sku', '').strip()
             nombre = request.POST.get('nombre', '').strip()
@@ -313,9 +207,52 @@ def crear_producto(request):
                 imagen_url=request.POST.get('imagen_url', '').strip() or None,
             )
             
+            # Asignar stock inicial a bodega específica si se proporciona
+            bodega_id = request.POST.get('bodega_inicial')
+            cantidad_inicial = request.POST.get('cantidad_inicial', '0')
+            
+            if bodega_id:
+                try:
+                    bodega = Bodega.objects.get(id=bodega_id, activo=True)
+                    cantidad = float(cantidad_inicial) if cantidad_inicial else 0
+                    
+                    # Esperar a que las signals creen el stock (o crearlo si no existe)
+                    from django.db import transaction
+                    import time
+                    time.sleep(0.1)  # Pequeña pausa para que la signal se ejecute
+                    
+                    # Intentar obtener o crear el stock en la bodega seleccionada
+                    stock, created = StockActual.objects.get_or_create(
+                        producto=producto,
+                        bodega=bodega,
+                        defaults={
+                            'cantidad_disponible': cantidad,
+                            'cantidad_reservada': 0,
+                            'cantidad_transito': 0
+                        }
+                    )
+                    
+                    if not created and cantidad > 0:
+                        # Si ya existía, actualizar la cantidad
+                        stock.cantidad_disponible = cantidad
+                        stock.save()
+                    
+                    mensaje = f'Producto "{producto.nombre}" creado exitosamente'
+                    if cantidad > 0:
+                        mensaje += f' con {cantidad} unidades en {bodega.nombre}'
+                    
+                except Bodega.DoesNotExist:
+                    mensaje = f'Producto "{producto.nombre}" creado, pero bodega no encontrada'
+                except Exception as e:
+                    import traceback
+                    traceback.print_exc()
+                    mensaje = f'Producto "{producto.nombre}" creado, pero error al asignar stock: {str(e)}'
+            else:
+                mensaje = f'Producto "{producto.nombre}" creado exitosamente'
+            
             return JsonResponse({
                 'success': True,
-                'message': f'Producto "{producto.nombre}" creado exitosamente',
+                'message': mensaje,
                 'producto_id': producto.id
             })
             
@@ -329,11 +266,13 @@ def crear_producto(request):
     categorias = Categoria.objects.filter(activo=True).order_by('nombre')
     marcas = Marca.objects.filter(activo=True).order_by('nombre')
     unidades = UnidadMedida.objects.filter(activo=True).order_by('nombre')
+    bodegas = Bodega.objects.filter(activo=True).order_by('nombre')
     
     context = {
         'categorias': categorias,
         'marcas': marcas,
         'unidades': unidades,
+        'bodegas': bodegas,
         'estados': Producto.ESTADO_CHOICES,
     }
     

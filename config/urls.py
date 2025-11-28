@@ -42,6 +42,11 @@ urlpatterns = [
     path('productos/', include('productos.urls')),
     path('inventario/', include('inventario.urls')),
     path('demo/alertas/', demo_alertas, name='demo_alertas'),
+    
+    # APIs REST
+    path('api/maestros/', include('maestros.urls_api')),
+    path('api/inventario/', include('inventario.urls_api')),
+    path('api-auth/', include('rest_framework.urls')),  # Login/Logout para DRF
 ]
 
 # Servir archivos estáticos y media en desarrollo

@@ -6,171 +6,248 @@
 {% block extra_css %}
 <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.10.5/dist/sweetalert2.min.css" rel="stylesheet">
 <style>
-    .form-section {
-        background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        padding: 25px;
-        margin-bottom: 25px;
-    }
-    .section-title {
-        color: #495057;
-        font-weight: 600;
-        margin-bottom: 20px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #e9ecef;
-    }
-    .avatar-preview {
-        width: 100px;
-        height: 100px;
-        object-fit: cover;
-        border-radius: 50%;
-        border: 3px solid #dee2e6;
-    }
-    .password-strength {
-        height: 4px;
-        border-radius: 2px;
-        margin-top: 5px;
-        background-color: #e9ecef;
-    }
-    .strength-weak { background-color: #dc3545; }
-    .strength-medium { background-color: #ffc107; }
-    .strength-strong { background-color: #28a745; }
-    .required-field::after {
-        content: " *";
-        color: #dc3545;
-    }
-    .form-check-input:checked {
-        background-color: #007bff;
-        border-color: #007bff;
-    }
+.form-card {
+    background: linear-gradient(135deg, #9c0202 0%, #ec0505 100%);
+    border-radius: 20px;
+    padding: 30px;
+    color: white !important;
+    margin-bottom: 30px;
+}
+
+.form-card h2,
+.form-card h2 i,
+.form-card p {
+    color: white !important;
+}
+
+/* Estilos muy específicos para forzar el color blanco */
+div.form-card h2 {
+    color: white !important;
+}
+
+div.form-card h2 i.fas {
+    color: white !important;
+}
+
+div.form-card p {
+    color: white !important;
+}
+
+/* JavaScript para forzar color blanco */
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Forzar color blanco en todos los elementos de headers de CRUDs
+    const headers = document.querySelectorAll('.form-card h1, .form-card h2, .form-card h3, .form-card h4, .form-card h5, .form-card h6, .header-card h1, .header-card h2, .header-card h3, .header-card h4, .header-card h5, .header-card h6');
+    const paragraphs = document.querySelectorAll('.form-card p, .header-card p');
+    const icons = document.querySelectorAll('.form-card i, .header-card i');
+    
+    headers.forEach(function(element) {
+        element.style.color = 'white';
+        element.style.setProperty('color', 'white', 'important');
+    });
+    
+    paragraphs.forEach(function(element) {
+        element.style.color = 'white';
+        element.style.setProperty('color', 'white', 'important');
+    });
+    
+    icons.forEach(function(element) {
+        element.style.color = 'white';
+        element.style.setProperty('color', 'white', 'important');
+    });
+});
+</script>
+<style>
+
+.form-container {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 10px 30px rgba(255, 254, 254, 0.1);
+}
+
+.form-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-left: 4px solid #af0202;
+}
+
+.form-section h5 {
+    color: #b90202;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+.required::after {
+    content: ' *';
+    color: #dc3545;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #ac0000;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5a2d91 0%, #d91a72 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(111, 66, 193, 0.3);
+}
+
+.btn-secondary {
+    background: #ffffff;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background: #ffffff;
+    transform: translateY(-2px);
+}
+
+.help-text {
+    font-size: 0.875rem;
+    color: #ffffff;
+    margin-top: 4px;
+}
+
+.invalid-feedback {
+    display: block;
+}
+
+.password-strength {
+    margin-top: 5px;
+}
+
+.strength-bar {
+    height: 4px;
+    border-radius: 2px;
+    transition: all 0.3s ease;
+}
+
+.strength-weak { background-color: #dc3545; }
+.strength-medium { background-color: #ffc107; }
+.strength-strong { background-color: #28a745; }
+
+.avatar-preview {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #dc3545;
+}
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
     <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2><i class="fas fa-user-edit"></i> Editar Usuario</h2>
-                    <nav aria-label="breadcrumb">
-                        <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="{% url 'autenticacion:dashboard' %}">Dashboard</a></li>
-                            <li class="breadcrumb-item"><a href="{% url 'autenticacion:usuario_listar' %}">Usuarios</a></li>
-                            <li class="breadcrumb-item"><a href="{% url 'autenticacion:usuario_detalle' usuario.pk %}">{{ usuario.get_full_name|default:usuario.username }}</a></li>
-                            <li class="breadcrumb-item active">Editar</li>
-                        </ol>
-                    </nav>
-                </div>
-                <div>
-                    <a href="{% url 'autenticacion:usuario_detalle' usuario.pk %}" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Volver
-                    </a>
-                </div>
+    <div class="form-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 style="color: white !important;"><i class="fas fa-user-edit me-2" style="color: white !important;"></i>Editar Usuario</h2>
+                <p class="mb-0" style="color: white !important;">Modifica la información del usuario: {{ usuario.get_full_name|default:usuario.username }}</p>
             </div>
+            <a href="{% url 'autenticacion:usuario_detalle' usuario.pk %}" class="btn btn-light">
+                <i class="fas fa-arrow-left me-2"></i>Volver al Detalle
+            </a>
         </div>
     </div>
 
-    <form method="post" enctype="multipart/form-data" id="formEditarUsuario">
-        {% csrf_token %}
-        
-        <div class="row">
-            <div class="col-lg-8">
-                <!-- Información de Acceso -->
-                <div class="form-section">
-                    <h4 class="section-title">
-                        <i class="fas fa-key text-primary"></i> Información de Acceso
-                    </h4>
+    <div class="form-container">
+        <form method="post" enctype="multipart/form-data" id="formEditarUsuario">
+            {% csrf_token %}
+            
+            <!-- Información de Acceso -->
+            <div class="form-section">
+                <h5><i class="fas fa-key me-2"></i>Información de Acceso</h5>
                     
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="username" class="form-label required-field">Nombre de Usuario</label>
-                                <input type="text" class="form-control" id="username" name="username" 
-                                       value="{{ usuario.username }}" required>
-                                <div class="form-text">Debe ser único en el sistema</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="email" class="form-label required-field">Email</label>
-                                <input type="email" class="form-control" id="email" name="email" 
-                                       value="{{ usuario.email }}" required>
-                            </div>
-                        </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="username" class="form-label required">Nombre de Usuario</label>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               value="{{ usuario.username }}" required maxlength="8">
+                        <div class="help-text">Entre 3 y 8 caracteres, solo letras, números y guiones</div>
                     </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="nueva_password" class="form-label">Nueva Contraseña</label>
-                                <input type="password" class="form-control" id="nueva_password" name="nueva_password"
-                                       placeholder="Dejar vacío para no cambiar">
-                                <div class="password-strength" id="passwordStrength"></div>
-                                <div class="form-text">Mínimo 8 caracteres, debe incluir mayúsculas, minúsculas y números</div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="confirmar_password" class="form-label">Confirmar Nueva Contraseña</label>
-                                <input type="password" class="form-control" id="confirmar_password" name="confirmar_password"
-                                       placeholder="Dejar vacío para no cambiar">
-                                <div class="invalid-feedback" id="passwordMismatch">Las contraseñas no coinciden</div>
-                            </div>
-                        </div>
+                    <div class="col-md-6">
+                        <label for="email" class="form-label required">Email</label>
+                        <input type="email" class="form-control" id="email" name="email" 
+                               value="{{ usuario.email }}" required>
+                        <div class="help-text">Email para notificaciones del sistema</div>
                     </div>
                 </div>
-
-                <!-- Información Personal -->
-                <div class="form-section">
-                    <h4 class="section-title">
-                        <i class="fas fa-user text-info"></i> Información Personal
-                    </h4>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="nombres" class="form-label required-field">Nombres</label>
-                                <input type="text" class="form-control" id="nombres" name="nombres" 
-                                       value="{{ usuario.nombres }}" required>
-                            </div>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="nueva_password" class="form-label">Nueva Contraseña</label>
+                        <input type="password" class="form-control" id="nueva_password" name="nueva_password"
+                               placeholder="Dejar vacío para no cambiar">
+                        <div class="password-strength">
+                            <div class="strength-bar" id="strength-bar"></div>
+                            <small id="strength-text" class="text-muted"></small>
                         </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="apellidos" class="form-label required-field">Apellidos</label>
-                                <input type="text" class="form-control" id="apellidos" name="apellidos" 
-                                       value="{{ usuario.apellidos }}" required>
-                            </div>
-                        </div>
+                        <div class="help-text">Mínimo 8 caracteres, debe incluir mayúsculas, minúsculas y números</div>
                     </div>
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="telefono" class="form-label">Teléfono</label>
-                                <input type="tel" class="form-control" id="telefono" name="telefono" 
-                                       value="{{ usuario.telefono|default:'' }}" placeholder="+56 9 1234 5678">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <label for="direccion" class="form-label">Dirección</label>
-                                <input type="text" class="form-control" id="direccion" name="direccion" 
-                                       value="{{ usuario.direccion|default:'' }}">
-                            </div>
-                        </div>
+                    <div class="col-md-6">
+                        <label for="confirmar_password" class="form-label">Confirmar Nueva Contraseña</label>
+                        <input type="password" class="form-control" id="confirmar_password" name="confirmar_password"
+                               placeholder="Dejar vacío para no cambiar">
+                        <div class="invalid-feedback" id="passwordMismatch">Las contraseñas no coinciden</div>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-4">
-                <!-- Avatar y Configuración del Sistema -->
-                <div class="form-section">
-                    <h4 class="section-title">
-                        <i class="fas fa-image text-success"></i> Avatar
-                    </h4>
+            <!-- Información Personal -->
+            <div class="form-section">
+                <h5><i class="fas fa-user me-2"></i>Información Personal</h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="nombres" class="form-label">
+                            Nombres <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="nombres" name="nombres" 
+                               value="{{ usuario.nombres }}" required maxlength="8">
+                        <div class="help-text">Entre 2 y 8 caracteres. Solo letras</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="apellidos" class="form-label">
+                            Apellidos <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="apellidos" name="apellidos" 
+                               value="{{ usuario.apellidos }}" required maxlength="8">
+                        <div class="help-text">Entre 2 y 8 caracteres. Solo letras</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="telefono" class="form-label">Teléfono</label>
+                        <input type="tel" class="form-control" id="telefono" name="telefono" 
+                               value="{{ usuario.telefono|default:'' }}" placeholder="+56 9 1234 5678">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="direccion" class="form-label">Dirección</label>
+                        <input type="text" class="form-control" id="direccion" name="direccion" 
+                               value="{{ usuario.direccion|default:'' }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Avatar -->
+            <div class="form-section">
+                <h5><i class="fas fa-image me-2"></i>Avatar</h5>
                     
                     <div class="text-center mb-3">
                         {% if usuario.avatar %}
@@ -183,19 +260,17 @@
                         {% endif %}
                     </div>
                     
-                    <div class="mb-3">
+                    <div>
                         <label for="avatar" class="form-label">Cambiar Avatar</label>
                         <input type="file" class="form-control" id="avatar" name="avatar" 
                                accept="image/*" onchange="previewAvatar(this)">
-                        <div class="form-text">JPG, PNG o GIF. Máximo 5MB</div>
+                        <div class="help-text">JPG, PNG o GIF. Máximo 5MB</div>
                     </div>
                 </div>
 
-                <!-- Configuración del Sistema -->
-                <div class="form-section">
-                    <h4 class="section-title">
-                        <i class="fas fa-cogs text-warning"></i> Configuración del Sistema
-                    </h4>
+            <!-- Configuración del Sistema -->
+            <div class="form-section">
+                <h5><i class="fas fa-cogs me-2"></i>Configuración del Sistema</h5>
                     
                     <div class="mb-3">
                         <label for="rol" class="form-label">Rol del Sistema</label>
@@ -207,11 +282,13 @@
                                 </option>
                             {% endfor %}
                         </select>
-                        <div class="form-text">Define los permisos del usuario</div>
+                        <div class="help-text">Define los permisos del usuario</div>
                     </div>
                     
                     <div class="mb-3">
-                        <label for="estado" class="form-label required-field">Estado</label>
+                        <label for="estado" class="form-label">
+                            Estado <span class="text-danger">*</span>
+                        </label>
                         <select class="form-select" id="estado" name="estado" required>
                             <option value="ACTIVO" {% if usuario.estado == 'ACTIVO' %}selected{% endif %}>Activo</option>
                             <option value="BLOQUEADO" {% if usuario.estado == 'BLOQUEADO' %}selected{% endif %}>Bloqueado</option>
@@ -243,7 +320,7 @@
                         </div>
                     {% endif %}
                     
-                    <div class="mb-3">
+                    <div>
                         <div class="form-check">
                             <input type="checkbox" class="form-check-input" id="is_active" name="is_active"
                                    {% if usuario.is_active %}checked{% endif %}>
@@ -255,15 +332,15 @@
                     </div>
                 </div>
 
-                <!-- Botones de Acción -->
-                <div class="form-section">
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <i class="fas fa-save"></i> Guardar Cambios
-                        </button>
-                        <a href="{% url 'autenticacion:usuario_detalle' usuario.pk %}" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Cancelar
-                        </a>
+            <!-- Botones de Acción -->
+            <div class="form-section">
+                <div class="d-grid gap-2 d-md-block text-center">
+                    <button type="submit" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-save me-2"></i>Guardar Usuario
+                    </button>
+                    <a href="{% url 'autenticacion:usuario_detalle' usuario.pk %}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </a>
                     </div>
                 </div>
             </div>

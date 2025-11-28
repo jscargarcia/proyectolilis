@@ -42,6 +42,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Django REST Framework
+    'rest_framework',
+    'django_filters',
     # Aplicaciones locales
     'autenticacion',
     'maestros',
@@ -57,6 +60,8 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    # Middleware personalizado para deshabilitar CSRF en APIs
+    'config.middleware.DisableCSRFMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
@@ -64,6 +69,7 @@ MIDDLEWARE = [
     # Middlewares personalizados
     'autenticacion.middleware.UserActivityMiddleware',
     'autenticacion.middleware.SessionSecurityMiddleware',
+    'autenticacion.middleware.ForcePasswordChangeMiddleware',  # Forzar cambio de password
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -206,4 +212,47 @@ COMPANY_NAME = config('COMPANY_NAME', default='Dulcería Lilis')
 
 # Configuración de archivos subidos
 FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440  # 2.5MB
+
+# Configuración para APIs - Permitir todos los orígenes para desarrollo
+CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
+
+# Configuración Django REST Framework
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.BasicAuthentication',  # Solo Basic Auth para APIs
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',  # Permitir acceso sin autenticación para pruebas
+    ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.BrowsableAPIRenderer',
+    ],
+    'DEFAULT_PARSER_CLASSES': [
+        'rest_framework.parsers.JSONParser',
+        'rest_framework.parsers.FormParser',
+        'rest_framework.parsers.MultiPartParser',
+    ],
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+        'rest_framework.filters.SearchFilter',
+        'rest_framework.filters.OrderingFilter',
+    ],
+    # Configuración para APIs sin CSRF
+    'DEFAULT_METADATA_CLASS': 'rest_framework.metadata.SimpleMetadata',
+}
 DATA_UPLOAD_MAX_MEMORY_SIZE = 2621440  # 2.5MB

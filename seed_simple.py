@@ -3,7 +3,7 @@ Script de Semillas Simplificado - Dulcería Lilis
 Solo usa los modelos de la app 'productos' que están correctamente migrados
 Ejecutar con: python seed_simple.py
 
-FUNCIONALIDADES INCLUIDAS (9 Noviembre 2025):
+FUNCIONALIDADES INCLUIDAS (28 Noviembre 2025):
 ✅ Roles optimizados con permisos para Marcas y Categorías
 ✅ Usuarios del sistema (admin, editor, lector) con emails configurados
 ✅ Categorías mejoradas (12 categorías incluyendo productos artesanales)
@@ -11,6 +11,27 @@ FUNCIONALIDADES INCLUIDAS (9 Noviembre 2025):
 ✅ Datos de prueba listos para CRUD de Marcas/Categorías
 ✅ Preparado para exportación a Excel de todos los módulos
 ✅ Dashboard con accesos rápidos a Marcas y Categorías integrados
+✅ Validaciones de caracteres en todos los formularios CRUD
+✅ Formulario de registro rediseñado con diseño unificado
+✅ NUEVO: Sistema de bodegas y stock automático
+✅ NUEVO: Asignación de stock inicial al crear productos
+✅ NUEVO: Sincronización automática producto-bodega (signals)
+✅ NUEVO: Comando sincronizar_stock para sincronización retroactiva
+
+VALIDACIONES DE CARACTERES IMPLEMENTADAS:
+📝 Usuario: username(8), email(50), telefono(15), nombres(8), apellidos(8)
+🍬 Producto: SKU(50), nombre(200), descripcion(500), EAN/UPC(20)
+🏢 Proveedor: RUT(12), emails(50), telefonos(15), direccion(200)
+📦 Categoría: nombre(100), descripcion(300)
+🏷️ Marca: nombre(100), descripcion(300)
+👤 Cliente: RUT(12), nombre(100), email(50), telefono(15)
+
+FORMULARIO DE REGISTRO MEJORADO:
+🎨 Diseño unificado con login (fondo rojo, tarjeta blanca, logo)
+📋 Organizado en 3 secciones (Acceso, Personal, Seguridad)
+🔒 Indicador de fortaleza de contraseña con 4 requisitos
+✨ Validación en tiempo real con checkmarks verdes
+📱 Responsive y compatible con todos los dispositivos
 """
 import os
 import django
@@ -26,6 +47,7 @@ from productos.models import (
     Categoria, Marca, UnidadMedida, Proveedor, 
     Producto, ProductoProveedor
 )
+from inventario.models import Bodega, StockActual
 
 User = get_user_model()
 
@@ -185,9 +207,48 @@ for unidad_data in unidades_data:
 print()
 
 # ============================================================================
-# 3. CATEGORÍAS
+# 3. BODEGAS
 # ============================================================================
-print("📦 3. Creando Categorías...")
+print("🏪 3. Creando Bodegas...")
+print("-" * 80)
+
+bodegas_data = [
+    {
+        'nombre': 'Bodega Principal',
+        'codigo': 'BOD-001',
+        'direccion': 'Planta Baja - Sector A',
+        'tipo': 'PRINCIPAL',
+        'activo': True
+    },
+    {
+        'nombre': 'Bodega Sucursal Centro',
+        'codigo': 'BOD-002',
+        'direccion': 'Sucursal Centro - Local 15',
+        'tipo': 'SUCURSAL',
+        'activo': True
+    },
+    {
+        'nombre': 'Bodega Tránsito',
+        'codigo': 'BOD-003',
+        'direccion': 'Zona de carga y descarga',
+        'tipo': 'TRANSITO',
+        'activo': True
+    },
+]
+
+for bodega_data in bodegas_data:
+    bodega, created = Bodega.objects.get_or_create(
+        codigo=bodega_data['codigo'],
+        defaults=bodega_data
+    )
+    print(f"  ✓ {'Creada' if created else 'Existente'}: {bodega.nombre} ({bodega.codigo})")
+
+print()
+
+# ============================================================================
+# 4. CATEGORÍAS
+# ============================================================================
+print("📦 4. Creando Categorías...")
 print("-" * 80)
 
 categorias_data = [
@@ -215,9 +276,9 @@ for cat_data in categorias_data:
 print()
 
 # ============================================================================
-# 4. MARCAS
+# 5. MARCAS
 # ============================================================================
-print("🏷️  4. Creando Marcas...")
+print("🏷️  5. Creando Marcas...")
 print("-" * 80)
 
 marcas_data = [
@@ -250,9 +311,9 @@ for marca_nombre in marcas_data:
 print()
 
 # ============================================================================
-# 5. PROVEEDORES
+# 6. PROVEEDORES
 # ============================================================================
-print("🏢 5. Creando Proveedores...")
+print("🏢 6. Creando Proveedores...")
 print("-" * 80)
 
 proveedores_data = [
@@ -310,9 +371,9 @@ for prov_data in proveedores_data:
 print()
 
 # ============================================================================
-# 6. PRODUCTOS
+# 7. PRODUCTOS
 # ============================================================================
-print("🍬 6. Creando Productos...")
+print("🍬 7. Creando Productos...")
 print("-" * 80)
 
 productos_data = [
@@ -470,7 +531,7 @@ productos_data = [
     {
         'sku': 'SNAC-001',
         'nombre': 'Papas Fritas Marco Polo 180g',
-        'categoria': 'Snacks',
+        'categoria': 'Snacks Dulces',
         'marca': 'Savory',
         'precio_venta': Decimal('1490.00'),
         'stock_minimo': 30,
@@ -480,7 +541,7 @@ productos_data = [
     {
         'sku': 'SNAC-002',
         'nombre': 'Papas Lays Clásicas 150g',
-        'categoria': 'Snacks',
+        'categoria': 'Snacks Dulces',
         'marca': 'Pepsi',
         'precio_venta': Decimal('1690.00'),
         'stock_minimo': 35,
@@ -573,9 +634,9 @@ for prod_data in productos_data:
 print()
 
 # ============================================================================
-# 7. RELACIÓN PRODUCTO-PROVEEDOR
+# 8. RELACIÓN PRODUCTO-PROVEEDOR
 # ============================================================================
-print("🔗 7. Creando Relaciones Producto-Proveedor...")
+print("🔗 8. Creando Relaciones Producto-Proveedor...")
 print("-" * 80)
 
 # Asignar proveedores a productos
@@ -630,7 +691,7 @@ print(f"\n  Total de relaciones creadas: {contador}")
 print()
 
 # ============================================================================
-# 8. RESUMEN FINAL
+# 9. RESUMEN FINAL
 # ============================================================================
 print("="*80)
 print("✅ RESUMEN DE DATOS CREADOS")
@@ -638,6 +699,7 @@ print("="*80)
 print(f"  📋 Roles: {Rol.objects.count()}")
 print(f"  👥 Usuarios: {User.objects.count()}")
 print(f"  📏 Unidades de Medida: {UnidadMedida.objects.count()}")
+print(f"  🏪 Bodegas: {Bodega.objects.count()}")
 print(f"  📦 Categorías: {Categoria.objects.count()}")
 print(f"  🏷️  Marcas: {Marca.objects.count()}")
 print(f"  🏢 Proveedores: {Proveedor.objects.count()}")
@@ -660,7 +722,7 @@ print("🌐 Acceso al sistema:")
 print("  Servidor: http://127.0.0.1:8000/")
 print("  Panel Admin: http://127.0.0.1:8000/admin/")
 print()
-print("✅ CORRECCIONES IMPLEMENTADAS (Noviembre 2025):")
+print("✅ CORRECCIONES IMPLEMENTADAS (28 Noviembre 2025):")
 print("  🔧 Todos los CRUDs optimizados con envío tradicional")
 print("  🎨 Dashboard con z-index corregido (dropdown funcional)")
 print("  🚀 JavaScript simplificado sin AJAX problemático")
@@ -668,6 +730,8 @@ print("  ✨ Templates corregidos sin errores de sintaxis")
 print("  💎 SweetAlert2 consistente en toda la aplicación")
 print("  🏷️ CRUD completo para Categorías y Marcas implementado")
 print("  🔐 Sistema de permisos integrado con decoradores")
+print("  📝 Validaciones de caracteres en TODOS los formularios")
+print("  🎨 Formulario de registro rediseñado (diseño unificado)")
 print()
 print("🎯 Funcionalidades principales:")
 print("  📦 Gestión de Productos - CRUD completo optimizado")
@@ -693,4 +757,25 @@ print("  🔐 Sistema de permisos granular para marcas y categorías")
 print("  💬 UX mejorada - Mensajes amigables en lugar de errores HTTP")
 print("  🎯 Botones condicionados por rol del usuario")
 print("  🧹 Comandos de gestión: limpiar_movimientos, reset_inventario")
+print()
+print("📝 VALIDACIONES DE CARACTERES (28 Noviembre 2025):")
+print("  ✅ Sistema dual: maxlength HTML + oninput JavaScript")
+print("  ✅ 6 formularios CRUD actualizados con límites")
+print("  ✅ Usuario: username(8), email(50), telefono(15)")
+print("  ✅ Producto: SKU(50), nombre(200), descripcion(500)")
+print("  ✅ Proveedor: 12+ campos con validaciones")
+print("  ✅ Categoría/Marca: nombre(100), descripcion(300)")
+print("  ✅ Cliente: RUT(12), nombre(100), email(50)")
+print("  ✅ Feedback visual con 'máximo N caracteres'")
+print("  ✅ Prevención de pegado largo con truncado automático")
+print()
+print("🎨 FORMULARIO DE REGISTRO REDISEÑADO (28 Noviembre 2025):")
+print("  ✅ Diseño unificado con login (fondo rojo degradado)")
+print("  ✅ 3 secciones organizadas (Acceso, Personal, Seguridad)")
+print("  ✅ Indicador de fortaleza de contraseña (3 niveles)")
+print("  ✅ 4 requisitos visuales con checkmarks en tiempo real")
+print("  ✅ Toggle de visibilidad de contraseñas")
+print("  ✅ Modal de términos y condiciones con SweetAlert2")
+print("  ✅ Responsive y compatible con todos los dispositivos")
+print("  ✅ 280 líneas limpias sin duplicación de código")
 print()

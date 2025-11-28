@@ -1,0 +1,479 @@
+{% extends 'base.html' %}
+{% load permisos_tags %}
+
+{% block titulo %}Alertas de Stock{% endblock %}
+
+{% block extra_css %}
+<style>
+    .alert-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+    }
+    
+    .prioridad-critica {
+        background: linear-gradient(135deg, #dc3545, #b71c1c) !important;
+        color: white;
+    }
+    
+    .prioridad-alta {
+        background: linear-gradient(135deg, #fd7e14, #e63946) !important;
+        color: white;
+    }
+    
+    .prioridad-media {
+        background: linear-gradient(135deg, #ffc107, #f77f00) !important;
+        color: black;
+    }
+    
+    .card-alerta {
+        border-left: 4px solid;
+        transition: all 0.3s ease;
+    }
+    
+    .card-alerta:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .card-alerta.critica {
+        border-left-color: #dc3545;
+    }
+    
+    .card-alerta.alta {
+        border-left-color: #fd7e14;
+    }
+    
+    .card-alerta.media {
+        border-left-color: #ffc107;
+    }
+    
+    .btn-resolver {
+        background: linear-gradient(135deg, #28a745, #20c997) !important;
+        border: none;
+        color: white;
+    }
+    
+    .btn-resolver:hover {
+        background: linear-gradient(135deg, #218838, #1ab394) !important;
+        transform: scale(1.02);
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #dc3545, #b71c1c) !important;
+        color: white;
+        border: none;
+    }
+    
+    .regenerar-btn {
+        background: linear-gradient(135deg, #007bff, #0056b3) !important;
+        border: none;
+    }
+    
+    .regenerar-btn:hover {
+        background: linear-gradient(135deg, #0056b3, #003d7a) !important;
+    }
+</style>
+{% endblock %}
+
+{% block contenido %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">
+                        <i class="fas fa-bell text-warning"></i> 
+                        Alertas de Stock
+                    </h2>
+                    <p class="text-muted mb-0">Gestión de alertas de inventario</p>
+                </div>
+                {% tiene_permiso 'inventario' 'add_alertastock' as puede_generar_alertas %}
+                {% if puede_generar_alertas %}
+                <button type="button" class="btn regenerar-btn" onclick="regenerarAlertas()">
+                    <i class="fas fa-sync-alt"></i> Regenerar Alertas
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card stats-card">
+                <div class="card-body text-center">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <h3 class="mb-1">{{ total_alertas }}</h3>
+                    <p class="mb-0 small">Total Alertas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="background: linear-gradient(135deg, #dc3545, #b71c1c); color: white;">
+                <div class="card-body text-center">
+                    <i class="fas fa-fire fa-2x mb-2"></i>
+                    <h3 class="mb-1">{{ alertas_criticas }}</h3>
+                    <p class="mb-0 small">Críticas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="background: linear-gradient(135deg, #fd7e14, #e63946); color: white;">
+                <div class="card-body text-center">
+                    <i class="fas fa-exclamation fa-2x mb-2"></i>
+                    <h3 class="mb-1">{{ alertas_altas }}</h3>
+                    <p class="mb-0 small">Altas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card" style="background: linear-gradient(135deg, #ffc107, #f77f00); color: black;">
+                <div class="card-body text-center">
+                    <i class="fas fa-info fa-2x mb-2"></i>
+                    <h3 class="mb-1">{{ alertas_medias }}</h3>
+                    <p class="mb-0 small">Medias</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Tipo de Alerta</label>
+                            <select name="tipo" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="STOCK_BAJO" {% if request.GET.tipo == 'STOCK_BAJO' %}selected{% endif %}>Stock Bajo</option>
+                                <option value="STOCK_AGOTADO" {% if request.GET.tipo == 'STOCK_AGOTADO' %}selected{% endif %}>Stock Agotado</option>
+                                <option value="VENCIMIENTO" {% if request.GET.tipo == 'VENCIMIENTO' %}selected{% endif %}>Vencimiento</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Prioridad</label>
+                            <select name="prioridad" class="form-select">
+                                <option value="">Todas</option>
+                                <option value="CRITICA" {% if request.GET.prioridad == 'CRITICA' %}selected{% endif %}>Crítica</option>
+                                <option value="ALTA" {% if request.GET.prioridad == 'ALTA' %}selected{% endif %}>Alta</option>
+                                <option value="MEDIA" {% if request.GET.prioridad == 'MEDIA' %}selected{% endif %}>Media</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Estado</label>
+                            <select name="estado" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="ACTIVA" {% if request.GET.estado == 'ACTIVA' %}selected{% endif %}>Activa</option>
+                                <option value="RESUELTA" {% if request.GET.estado == 'RESUELTA' %}selected{% endif %}>Resuelta</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-filter"></i> Filtrar
+                            </button>
+                            <a href="{% url 'inventario:alerta_listar' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Limpiar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Alertas -->
+    <div class="row">
+        <div class="col-12">
+            {% if alertas %}
+                {% for alerta in alertas %}
+                <div class="card card-alerta {{ alerta.prioridad|lower }} mb-3">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-1 text-center">
+                                {% if alerta.prioridad == 'CRITICA' %}
+                                    <i class="fas fa-fire fa-2x text-danger"></i>
+                                {% elif alerta.prioridad == 'ALTA' %}
+                                    <i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+                                {% else %}
+                                    <i class="fas fa-info-circle fa-2x text-info"></i>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h5 class="mb-1">
+                                    {{ alerta.producto.nombre }}
+                                    <span class="badge alert-badge prioridad-{{ alerta.prioridad|lower }}">
+                                        {{ alerta.get_prioridad_display }}
+                                    </span>
+                                </h5>
+                                <p class="mb-1">{{ alerta.mensaje }}</p>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> {{ alerta.fecha_generacion|date:"d/m/Y H:i" }}
+                                    {% if alerta.bodega %}
+                                        | <i class="fas fa-warehouse"></i> {{ alerta.bodega.nombre }}
+                                    {% endif %}
+                                </small>
+                            </div>
+                            
+                            <div class="col-md-3">
+                                <div class="text-center">
+                                    {% if alerta.tipo == 'STOCK_BAJO' or alerta.tipo == 'STOCK_AGOTADO' %}
+                                        <div class="mb-1">
+                                            <strong>Stock Actual:</strong> {{ alerta.cantidad_actual|default:0 }}
+                                        </div>
+                                        {% if alerta.cantidad_minima %}
+                                        <div class="text-muted small">
+                                            Mínimo: {{ alerta.cantidad_minima }}
+                                        </div>
+                                        {% endif %}
+                                    {% elif alerta.tipo == 'VENCIMIENTO' %}
+                                        <div class="mb-1">
+                                            <strong>Vence:</strong> {{ alerta.fecha_vencimiento|date:"d/m/Y" }}
+                                        </div>
+                                        <div class="text-muted small">
+                                            Lote: {{ alerta.lote.numero_lote }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-2 text-end">
+                                {% if alerta.estado == 'ACTIVA' %}
+                                    {% tiene_permiso 'inventario' 'change_alertastock' as puede_resolver %}
+                                    {% if puede_resolver %}
+                                    <button type="button" class="btn btn-resolver btn-sm" 
+                                            onclick="resolverAlerta({{ alerta.id }})">
+                                        <i class="fas fa-check"></i> Resolver
+                                    </button>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check"></i> Resuelta
+                                    </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                
+                <!-- Paginación Mejorada -->
+                {% if is_paginated %}
+                <nav aria-label="Paginación de alertas" class="mt-4">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 text-start mb-2 mb-md-0">
+                            <span class="text-muted">
+                                Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} alertas
+                            </span>
+                        </div>
+                        <div class="col-md-4">
+                            <ul class="pagination justify-content-center mb-0">
+                                {% if page_obj.has_previous %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.prioridad %}&prioridad={{ request.GET.prioridad }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="Primera página">
+                                            <i class="fas fa-angle-double-left"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.prioridad %}&prioridad={{ request.GET.prioridad }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="Anterior">
+                                            <i class="fas fa-angle-left"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                                    </li>
+                                {% endif %}
+                                
+                                <!-- Páginas numeradas -->
+                                {% if page_obj.number > 3 %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page=1{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.prioridad %}&prioridad={{ request.GET.prioridad }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">1</a>
+                                    </li>
+                                    {% if page_obj.number > 4 %}
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    {% endif %}
+                                {% endif %}
+                                
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <li class="page-item active">
+                                            <span class="page-link">{{ num }}</span>
+                                        </li>
+                                    {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                                        <li class="page-item">
+                                            <a class="page-link" href="?page={{ num }}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.prioridad %}&prioridad={{ request.GET.prioridad }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ num }}</a>
+                                        </li>
+                                    {% endif %}
+                                {% endfor %}
+                                
+                                {% if page_obj.number < page_obj.paginator.num_pages|add:"-2" %}
+                                    {% if page_obj.number < page_obj.paginator.num_pages|add:"-3" %}
+                                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                                    {% endif %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.prioridad %}&prioridad={{ request.GET.prioridad }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">{{ page_obj.paginator.num_pages }}</a>
+                                    </li>
+                                {% endif %}
+                                
+                                {% if page_obj.has_next %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.prioridad %}&prioridad={{ request.GET.prioridad }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="Siguiente">
+                                            <i class="fas fa-angle-right"></i>
+                                        </a>
+                                    </li>
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.prioridad %}&prioridad={{ request.GET.prioridad }}{% endif %}{% if request.GET.estado %}&estado={{ request.GET.estado }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}" title="Última">
+                                            <i class="fas fa-angle-double-right"></i>
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                                    </li>
+                                    <li class="page-item disabled">
+                                        <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <form method="GET" class="d-inline-flex align-items-center">
+                                {% if request.GET.tipo %}<input type="hidden" name="tipo" value="{{ request.GET.tipo }}">{% endif %}
+                                {% if request.GET.prioridad %}<input type="hidden" name="prioridad" value="{{ request.GET.prioridad }}">{% endif %}
+                                {% if request.GET.estado %}<input type="hidden" name="estado" value="{{ request.GET.estado }}">{% endif %}
+                                {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
+                                <label for="page-jump" class="me-2 mb-0 text-muted">Ir a:</label>
+                                <input type="number" id="page-jump" name="page" class="form-control form-control-sm" 
+                                       style="width: 80px;" min="1" max="{{ page_obj.paginator.num_pages }}" 
+                                       placeholder="{{ page_obj.number }}">
+                                <button type="submit" class="btn btn-sm btn-primary ms-2">
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </nav>
+                {% endif %}
+                
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No hay alertas que mostrar</h4>
+                        <p class="text-muted">No se encontraron alertas con los filtros aplicados.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="modalResolver" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Resolver Alerta</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Está seguro que desea marcar esta alerta como resuelta?</p>
+                <div class="form-group">
+                    <label for="observaciones">Observaciones (opcional):</label>
+                    <textarea id="observaciones" class="form-control" rows="3" 
+                              placeholder="Ingrese las observaciones sobre la resolución..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="confirmarResolver()">
+                    <i class="fas fa-check"></i> Resolver
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let alertaIdResolver = null;
+
+function resolverAlerta(alertaId) {
+    alertaIdResolver = alertaId;
+    const modal = new bootstrap.Modal(document.getElementById('modalResolver'));
+    modal.show();
+}
+
+function confirmarResolver() {
+    if (!alertaIdResolver) return;
+    
+    const observaciones = document.getElementById('observaciones').value;
+    
+    fetch(`{% url 'inventario:alerta_resolver' 0 %}`.replace('0', alertaIdResolver), {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            observaciones: observaciones
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert('Error al resolver la alerta: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al resolver la alerta');
+    });
+}
+
+function regenerarAlertas() {
+    if (!confirm('¿Está seguro que desea regenerar todas las alertas? Esto puede tomar unos momentos.')) {
+        return;
+    }
+    
+    fetch('{% url "inventario:alerta_regenerar" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(`Alertas regeneradas exitosamente. Total: ${data.total_alertas}, Críticas: ${data.alertas_criticas}`);
+            location.reload();
+        } else {
+            alert('Error al regenerar alertas: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al regenerar las alertas');
+    });
+}
+
+// Auto-refresh cada 5 minutos para alertas críticas
+setTimeout(() => {
+    if ({{ alertas_criticas }} > 0) {
+        location.reload();
+    }
+}, 300000); // 5 minutos
+</script>
+{% endblock %}

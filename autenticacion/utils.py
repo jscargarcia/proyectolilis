@@ -16,6 +16,101 @@ def generar_token_reset():
     return token
 
 
+def generar_password_temporal():
+    """
+    Generar contraseña temporal robusta y segura
+    Cumple con casos F-PASS-TEMP-01 y F-PASS-TEMP-02
+    
+    Requisitos:
+    - Mínimo 8 caracteres
+    - Al menos 1 mayúscula
+    - Al menos 1 minúscula  
+    - Al menos 1 número
+    - Al menos 1 carácter especial
+    - Sin patrones triviales
+    - Segura criptográficamente
+    
+    Returns:
+        str: Password temporal generada
+    """
+    # Definir conjuntos de caracteres
+    mayusculas = 'ABCDEFGHJKLMNPQRSTUVWXYZ'  # Sin I, O para evitar confusión con 1, 0
+    minusculas = 'abcdefghijkmnopqrstuvwxyz'  # Sin l para evitar confusión con 1
+    numeros = '23456789'  # Sin 0, 1 para evitar confusión
+    especiales = '@$!%*?&#'  # Caracteres especiales comunes y seguros
+    
+    # Asegurar al menos 1 de cada tipo
+    password_chars = [
+        secrets.choice(mayusculas),
+        secrets.choice(minusculas),
+        secrets.choice(numeros),
+        secrets.choice(especiales),
+    ]
+    
+    # Completar hasta 12 caracteres con selección aleatoria de todos los conjuntos
+    todos_chars = mayusculas + minusculas + numeros + especiales
+    for _ in range(8):  # 12 total - 4 ya agregados
+        password_chars.append(secrets.choice(todos_chars))
+    
+    # Mezclar los caracteres de forma segura
+    secrets.SystemRandom().shuffle(password_chars)
+    
+    password = ''.join(password_chars)
+    
+    # Validar que no tenga patrones triviales (3 caracteres consecutivos iguales)
+    for i in range(len(password) - 2):
+        if password[i] == password[i+1] == password[i+2]:
+            # Si hay patrón, regenerar
+            return generar_password_temporal()
+    
+    # Validar que no tenga secuencias obvias
+    secuencias_prohibidas = ['123', '234', '345', 'abc', 'bcd', 'cde']
+    password_lower = password.lower()
+    for secuencia in secuencias_prohibidas:
+        if secuencia in password_lower:
+            # Si hay secuencia, regenerar
+            return generar_password_temporal()
+    
+    return password
+
+
+def validar_formato_password(password):
+    """
+    Validar que una contraseña cumpla con la política de seguridad
+    Cumple con F-PASS-TEMP-01
+    
+    Returns:
+        tuple: (es_valida: bool, mensaje_error: str)
+    """
+    import re
+    
+    if not password:
+        return False, "La contraseña no puede estar vacía"
+    
+    if len(password) < 8:
+        return False, "La contraseña debe tener al menos 8 caracteres"
+    
+    if len(password) > 128:
+        return False, "La contraseña no puede tener más de 128 caracteres"
+    
+    if not re.search(r'[A-Z]', password):
+        return False, "La contraseña debe contener al menos una letra mayúscula"
+    
+    if not re.search(r'[a-z]', password):
+        return False, "La contraseña debe contener al menos una letra minúscula"
+    
+    if not re.search(r'[0-9]', password):
+        return False, "La contraseña debe contener al menos un número"
+    
+    if not re.search(r'[@$!%*?&.#,;:\-_+=()\[\]{}]', password):
+        return False, "La contraseña debe contener al menos un carácter especial"
+    
+    if ' ' in password:
+        return False, "La contraseña no puede contener espacios"
+    
+    return True, ""
+
+
 def crear_token_reset(usuario):
     """Crear token de reset para un usuario"""
     # Invalidar tokens anteriores

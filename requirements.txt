@@ -25,6 +25,7 @@ drf-spectacular>=0.26.0
 # Para validaciones y formularios mejorados
 requests>=2.27.1
 urllib3>=1.26.20
+django-filter<25  # Filtros avanzados para vistas (compatible con Django 4.2)
 
 # Para sistema de correos (cambio de contraseña)
 django-environ>=0.11.0
@@ -46,4 +47,12 @@ django-compressor>=4.4.0
 # - CRUD completo de Marcas y Categorías integrado al dashboard
 # - Sistema de exportación a Excel con openpyxl (profesional con estilos)
 # - Dashboard actualizado con módulos de Marcas y Categorías en acciones rápidas
+
+# Actualizaciones de inventario (28 noviembre 2025)
+# - Asignación de bodega y stock inicial al crear productos
+# - Sistema de sincronización automática de stock (signals)
+# - Comando de sincronización retroactiva: python manage.py sincronizar_stock
+# - Registro de ingresos y salidas con validación de stock
+# - Vista de stock actual mejorada con paginación y filtros
+# - Manejo robusto de errores en formularios de inventario
 

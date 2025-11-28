@@ -156,8 +156,9 @@
                                    value="{{ form_data.nombre|default:'' }}"
                                    required 
                                    maxlength="100"
+                                   oninput="this.value = this.value.slice(0, 100)"
                                    placeholder="Ej: Chocolates, Bebidas, Caramelos...">
-                            <div class="form-text">Nombre único para identificar la categoría</div>
+                            <div class="form-text">Nombre único para identificar la categoría, máximo 100 caracteres</div>
                         </div>
 
                         <!-- Descripción -->
@@ -169,9 +170,10 @@
                                       id="descripcion" 
                                       name="descripcion" 
                                       rows="3"
-                                      maxlength="255"
+                                      maxlength="300"
+                                      oninput="this.value = this.value.slice(0, 300)"
                                       placeholder="Descripción opcional de la categoría">{{ form_data.descripcion|default:'' }}</textarea>
-                            <div class="form-text">Descripción opcional de la categoría (máximo 255 caracteres)</div>
+                            <div class="form-text">Descripción opcional de la categoría (máximo 300 caracteres)</div>
                         </div>
 
                         <!-- Categoría Padre -->

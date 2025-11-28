@@ -22,6 +22,7 @@ urlpatterns = [
     path('verificar-codigo-recuperacion/', views.verificar_codigo_recuperacion, name='verificar_codigo_recuperacion'),
     path('resetear-password/<str:token>/', views.resetear_password, name='resetear_password'),
     path('api/eliminar-avatar/', views.eliminar_avatar, name='eliminar_avatar'),
+    path('api/verificar-email/', views.verificar_email_existente, name='verificar_email_existente'),
     
     # Gestión de usuarios (CRUD)
     path('usuarios/', views.usuario_listar, name='usuario_listar'),

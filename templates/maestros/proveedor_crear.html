@@ -115,10 +115,11 @@
                                id="rut_nif" 
                                name="rut_nif" 
                                required
-                               maxlength="20"
+                               maxlength="12"
+                               oninput="this.value = this.value.slice(0, 12)"
                                value="{{ datos.rut_nif|default:'' }}"
                                placeholder="12.345.678-9">
-                        <div class="help-text">RUT para Chile o NIF para otros países</div>
+                        <div class="help-text">RUT para Chile o NIF para otros países, máximo 12 caracteres</div>
                         <div class="invalid-feedback" id="rut_nif-error">{{ errores.rut_nif|default:'' }}</div>
                     </div>
                     
@@ -129,10 +130,11 @@
                                id="razon_social" 
                                name="razon_social" 
                                required
-                               maxlength="255"
+                               maxlength="200"
+                               oninput="this.value = this.value.slice(0, 200)"
                                value="{{ datos.razon_social|default:'' }}"
                                placeholder="Empresa S.A.">
-                        <div class="help-text">Nombre legal de la empresa</div>
+                        <div class="help-text">Nombre legal de la empresa, máximo 200 caracteres</div>
                         <div class="invalid-feedback" id="razon_social-error">{{ errores.razon_social|default:'' }}</div>
                     </div>
                     
@@ -142,10 +144,11 @@
                                class="form-control{% if errores.nombre_fantasia %} is-invalid{% endif %}" 
                                id="nombre_fantasia" 
                                name="nombre_fantasia"
-                               maxlength="255"
+                               maxlength="200"
+                               oninput="this.value = this.value.slice(0, 200)"
                                value="{{ datos.nombre_fantasia|default:'' }}"
                                placeholder="Nombre comercial">
-                        <div class="help-text">Nombre comercial (opcional)</div>
+                        <div class="help-text">Nombre comercial, máximo 200 caracteres (opcional)</div>
                         <div class="invalid-feedback" id="nombre_fantasia-error">{{ errores.nombre_fantasia|default:'' }}</div>
                     </div>
                     
@@ -156,9 +159,11 @@
                                id="email" 
                                name="email" 
                                required
+                               maxlength="50"
+                               oninput="this.value = this.value.slice(0, 50)"
                                value="{{ datos.email|default:'' }}"
                                placeholder="contacto@empresa.com">
-                        <div class="help-text">Email principal de contacto</div>
+                        <div class="help-text">Email principal de contacto, máximo 50 caracteres</div>
                         <div class="invalid-feedback" id="email-error">{{ errores.email|default:'' }}</div>
                     </div>
                 </div>
@@ -174,9 +179,11 @@
                                class="form-control" 
                                id="telefono" 
                                name="telefono"
-                               maxlength="30"
+                               maxlength="15"
+                               pattern="[0-9+\-\s()]*"
+                               oninput="this.value = this.value.replace(/[^0-9+\-\s()]/g, '').slice(0, 15)"
                                placeholder="+56 9 1234 5678">
-                        <div class="help-text">Teléfono principal</div>
+                        <div class="help-text">Teléfono principal, máximo 15 caracteres</div>
                         <div class="invalid-feedback" id="telefono-error"></div>
                     </div>
                     
@@ -197,9 +204,10 @@
                                class="form-control" 
                                id="direccion" 
                                name="direccion"
-                               maxlength="255"
+                               maxlength="200"
+                               oninput="this.value = this.value.slice(0, 200)"
                                placeholder="Av. Principal 123, Piso 4">
-                        <div class="help-text">Dirección completa</div>
+                        <div class="help-text">Dirección completa, máximo 200 caracteres</div>
                         <div class="invalid-feedback" id="direccion-error"></div>
                     </div>
                     
@@ -209,9 +217,10 @@
                                class="form-control" 
                                id="ciudad" 
                                name="ciudad"
-                               maxlength="128"
+                               maxlength="100"
+                               oninput="this.value = this.value.slice(0, 100)"
                                placeholder="Santiago">
-                        <div class="help-text">Ciudad</div>
+                        <div class="help-text">Ciudad, máximo 100 caracteres</div>
                         <div class="invalid-feedback" id="ciudad-error"></div>
                     </div>
                     
@@ -221,9 +230,10 @@
                                class="form-control" 
                                id="pais" 
                                name="pais"
-                               maxlength="64"
+                               maxlength="100"
+                               oninput="this.value = this.value.slice(0, 100)"
                                value="{{ datos.pais|default:'Chile' }}">
-                        <div class="help-text">País</div>
+                        <div class="help-text">País, máximo 100 caracteres</div>
                         <div class="invalid-feedback" id="pais-error"></div>
                     </div>
                 </div>
@@ -251,10 +261,11 @@
                                class="form-control{% if errores.condiciones_pago_detalle %} is-invalid{% endif %}" 
                                id="condiciones_pago_detalle" 
                                name="condiciones_pago_detalle"
-                               maxlength="255"
+                               maxlength="200"
+                               oninput="this.value = this.value.slice(0, 200)"
                                value="{{ datos.condiciones_pago_detalle|default:'' }}"
                                placeholder="Especificar si seleccionó 'Otro'">
-                        <div class="help-text">Detalle adicional de condiciones de pago</div>
+                        <div class="help-text">Detalle adicional de condiciones de pago, máximo 200 caracteres</div>
                         <div class="invalid-feedback" id="condiciones_pago_detalle-error">{{ errores.condiciones_pago_detalle|default:'' }}</div>
                     </div>
                     
@@ -294,8 +305,9 @@
                                id="contacto_principal_nombre" 
                                name="contacto_principal_nombre"
                                maxlength="120"
+                               oninput="this.value = this.value.slice(0, 120)"
                                placeholder="Juan Pérez">
-                        <div class="help-text">Nombre del contacto principal</div>
+                        <div class="help-text">Nombre del contacto principal, máximo 120 caracteres</div>
                         <div class="invalid-feedback" id="contacto_principal_nombre-error"></div>
                     </div>
                     
@@ -305,8 +317,10 @@
                                class="form-control" 
                                id="contacto_principal_email" 
                                name="contacto_principal_email"
+                               maxlength="50"
+                               oninput="this.value = this.value.slice(0, 50)"
                                placeholder="juan.perez@empresa.com">
-                        <div class="help-text">Email del contacto principal</div>
+                        <div class="help-text">Email del contacto principal, máximo 50 caracteres</div>
                         <div class="invalid-feedback" id="contacto_principal_email-error"></div>
                     </div>
                     
@@ -316,9 +330,11 @@
                                class="form-control" 
                                id="contacto_principal_telefono" 
                                name="contacto_principal_telefono"
-                               maxlength="30"
+                               maxlength="15"
+                               pattern="[0-9+\-\s()]*"
+                               oninput="this.value = this.value.replace(/[^0-9+\-\s()]/g, '').slice(0, 15)"
                                placeholder="+56 9 8765 4321">
-                        <div class="help-text">Teléfono del contacto principal</div>
+                        <div class="help-text">Teléfono del contacto principal, máximo 15 caracteres</div>
                         <div class="invalid-feedback" id="contacto_principal_telefono-error"></div>
                     </div>
                 </div>

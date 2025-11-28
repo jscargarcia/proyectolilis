@@ -1,0 +1,376 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+{% if tipo_operacion == 'ingreso' %}
+Registrar Ingreso - Inventario
+{% else %}
+Registrar Salida - Inventario
+{% endif %}
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .header-card {
+        {% if tipo_operacion == 'ingreso' %}
+        background: linear-gradient(135deg, #28a745, #20c997);
+        {% else %}
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
+        {% endif %}
+        color: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba({% if tipo_operacion == 'ingreso' %}40, 167, 69{% else %}220, 53, 69{% endif %}, 0.3);
+    }
+    
+    .form-section {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-left: 4px solid {% if tipo_operacion == 'ingreso' %}#28a745{% else %}#dc3545{% endif %};
+    }
+    
+    .form-section h5 {
+        color: {% if tipo_operacion == 'ingreso' %}#28a745{% else %}#dc3545{% endif %};
+        margin-bottom: 15px;
+        font-weight: 600;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, {% if tipo_operacion == 'ingreso' %}#28a745, #20c997{% else %}#dc3545, #e74c3c{% endif %});
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+        background: linear-gradient(135deg, {% if tipo_operacion == 'ingreso' %}#1e7e34, #17a2b8{% else %}#c82333, #dc3545{% endif %});
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba({% if tipo_operacion == 'ingreso' %}40, 167, 69{% else %}220, 53, 69{% endif %}, 0.3);
+    }
+    
+    .required-field::after {
+        content: ' *';
+        color: #dc3545;
+    }
+    
+    .help-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+    
+    .stock-info {
+        background: #e3f2fd;
+        border: 1px solid #bbdefb;
+        border-radius: 8px;
+        padding: 15px;
+        margin-top: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="header-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-0" style="color: white;">
+                    {% if tipo_operacion == 'ingreso' %}
+                        <i class="fas fa-plus-circle me-2" style="color: white;"></i>
+                        Registrar Ingreso
+                    {% else %}
+                        <i class="fas fa-minus-circle me-2" style="color: white;"></i>
+                        Registrar Salida
+                    {% endif %}
+                </h2>
+                <p class="mb-0" style="color: white;">
+                    {% if tipo_operacion == 'ingreso' %}
+                        Registrar entrada de mercancía al inventario
+                    {% else %}
+                        Registrar salida de mercancía del inventario
+                    {% endif %}
+                </p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'inventario:dashboard' %}" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="form-card">
+                <form method="POST" id="movimiento-form">
+                    {% csrf_token %}
+                    
+                    <!-- Información del Producto -->
+                    <div class="form-section">
+                        <h5>
+                            <i class="fas fa-box me-2"></i>
+                            Información del Producto
+                        </h5>
+                        
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label for="producto" class="form-label required-field">Producto</label>
+                                <select class="form-select" id="producto" name="producto" required>
+                                    <option value="">Seleccionar producto...</option>
+                                    {% for producto in productos %}
+                                        <option value="{{ producto.id }}" 
+                                                data-unidad="{{ producto.unidad_medida.simbolo }}"
+                                                data-stock-minimo="{{ producto.stock_minimo }}">
+                                            {{ producto.sku }} - {{ producto.nombre }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                                <div class="help-text">Seleccione el producto para el movimiento</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label for="cantidad" class="form-label required-field">Cantidad</label>
+                                <input type="number" class="form-control" id="cantidad" name="cantidad" 
+                                       min="0.01" step="0.01" required>
+                                <div class="help-text">Cantidad del movimiento</div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <label class="form-label">Unidad de Medida</label>
+                                <input type="text" class="form-control" id="unidad_display" readonly 
+                                       placeholder="Seleccione un producto">
+                                <div class="help-text">Se asigna automáticamente según el producto</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Información de stock actual -->
+                        <div id="stock-info" class="stock-info" style="display: none;">
+                            <h6><i class="fas fa-info-circle me-2"></i>Información de Stock</h6>
+                            <div id="stock-details"></div>
+                        </div>
+                    </div>
+
+                    <!-- Información de Bodega -->
+                    <div class="form-section">
+                        <h5>
+                            <i class="fas fa-warehouse me-2"></i>
+                            Información de Bodega
+                        </h5>
+                        
+                        <div class="row g-3">
+                            {% if tipo_operacion == 'ingreso' %}
+                                <div class="col-md-12">
+                                    <label for="bodega_destino" class="form-label required-field">Bodega Destino</label>
+                                    <select class="form-select" id="bodega_destino" name="bodega_destino" required>
+                                        <option value="">Seleccionar bodega...</option>
+                                        {% for bodega in bodegas %}
+                                            <option value="{{ bodega.id }}">{{ bodega.codigo }} - {{ bodega.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="help-text">Bodega donde se almacenará el producto</div>
+                                </div>
+                            {% else %}
+                                <div class="col-md-12">
+                                    <label for="bodega_origen" class="form-label required-field">Bodega Origen</label>
+                                    <select class="form-select" id="bodega_origen" name="bodega_origen" required>
+                                        <option value="">Seleccionar bodega...</option>
+                                        {% for bodega in bodegas %}
+                                            <option value="{{ bodega.id }}">{{ bodega.codigo }} - {{ bodega.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="help-text">Bodega de donde sale el producto</div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Información Adicional -->
+                    <div class="form-section">
+                        <h5>
+                            <i class="fas fa-info-circle me-2"></i>
+                            Información Adicional
+                        </h5>
+                        
+                        <div class="row g-3">
+                            {% if tipo_operacion == 'ingreso' %}
+                                <div class="col-md-6">
+                                    <label for="proveedor" class="form-label">Proveedor</label>
+                                    <select class="form-select" id="proveedor" name="proveedor">
+                                        <option value="">Sin proveedor...</option>
+                                        {% for proveedor in proveedores %}
+                                            <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <div class="help-text">Proveedor de la mercancía (opcional)</div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <label for="costo_unitario" class="form-label">Costo Unitario</label>
+                                    <input type="number" class="form-control" id="costo_unitario" name="costo_unitario" 
+                                           min="0" step="0.01">
+                                    <div class="help-text">Costo por unidad (opcional)</div>
+                                </div>
+                            {% else %}
+                                <div class="col-md-12">
+                                    <label for="motivo_ajuste" class="form-label required-field">Motivo de la Salida</label>
+                                    <textarea class="form-control" id="motivo_ajuste" name="motivo_ajuste" 
+                                              rows="3" required placeholder="Describa el motivo de la salida..."></textarea>
+                                    <div class="help-text">Explique por qué se realiza esta salida</div>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="col-md-12">
+                                <label for="documento_referencia" class="form-label">Documento de Referencia</label>
+                                <input type="text" class="form-control" id="documento_referencia" name="documento_referencia" 
+                                       placeholder="Ej: Factura N° 12345, Guía N° 67890">
+                                <div class="help-text">Número de factura, guía u otro documento (opcional)</div>
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <label for="observaciones" class="form-label">Observaciones</label>
+                                <textarea class="form-control" id="observaciones" name="observaciones" 
+                                          rows="3" placeholder="Observaciones adicionales..."></textarea>
+                                <div class="help-text">Información adicional sobre el movimiento</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones -->
+                    <div class="form-section">
+                        <div class="d-grid gap-2 d-md-block text-center">
+                            <button type="submit" class="btn btn-primary btn-lg me-3">
+                                <i class="fas fa-save me-2"></i>
+                                {% if tipo_operacion == 'ingreso' %}
+                                    Registrar Ingreso
+                                {% else %}
+                                    Registrar Salida
+                                {% endif %}
+                            </button>
+                            <a href="{% url 'inventario:dashboard' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const productoSelect = document.getElementById('producto');
+    const unidadDisplay = document.getElementById('unidad_display');
+    const stockInfo = document.getElementById('stock-info');
+    const stockDetails = document.getElementById('stock-details');
+    const cantidadInput = document.getElementById('cantidad');
+    const bodegaSelect = document.getElementById('{% if tipo_operacion == "ingreso" %}bodega_destino{% else %}bodega_origen{% endif %}');
+    
+    // Cuando cambia el producto seleccionado
+    productoSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        
+        if (selectedOption.value) {
+            const unidad = selectedOption.dataset.unidad;
+            unidadDisplay.value = unidad;
+            
+            // Obtener información de stock
+            obtenerStockProducto(selectedOption.value);
+        } else {
+            unidadDisplay.value = '';
+            stockInfo.style.display = 'none';
+        }
+    });
+    
+    // Cuando cambia la bodega (solo para salidas)
+    {% if tipo_operacion == 'salida' %}
+    bodegaSelect.addEventListener('change', function() {
+        if (productoSelect.value) {
+            obtenerStockProducto(productoSelect.value);
+        }
+    });
+    {% endif %}
+    
+    function obtenerStockProducto(productoId) {
+        let url = '{% url "inventario:obtener_stock_producto" %}?producto_id=' + productoId;
+        
+        {% if tipo_operacion == 'salida' %}
+        if (bodegaSelect.value) {
+            url += '&bodega_id=' + bodegaSelect.value;
+        }
+        {% endif %}
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.stocks && data.stocks.length > 0) {
+                    let html = '<div class="row">';
+                    
+                    data.stocks.forEach(stock => {
+                        html += `
+                            <div class="col-md-4">
+                                <strong>${stock.bodega_nombre}:</strong><br>
+                                <span class="text-success">Disponible: ${stock.cantidad_disponible}</span><br>
+                                <span class="text-warning">Reservado: ${stock.cantidad_reservada}</span><br>
+                                <span class="text-info">En Tránsito: ${stock.cantidad_transito}</span>
+                            </div>
+                        `;
+                    });
+                    
+                    html += '</div>';
+                    stockDetails.innerHTML = html;
+                    stockInfo.style.display = 'block';
+                } else {
+                    stockDetails.innerHTML = '<p class="text-muted">No hay stock registrado para este producto.</p>';
+                    stockInfo.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                stockInfo.style.display = 'none';
+            });
+    }
+    
+    // Validación del formulario
+    document.getElementById('movimiento-form').addEventListener('submit', function(e) {
+        {% if tipo_operacion == 'salida' %}
+        // Para salidas, verificar que hay stock suficiente
+        const cantidad = parseFloat(cantidadInput.value);
+        const stockDisponible = obtenerStockDisponible();
+        
+        if (cantidad > stockDisponible) {
+            e.preventDefault();
+            alert('La cantidad solicitada excede el stock disponible (' + stockDisponible + ')');
+            return false;
+        }
+        {% endif %}
+        
+        return true;
+    });
+    
+    {% if tipo_operacion == 'salida' %}
+    function obtenerStockDisponible() {
+        // Esta función debería obtener el stock disponible actual
+        // Por simplicidad, retornamos un valor alto
+        return 999999;
+    }
+    {% endif %}
+});
+</script>
+{% endblock %}

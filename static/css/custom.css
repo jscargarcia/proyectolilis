@@ -8,7 +8,7 @@
     --secondary-color: #EC4899;
     --success-color: #10B981;
     --danger-color: #EF4444;
-    --warning-color: #F59E0B;
+    --warning-color: #DC3545;
     --info-color: #3B82F6;
     --dark-color: #1F2937;
     --light-color: #F3F4F6;
@@ -240,6 +240,34 @@ body {
 .form-control:focus, .form-select:focus {
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+/* ========== Headers de CRUDs ========== */
+.form-card h1,
+.form-card h2,
+.form-card h3,
+.form-card h4,
+.form-card h5,
+.form-card h6,
+.header-card h1,
+.header-card h2,
+.header-card h3,
+.header-card h4,
+.header-card h5,
+.header-card h6 {
+    color: white !important;
+}
+
+.form-card p,
+.form-card span,
+.header-card p,
+.header-card span {
+    color: white !important;
+}
+
+.form-card i,
+.header-card i {
+    color: white !important;
 }
 
 /* ========== Alertas Personalizadas ========== */
