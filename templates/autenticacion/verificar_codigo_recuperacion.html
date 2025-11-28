@@ -13,61 +13,54 @@
     <!-- SweetAlert2 -->
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <!-- Estilos personalizados -->
-    <link href="{% static 'css/auth-styles.css' %}" rel="stylesheet">
-    <link href="{% static 'css/sweet-theme.css' %}" rel="stylesheet">
+    <link href="{% static 'css/login.css' %}" rel="stylesheet">
 </head>
 <body>
-    <div class="auth-container">
-        <div class="sweet-decoration">🍭</div>
-        <div class="sweet-decoration">🧁</div>
-        <div class="sweet-decoration">🍬</div>
-        <div class="sweet-decoration">🍪</div>
-        <div class="auth-card sweet-card fade-in">
-            <div class="auth-header sweet-theme">
-                <div class="sugar-particles"></div>
-                <h1>
-                    <span class="sweet-icon"></span>
-                    Verificar Código
-                </h1>
-                <p class="mb-0 mt-2 opacity-75">🍭 Dulcería Lilis 🧁</p>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <img src="{% static 'img/logo.png' %}" alt="Dulcería Lilis" class="logo mb-3">
+                <h1>Verificar Código</h1>
+                <p>Dulcería Lilis</p>
             </div>
             
-            <div class="auth-body">
+            <div class="login-body">
                 <!-- Información del usuario -->
-                <div class="user-info">
-                    <h5>
-                        <i class="fas fa-user-check"></i>
+                <div class="alert alert-info mb-4">
+                    <h6 class="mb-2">
+                        <i class="fas fa-user-check me-2"></i>
                         Verificación de Identidad
-                    </h5>
-                    <p><strong>Email:</strong> {{ email }}</p>
-                    <p><strong>Tiempo restante:</strong> <span class="countdown-timer" id="countdown">10:00</span></p>
+                    </h6>
+                    <p class="mb-1"><strong>Email:</strong> {{ email }}</p>
+                    <p class="mb-0"><strong>Tiempo restante:</strong> <span class="text-danger fw-bold" id="countdown">10:00</span></p>
                 </div>
                 
                 <form id="formVerificarCodigo" method="post" action="{% url 'autenticacion:verificar_codigo_recuperacion' %}">
                     {% csrf_token %}
                     
-                    <div class="form-group">
+                    <div class="form-group mb-4">
                         <label for="codigo" class="form-label">
-                            <i class="fas fa-key"></i>
+                            <i class="fas fa-key me-2"></i>
                             Código de Verificación
                         </label>
                         <input type="text" 
-                               class="form-control codigo-input" 
+                               class="form-control form-control-lg text-center" 
                                id="codigo" 
                                name="codigo" 
                                required 
                                maxlength="6"
                                pattern="[0-9]{6}"
                                placeholder="000000"
-                               autocomplete="one-time-code">
+                               autocomplete="one-time-code"
+                               style="letter-spacing: 0.5em; font-size: 1.5rem; font-weight: bold;">
                     </div>
                     
-                    <div class="help-box">
-                        <h6>
-                            <i class="fas fa-info-circle"></i>
+                    <div class="alert alert-light border mb-4">
+                        <h6 class="mb-2">
+                            <i class="fas fa-info-circle me-2"></i>
                             Instrucciones
                         </h6>
-                        <ul class="mb-0">
+                        <ul class="mb-0 small">
                             <li>Revisa tu bandeja de entrada y spam</li>
                             <li>El código tiene 6 dígitos numéricos</li>
                             <li>Es válido por 10 minutos solamente</li>
@@ -76,79 +69,78 @@
                     </div>
                     
                     <!-- Nuevas contraseñas -->
-                    <div class="form-group">
+                    <div class="form-group mb-3">
                         <label for="new_password1" class="form-label">
-                            <i class="fas fa-lock"></i>
+                            <i class="fas fa-lock me-2"></i>
                             Nueva Contraseña
                         </label>
-                        <div style="position: relative;">
+                        <div class="input-group">
                             <input type="password" 
                                    class="form-control" 
                                    id="new_password1" 
                                    name="new_password1" 
                                    required 
                                    placeholder="Ingresa tu nueva contraseña">
-                            <span class="show-password" onclick="togglePassword('new_password1')">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('new_password1')">
                                 <i class="fas fa-eye" id="eye-new_password1"></i>
-                            </span>
+                            </button>
                         </div>
-                        <div class="password-strength" id="strength-bar"></div>
-                        <div class="password-requirements" id="password-requirements">
-                            <div class="requirement" id="length-req">
-                                <i class="fas fa-times-circle"></i>
+                        <div class="password-requirements mt-2 small" id="password-requirements">
+                            <div class="requirement text-danger" id="length-req">
+                                <i class="fas fa-times-circle me-1"></i>
                                 Al menos 8 caracteres
                             </div>
-                            <div class="requirement" id="upper-req">
-                                <i class="fas fa-times-circle"></i>
+                            <div class="requirement text-danger" id="upper-req">
+                                <i class="fas fa-times-circle me-1"></i>
                                 Una letra mayúscula
                             </div>
-                            <div class="requirement" id="lower-req">
-                                <i class="fas fa-times-circle"></i>
+                            <div class="requirement text-danger" id="lower-req">
+                                <i class="fas fa-times-circle me-1"></i>
                                 Una letra minúscula
                             </div>
-                            <div class="requirement" id="number-req">
-                                <i class="fas fa-times-circle"></i>
+                            <div class="requirement text-danger" id="number-req">
+                                <i class="fas fa-times-circle me-1"></i>
                                 Un número
-                            </div>
-                            <div class="requirement" id="special-req">
-                                <i class="fas fa-times-circle"></i>
-                                Un carácter especial (@$!%*?&)
                             </div>
                         </div>
                     </div>
                     
-                    <div class="form-group">
+                    <div class="form-group mb-4">
                         <label for="new_password2" class="form-label">
-                            <i class="fas fa-lock"></i>
+                            <i class="fas fa-lock me-2"></i>
                             Confirmar Nueva Contraseña
                         </label>
-                        <div style="position: relative;">
+                        <div class="input-group">
                             <input type="password" 
                                    class="form-control" 
                                    id="new_password2" 
                                    name="new_password2" 
                                    required 
                                    placeholder="Confirma tu nueva contraseña">
-                            <span class="show-password" onclick="togglePassword('new_password2')">
+                            <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('new_password2')">
                                 <i class="fas fa-eye" id="eye-new_password2"></i>
-                            </span>
+                            </button>
                         </div>
-                        <div class="invalid-feedback" id="password-match-feedback" style="display: none;">
-                            <i class="fas fa-exclamation-triangle"></i>
+                        <div class="text-danger small mt-1" id="password-match-feedback" style="display: none;">
+                            <i class="fas fa-exclamation-triangle me-1"></i>
                             Las contraseñas no coinciden
                         </div>
                     </div>
                     
-                    <button type="submit" class="btn btn-primary btn-sweet mb-3" id="submitBtn">
-                        <span class="sweet-icon"></span>
+                    <button type="submit" class="btn btn-primary w-100 mb-3" id="submitBtn">
+                        <i class="fas fa-check me-2"></i>
                         Cambiar Contraseña
                     </button>
                     
-                    <a href="{% url 'autenticacion:recuperar_password' %}" class="btn btn-outline-secondary">
+                    <a href="{% url 'autenticacion:recuperar_password' %}" class="btn btn-outline-secondary w-100">
                         <i class="fas fa-arrow-left me-2"></i>
                         Solicitar Nuevo Código
                     </a>
                 </form>
+            </div>
+            
+            <div class="login-footer">
+                <p>&copy; 2024 Dulcería Lilis. Todos los derechos reservados.</p>
             </div>
         </div>
     </div>
@@ -208,43 +200,33 @@
         // Validación de contraseña
         const passwordInput = document.getElementById('new_password1');
         const confirmPasswordInput = document.getElementById('new_password2');
-        const strengthBar = document.getElementById('strength-bar');
         
         function checkPasswordStrength(password) {
             const requirements = {
                 length: password.length >= 8,
                 upper: /[A-Z]/.test(password),
                 lower: /[a-z]/.test(password),
-                number: /[0-9]/.test(password),
-                special: /[@$!%*?&]/.test(password)
+                number: /[0-9]/.test(password)
             };
             
             // Actualizar indicadores visuales
             Object.keys(requirements).forEach(req => {
                 const element = document.getElementById(req + '-req');
-                const icon = element.querySelector('i');
-                if (requirements[req]) {
-                    element.classList.add('valid');
-                    element.classList.remove('invalid');
-                    icon.className = 'fas fa-check-circle';
-                } else {
-                    element.classList.add('invalid');
-                    element.classList.remove('valid');
-                    icon.className = 'fas fa-times-circle';
+                if (element) {
+                    const icon = element.querySelector('i');
+                    if (requirements[req]) {
+                        element.classList.remove('text-danger');
+                        element.classList.add('text-success');
+                        icon.className = 'fas fa-check-circle me-1';
+                    } else {
+                        element.classList.remove('text-success');
+                        element.classList.add('text-danger');
+                        icon.className = 'fas fa-times-circle me-1';
+                    }
                 }
             });
             
-            // Calcular fortaleza
-            const score = Object.values(requirements).filter(Boolean).length;
-            if (score < 3) {
-                strengthBar.className = 'password-strength weak';
-            } else if (score < 5) {
-                strengthBar.className = 'password-strength medium';
-            } else {
-                strengthBar.className = 'password-strength strong';
-            }
-            
-            return score >= 4; // Requiere al menos 4 de 5 criterios
+            return Object.values(requirements).every(Boolean);
         }
         
         passwordInput.addEventListener('input', function() {
@@ -257,7 +239,6 @@
                 this.classList.remove('is-valid');
             } else {
                 this.classList.remove('is-valid', 'is-invalid');
-                strengthBar.className = 'password-strength';
             }
             
             // Revalidar confirmación

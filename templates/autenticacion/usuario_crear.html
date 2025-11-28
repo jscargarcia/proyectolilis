@@ -6,18 +6,64 @@
 {% block extra_css %}
 <style>
 .form-card {
-    background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+    background: linear-gradient(135deg, #9c0202 0%, #ec0505 100%);
     border-radius: 20px;
     padding: 30px;
-    color: white;
+    color: white !important;
     margin-bottom: 30px;
 }
+
+.form-card h2,
+.form-card h2 i,
+.form-card p {
+    color: white !important;
+}
+
+/* Estilos muy específicos para forzar el color blanco */
+div.form-card h2 {
+    color: white !important;
+}
+
+div.form-card h2 i.fas {
+    color: white !important;
+}
+
+div.form-card p {
+    color: white !important;
+}
+
+/* JavaScript para forzar color blanco */
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Forzar color blanco en todos los elementos de headers de CRUDs
+    const headers = document.querySelectorAll('.form-card h1, .form-card h2, .form-card h3, .form-card h4, .form-card h5, .form-card h6, .header-card h1, .header-card h2, .header-card h3, .header-card h4, .header-card h5, .header-card h6');
+    const paragraphs = document.querySelectorAll('.form-card p, .header-card p');
+    const icons = document.querySelectorAll('.form-card i, .header-card i');
+    
+    headers.forEach(function(element) {
+        element.style.color = 'white';
+        element.style.setProperty('color', 'white', 'important');
+    });
+    
+    paragraphs.forEach(function(element) {
+        element.style.color = 'white';
+        element.style.setProperty('color', 'white', 'important');
+    });
+    
+    icons.forEach(function(element) {
+        element.style.color = 'white';
+        element.style.setProperty('color', 'white', 'important');
+    });
+});
+</script>
+<style>
 
 .form-container {
     background: white;
     border-radius: 15px;
     padding: 30px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    box-shadow: 0 10px 30px rgba(255, 254, 254, 0.1);
 }
 
 .form-section {
@@ -25,11 +71,11 @@
     border-radius: 10px;
     padding: 20px;
     margin-bottom: 20px;
-    border-left: 4px solid #6f42c1;
+    border-left: 4px solid #af0202;
 }
 
 .form-section h5 {
-    color: #6f42c1;
+    color: #b90202;
     margin-bottom: 15px;
     font-weight: 600;
 }
@@ -40,8 +86,8 @@
 }
 
 .form-control:focus, .form-select:focus {
-    border-color: #6f42c1;
-    box-shadow: 0 0 0 0.2rem rgba(111, 66, 193, 0.25);
+    border-color: #ac0000;
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
 }
 
 .btn-primary {
@@ -60,7 +106,7 @@
 }
 
 .btn-secondary {
-    background: #6c757d;
+    background: #ffffff;
     border: none;
     padding: 12px 30px;
     border-radius: 8px;
@@ -69,13 +115,13 @@
 }
 
 .btn-secondary:hover {
-    background: #5a6268;
+    background: #ffffff;
     transform: translateY(-2px);
 }
 
 .help-text {
     font-size: 0.875rem;
-    color: #6c757d;
+    color: #ffffff;
     margin-top: 4px;
 }
 
@@ -105,8 +151,8 @@
     <div class="form-card">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <h2><i class="fas fa-user-plus me-2"></i>Crear Nuevo Usuario</h2>
-                <p class="mb-0">Complete la información del nuevo usuario</p>
+                <h2 style="color: white !important;"><i class="fas fa-user-plus me-2" style="color: white !important;"></i>Crear Nuevo Usuario</h2>
+                <p class="mb-0" style="color: white !important;">Complete la información del nuevo usuario</p>
             </div>
             <a href="{% url 'autenticacion:usuario_listar' %}" class="btn btn-light">
                 <i class="fas fa-arrow-left me-2"></i>Volver a Lista
@@ -129,10 +175,11 @@
                                id="username" 
                                name="username" 
                                required
-                               maxlength="100"
+                               maxlength="8"
+                               oninput="this.value = this.value.slice(0, 8).toLowerCase().replace(/[^a-z0-9_-]/g, '')"
                                value="{{ datos.username|default:'' }}"
-                               placeholder="usuario123">
-                        <div class="help-text">Al menos 3 caracteres, solo letras, números y guiones</div>
+                               placeholder="usuario1">
+                        <div class="help-text">Entre 3 y 8 caracteres, solo letras, números y guiones</div>
                         <div class="invalid-feedback">{{ errores.username|default:'' }}</div>
                     </div>
                     
@@ -143,8 +190,10 @@
                                id="email" 
                                name="email"
                                value="{{ datos.email|default:'' }}"
-                               placeholder="usuario@empresa.com">
-                        <div class="help-text">Email para notificaciones (opcional)</div>
+                               placeholder="usuario@empresa.com"
+                               maxlength="50"
+                               oninput="this.value = this.value.slice(0, 50)">
+                        <div class="help-text">Email para notificaciones (máximo 50 caracteres)</div>
                         <div class="invalid-feedback">{{ errores.email|default:'' }}</div>
                     </div>
                     
@@ -189,10 +238,11 @@
                                id="nombres" 
                                name="nombres" 
                                required
-                               maxlength="120"
+                               maxlength="8"
+                               oninput="this.value = this.value.slice(0, 8)"
                                value="{{ datos.nombres|default:'' }}"
-                               placeholder="Juan Carlos">
-                        <div class="help-text">Nombres completos</div>
+                               placeholder="Juan">
+                        <div class="help-text">Entre 2 y 8 caracteres. Solo letras</div>
                         <div class="invalid-feedback">{{ errores.nombres|default:'' }}</div>
                     </div>
                     
@@ -203,10 +253,11 @@
                                id="apellidos" 
                                name="apellidos" 
                                required
-                               maxlength="120"
+                               maxlength="8"
+                               oninput="this.value = this.value.slice(0, 8)"
                                value="{{ datos.apellidos|default:'' }}"
-                               placeholder="Pérez González">
-                        <div class="help-text">Apellidos completos</div>
+                               placeholder="Pérez">
+                        <div class="help-text">Entre 2 y 8 caracteres. Solo letras</div>
                         <div class="invalid-feedback">{{ errores.apellidos|default:'' }}</div>
                     </div>
                     
@@ -216,10 +267,12 @@
                                class="form-control{% if errores.telefono %} is-invalid{% endif %}" 
                                id="telefono" 
                                name="telefono"
-                               maxlength="30"
+                               maxlength="15"
+                               pattern="[0-9+\-\s()]*"
+                               oninput="this.value = this.value.replace(/[^0-9+\-\s()]/g, '').slice(0, 15)"
                                value="{{ datos.telefono|default:'' }}"
                                placeholder="+56 9 1234 5678">
-                        <div class="help-text">Teléfono de contacto (opcional)</div>
+                        <div class="help-text">Teléfono de contacto, máximo 15 caracteres (opcional)</div>
                         <div class="invalid-feedback">{{ errores.telefono|default:'' }}</div>
                     </div>
                     
@@ -230,9 +283,10 @@
                                id="area_unidad" 
                                name="area_unidad"
                                maxlength="100"
+                               oninput="this.value = this.value.slice(0, 100)"
                                value="{{ datos.area_unidad|default:'' }}"
                                placeholder="Ventas, Administración, etc.">
-                        <div class="help-text">Área o departamento de trabajo</div>
+                        <div class="help-text">Área o departamento de trabajo, máximo 100 caracteres</div>
                         <div class="invalid-feedback">{{ errores.area_unidad|default:'' }}</div>
                     </div>
                 </div>

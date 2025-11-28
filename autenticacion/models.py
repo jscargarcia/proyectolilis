@@ -49,6 +49,26 @@ class Usuario(AbstractUser):
     ultimo_acceso = models.DateTimeField(null=True, blank=True)
     area_unidad = models.CharField(max_length=100, null=True, blank=True)
     observaciones = models.TextField(null=True, blank=True)
+    
+    # Control de intentos de login
+    intentos_fallidos = models.IntegerField(default=0, help_text='Contador de intentos fallidos de login')
+    bloqueado_hasta = models.DateTimeField(null=True, blank=True, help_text='Fecha hasta la cual la cuenta está bloqueada')
+    
+    # Control de password temporal - Casos F-PASS-TEMP, F-FIRST-LOGIN, F-RESET-ADMIN
+    debe_cambiar_password = models.BooleanField(
+        default=False, 
+        help_text='Si el usuario debe cambiar su contraseña en el próximo login'
+    )
+    password_es_temporal = models.BooleanField(
+        default=False,
+        help_text='Indica si la contraseña actual es temporal (generada por el sistema)'
+    )
+    fecha_password_temporal = models.DateTimeField(
+        null=True, 
+        blank=True,
+        help_text='Fecha en que se asignó la contraseña temporal'
+    )
+    
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -57,6 +77,19 @@ class Usuario(AbstractUser):
 
     def get_full_name(self):
         return f"{self.nombres} {self.apellidos}"
+    
+    def esta_bloqueado(self):
+        """Verifica si la cuenta está bloqueada temporalmente"""
+        if self.bloqueado_hasta:
+            return timezone.now() < self.bloqueado_hasta
+        return False
+    
+    def tiempo_restante_bloqueo(self):
+        """Retorna los minutos restantes de bloqueo"""
+        if self.esta_bloqueado():
+            delta = self.bloqueado_hasta - timezone.now()
+            return int(delta.total_seconds() / 60)
+        return 0
 
     def __str__(self):
         return f"{self.username} - {self.get_full_name()}"

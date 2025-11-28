@@ -34,7 +34,7 @@
                         <div class="col-md-3">
                             <label for="producto" class="form-label">Producto:</label>
                             <select name="producto" id="producto" class="form-select">
-                                <option value="">Todos los productos</option>
+                                <option value="" {% if not filtro_producto %}selected{% endif %}>-- Seleccionar producto --</option>
                                 {% for producto in productos %}
                                     <option value="{{ producto.id }}" {% if producto.id|stringformat:"s" == filtro_producto %}selected{% endif %}>
                                         {{ producto.nombre }}
@@ -45,7 +45,7 @@
                         <div class="col-md-3">
                             <label for="bodega" class="form-label">Bodega:</label>
                             <select name="bodega" id="bodega" class="form-select">
-                                <option value="">Todas las bodegas</option>
+                                <option value="" {% if not filtro_bodega %}selected{% endif %}>-- Seleccionar bodega --</option>
                                 {% for bodega in bodegas %}
                                     <option value="{{ bodega.id }}" {% if bodega.id|stringformat:"s" == filtro_bodega %}selected{% endif %}>
                                         {{ bodega.nombre }}
@@ -91,11 +91,13 @@
                 <div class="card-header">
                     <h5 class="mb-0">
                         <i class="fas fa-list"></i> Stock Actual
-                        <span class="badge bg-primary">{{ page_obj.paginator.count }} productos</span>
+                        {% if page_obj %}
+                        <span class="badge bg-primary">{{ page_obj.paginator.count }} registros</span>
+                        {% endif %}
                     </h5>
                 </div>
                 <div class="card-body">
-                    {% if page_obj %}
+                    {% if page_obj and page_obj.paginator.count > 0 %}
                     <div class="table-responsive">
                         <table class="table table-striped table-hover">
                             <thead class="table-dark">
@@ -164,7 +166,7 @@
                     </div>
 
                     <!-- Paginación -->
-                    {% if page_obj.has_other_pages %}
+                    {% if page_obj and page_obj.has_other_pages %}
                     <nav aria-label="Paginación de stock">
                         <ul class="pagination justify-content-center">
                             {% if page_obj.has_previous %}
@@ -200,9 +202,29 @@
                     </nav>
                     {% endif %}
                     {% else %}
-                    <div class="text-center py-4">
-                        <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
-                        <p class="text-muted">No hay datos de stock disponibles.</p>
+                    <!-- Mensaje cuando no hay registros de stock -->
+                    <div class="text-center py-5">
+                        <i class="fas fa-box-open fa-4x text-warning mb-3"></i>
+                        <h4>No hay registros de stock</h4>
+                        <p class="text-muted mb-4">
+                            El sistema aún no tiene registros de stock disponibles. Para comenzar:
+                        </p>
+                        <div class="alert alert-info d-inline-block text-left" style="max-width: 600px;">
+                            <strong><i class="fas fa-info-circle"></i> ¿Cómo agregar stock?</strong>
+                            <ol class="mt-2 mb-0">
+                                <li>Registra un <strong>ingreso de stock</strong> desde el menú Inventario</li>
+                                <li>El sistema creará automáticamente los registros por bodega</li>
+                                <li>También puedes verificar que existan bodegas activas en el sistema</li>
+                            </ol>
+                        </div>
+                        <div class="mt-4">
+                            <a href="{% url 'inventario:ingreso_registrar' %}" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Registrar Ingreso de Stock
+                            </a>
+                            <a href="{% url 'maestros:producto_listar' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-box"></i> Ver Productos
+                            </a>
+                        </div>
                     </div>
                     {% endif %}
                 </div>

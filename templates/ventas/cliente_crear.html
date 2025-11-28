@@ -19,9 +19,11 @@
                             <!-- RUT/NIF -->
                             <div class="col-md-6 mb-3">
                                 <label for="rut_nif" class="form-label">RUT/NIF <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="rut_nif" name="rut_nif" required>
+                                <input type="text" class="form-control" id="rut_nif" name="rut_nif" required
+                                       maxlength="12"
+                                       oninput="this.value = this.value.slice(0, 12)">
                                 <div class="invalid-feedback" id="rut_nif-error"></div>
-                                <small class="text-muted">Formato: 12345678-9 o similar</small>
+                                <small class="text-muted">Formato: 12345678-9 o similar, máximo 12 caracteres</small>
                             </div>
 
                             <!-- Tipo -->
@@ -37,32 +39,47 @@
                             <!-- Nombre -->
                             <div class="col-12 mb-3">
                                 <label for="nombre" class="form-label">Nombre / Razón Social <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="nombre" name="nombre" required maxlength="150">
+                                <input type="text" class="form-control" id="nombre" name="nombre" required 
+                                       maxlength="100"
+                                       oninput="this.value = this.value.slice(0, 100)">
                                 <div class="invalid-feedback" id="nombre-error"></div>
+                                <small class="text-muted">Máximo 100 caracteres</small>
                             </div>
 
                             <!-- Email -->
                             <div class="col-md-6 mb-3">
                                 <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" name="email">
+                                <input type="email" class="form-control" id="email" name="email"
+                                       maxlength="50"
+                                       oninput="this.value = this.value.slice(0, 50)">
+                                <small class="text-muted">Máximo 50 caracteres</small>
                             </div>
 
                             <!-- Teléfono -->
                             <div class="col-md-6 mb-3">
                                 <label for="telefono" class="form-label">Teléfono</label>
-                                <input type="text" class="form-control" id="telefono" name="telefono" maxlength="30">
+                                <input type="text" class="form-control" id="telefono" name="telefono" 
+                                       maxlength="15"
+                                       pattern="[0-9+\-\s()]*"
+                                       oninput="this.value = this.value.replace(/[^0-9+\-\s()]/g, '').slice(0, 15)">
+                                <small class="text-muted">Máximo 15 caracteres</small>
                             </div>
 
                             <!-- Dirección -->
                             <div class="col-md-8 mb-3">
                                 <label for="direccion" class="form-label">Dirección</label>
-                                <input type="text" class="form-control" id="direccion" name="direccion" maxlength="255">
+                                <input type="text" class="form-control" id="direccion" name="direccion" 
+                                       maxlength="200"
+                                       oninput="this.value = this.value.slice(0, 200)">
+                                <small class="text-muted">Máximo 200 caracteres</small>
                             </div>
 
                             <!-- Ciudad -->
                             <div class="col-md-4 mb-3">
                                 <label for="ciudad" class="form-label">Ciudad</label>
-                                <input type="text" class="form-control" id="ciudad" name="ciudad" maxlength="100">
+                                <input type="text" class="form-control" id="ciudad" name="ciudad" 
+                                       maxlength="100"
+                                       oninput="this.value = this.value.slice(0, 100)">
                             </div>
 
                             <!-- Observaciones -->

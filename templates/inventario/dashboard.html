@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load permisos_tags %}
+
+{% block title %}Dashboard Inventario - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 25px;
+        color: white;
+        margin-bottom: 25px;
+        transition: transform 0.3s ease;
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+    
+    .stats-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stats-card.danger {
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
+        box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
+    }
+    
+    .stats-card.warning {
+        background: linear-gradient(135deg, #f39c12, #e67e22);
+        box-shadow: 0 8px 25px rgba(243, 156, 18, 0.3);
+    }
+    
+    .stats-card.success {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+    }
+    
+    .stats-card .stats-number {
+        font-size: 3rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    
+    .stats-card .stats-label {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    .quick-actions .btn {
+        border-radius: 10px;
+        padding: 15px 25px;
+        font-weight: 600;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
+    }
+    
+    .recent-movements {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .movement-item {
+        border-left: 4px solid;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 0 8px 8px 0;
+        background: #f8f9fa;
+    }
+    
+    .movement-item.ingreso {
+        border-color: #28a745;
+    }
+    
+    .movement-item.salida {
+        border-color: #dc3545;
+    }
+    
+    .movement-item.ajuste {
+        border-color: #ffc107;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #dc3545, #e74c3c); color: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);">
+                <div>
+                    <h2 class="mb-0" style="color: white;">
+                        <i class="fas fa-warehouse me-2" style="color: white;"></i>
+                        Dashboard Inventario
+                    </h2>
+                    <p class="mb-0" style="color: white;">Control y gestión del inventario</p>
+                </div>
+                <div class="d-flex gap-2">
+                    {% if perms.inventario.add_movimientoinventario %}
+                    <a href="{% url 'inventario:registrar_ingreso' %}" class="btn btn-light">
+                        <i class="fas fa-plus me-2"></i>Registrar Ingreso
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stats-number">{{ total_productos }}</div>
+                <div class="stats-label">
+                    <i class="fas fa-box me-2"></i>
+                    Productos Activos
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card success">
+                <div class="stats-number">{{ total_bodegas }}</div>
+                <div class="stats-label">
+                    <i class="fas fa-warehouse me-2"></i>
+                    Bodegas Activas
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card danger">
+                <div class="stats-number">{{ productos_sin_stock }}</div>
+                <div class="stats-label">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Sin Stock
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card warning">
+                <div class="stats-number">{{ alertas_activas }}</div>
+                <div class="stats-label">
+                    <i class="fas fa-bell me-2"></i>
+                    Alertas Activas
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Acciones Rápidas -->
+        <div class="col-md-4">
+            <div class="recent-movements">
+                <h5 class="mb-4">
+                    <i class="fas fa-bolt text-primary me-2"></i>
+                    Acciones Rápidas
+                </h5>
+                <div class="quick-actions">
+                    {% if perms.inventario.add_movimientoinventario %}
+                    <a href="{% url 'inventario:registrar_ingreso' %}" class="btn btn-success btn-block w-100">
+                        <i class="fas fa-plus me-2"></i>
+                        Registrar Ingreso
+                    </a>
+                    <a href="{% url 'inventario:registrar_salida' %}" class="btn btn-danger btn-block w-100">
+                        <i class="fas fa-minus me-2"></i>
+                        Registrar Salida
+                    </a>
+                    {% endif %}
+                    {% if perms.inventario.view_stockactual %}
+                    <a href="{% url 'inventario:vista_stock_actual' %}" class="btn btn-info btn-block w-100">
+                        <i class="fas fa-chart-bar me-2"></i>
+                        Ver Stock Actual
+                    </a>
+                    {% endif %}
+                    {% if perms.inventario.view_movimientoinventario %}
+                    <a href="{% url 'inventario:historial_movimientos' %}" class="btn btn-secondary btn-block w-100">
+                        <i class="fas fa-history me-2"></i>
+                        Historial Movimientos
+                    </a>
+                    {% endif %}
+                    {% if perms.inventario.view_alertastock %}
+                    <a href="{% url 'inventario:alerta_listar' %}" class="btn btn-warning btn-block w-100">
+                        <i class="fas fa-bell me-2"></i>
+                        Ver Alertas
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Movimientos Recientes -->
+        <div class="col-md-8">
+            <div class="recent-movements">
+                <h5 class="mb-4">
+                    <i class="fas fa-clock text-primary me-2"></i>
+                    Movimientos Recientes
+                </h5>
+                
+                {% if movimientos_recientes %}
+                    {% for movimiento in movimientos_recientes %}
+                    <div class="movement-item {{ movimiento.tipo_movimiento|lower }}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <h6 class="mb-1">
+                                    {% if movimiento.tipo_movimiento == 'INGRESO' %}
+                                        <i class="fas fa-arrow-up text-success me-2"></i>
+                                    {% elif movimiento.tipo_movimiento == 'SALIDA' %}
+                                        <i class="fas fa-arrow-down text-danger me-2"></i>
+                                    {% else %}
+                                        <i class="fas fa-exchange-alt text-warning me-2"></i>
+                                    {% endif %}
+                                    {{ movimiento.producto.nombre }}
+                                </h6>
+                                <p class="mb-1 text-muted small">
+                                    <strong>Cantidad:</strong> {{ movimiento.cantidad }} {{ movimiento.unidad_medida.simbolo }}
+                                    {% if movimiento.bodega_origen %}
+                                        | <strong>Origen:</strong> {{ movimiento.bodega_origen.nombre }}
+                                    {% endif %}
+                                    {% if movimiento.bodega_destino %}
+                                        | <strong>Destino:</strong> {{ movimiento.bodega_destino.nombre }}
+                                    {% endif %}
+                                </p>
+                                <small class="text-muted">
+                                    <i class="fas fa-user me-1"></i>{{ movimiento.usuario.get_full_name|default:movimiento.usuario.username }}
+                                </small>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted">{{ movimiento.fecha_movimiento|date:"d/m/Y H:i" }}</small>
+                                <br>
+                                <span class="badge bg-{{ movimiento.estado|lower }}">{{ movimiento.get_estado_display }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="text-center mt-3">
+                        <a href="{% url 'inventario:historial_movimientos' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-eye me-2"></i>Ver Todos los Movimientos
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No hay movimientos recientes</p>
+                        {% if perms.inventario.add_movimientoinventario %}
+                        <a href="{% url 'inventario:registrar_ingreso' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Registrar Primer Movimiento
+                        </a>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-refresh de estadísticas cada 5 minutos
+setInterval(function() {
+    location.reload();
+}, 300000);
+</script>
+{% endblock %}

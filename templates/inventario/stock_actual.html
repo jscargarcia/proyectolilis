@@ -1,0 +1,364 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Stock Actual - Inventario{% endblock %}
+
+{% block extra_css %}
+<style>
+    .header-card {
+        background: linear-gradient(135deg, #dc3545, #e74c3c);
+        color: white;
+        padding: 25px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    }
+    
+    .filters-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    .stock-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+        transition: transform 0.3s ease;
+    }
+    
+    .stock-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .stock-item {
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .stock-item:last-child {
+        border-bottom: none;
+    }
+    
+    .stock-disponible {
+        color: #28a745;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+    
+    .stock-bajo {
+        color: #dc3545;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+    
+    .stock-sin {
+        color: #6c757d;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+    
+    .stock-badge {
+        padding: 4px 8px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .badge-disponible {
+        background: #d4edda;
+        color: #155724;
+    }
+    
+    .badge-bajo {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    
+    .badge-sin {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+    
+    .btn-filters {
+        background: linear-gradient(135deg, #6f42c1, #e83e8c);
+        border: none;
+        color: white;
+        border-radius: 8px;
+        padding: 8px 20px;
+        font-weight: 500;
+    }
+    
+    .btn-filters:hover {
+        background: linear-gradient(135deg, #5a2d91, #d91a72);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="header-card">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="mb-0" style="color: white;">
+                    <i class="fas fa-chart-bar me-2" style="color: white;"></i>
+                    Stock Actual
+                </h2>
+                <p class="mb-0" style="color: white;">Vista del inventario actual por productos y bodegas</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'inventario:dashboard' %}" class="btn btn-light">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-card">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label for="search" class="form-label">Buscar</label>
+                <input type="text" class="form-control" id="search" name="search" 
+                       value="{{ search }}" placeholder="SKU o nombre del producto">
+            </div>
+            
+            <div class="col-md-3">
+                <label for="bodega" class="form-label">Bodega</label>
+                <select class="form-select" id="bodega" name="bodega">
+                    <option value="">Todas las bodegas</option>
+                    {% for bodega in bodegas %}
+                        <option value="{{ bodega.id }}" {% if bodega_id == bodega.id|stringformat:"s" %}selected{% endif %}>
+                            {{ bodega.codigo }} - {{ bodega.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="bajo_stock" name="bajo_stock" 
+                           value="true" {% if bajo_stock %}checked{% endif %}>
+                    <label class="form-check-label" for="bajo_stock">
+                        Solo productos con bajo stock
+                    </label>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-filters">
+                        <i class="fas fa-search me-2"></i>Filtrar
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Resultados -->
+    {% if page_obj %}
+        <div class="stock-card">
+            {% for stock in page_obj %}
+                <div class="stock-item">
+                    <div class="row align-items-center">
+                        <div class="col-md-4">
+                            <h6 class="mb-1">
+                                <i class="fas fa-box text-primary me-2"></i>
+                                {{ stock.producto.nombre }}
+                            </h6>
+                            <p class="text-muted mb-1">
+                                <strong>SKU:</strong> {{ stock.producto.sku }}
+                            </p>
+                            <small class="text-muted">
+                                <i class="fas fa-warehouse me-1"></i>{{ stock.bodega.nombre }}
+                            </small>
+                        </div>
+                        
+                        <div class="col-md-2 text-center">
+                            {% if stock.cantidad_disponible > 0 %}
+                                <span class="stock-disponible">{{ stock.cantidad_disponible|floatformat:2 }}</span>
+                            {% elif stock.cantidad_disponible == 0 %}
+                                <span class="stock-sin">0</span>
+                            {% else %}
+                                <span class="stock-bajo">{{ stock.cantidad_disponible|floatformat:2 }}</span>
+                            {% endif %}
+                            <br>
+                            <small class="text-muted">{{ stock.producto.uom_stock.simbolo|default:"UND" }}</small>
+                        </div>
+                        
+                        <div class="col-md-2 text-center">
+                            <span class="text-warning">{{ stock.cantidad_reservada|floatformat:2|default:"0.00" }}</span>
+                            <br>
+                            <small class="text-muted">Reservado</small>
+                        </div>
+                        
+                        <div class="col-md-2 text-center">
+                            <span class="text-info">{{ stock.cantidad_transito|floatformat:2|default:"0.00" }}</span>
+                            <br>
+                            <small class="text-muted">En Tránsito</small>
+                        </div>
+                        
+                        <div class="col-md-2 text-center">
+                            {% if stock.cantidad_disponible > stock.producto.stock_minimo %}
+                                <span class="stock-badge badge-disponible">
+                                    <i class="fas fa-check-circle me-1"></i>Disponible
+                                </span>
+                            {% elif stock.cantidad_disponible > 0 %}
+                                <span class="stock-badge badge-bajo">
+                                    <i class="fas fa-exclamation-triangle me-1"></i>Bajo Stock
+                                </span>
+                            {% else %}
+                                <span class="stock-badge badge-sin">
+                                    <i class="fas fa-times-circle me-1"></i>Sin Stock
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No se encontraron productos</h5>
+                    <p class="text-muted">No hay productos que coincidan con los filtros aplicados.</p>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Paginación Mejorada -->
+        {% if page_obj.has_other_pages %}
+            <nav aria-label="Paginación" class="mt-4">
+                <div class="row align-items-center">
+                    <div class="col-md-4 text-start mb-2 mb-md-0">
+                        <span class="text-muted">
+                            Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ page_obj.paginator.count }} registros
+                        </span>
+                    </div>
+                    <div class="col-md-4">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.bodega %}&bodega={{ request.GET.bodega }}{% endif %}{% if request.GET.solo_criticos %}&solo_criticos={{ request.GET.solo_criticos }}{% endif %}" title="Primera página">
+                                        <i class="fas fa-angle-double-left"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.bodega %}&bodega={{ request.GET.bodega }}{% endif %}{% if request.GET.solo_criticos %}&solo_criticos={{ request.GET.solo_criticos }}{% endif %}" title="Anterior">
+                                        <i class="fas fa-angle-left"></i>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                                </li>
+                            {% endif %}
+                            
+                            <!-- Páginas numeradas -->
+                            {% if page_obj.number > 3 %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.bodega %}&bodega={{ request.GET.bodega }}{% endif %}{% if request.GET.solo_criticos %}&solo_criticos={{ request.GET.solo_criticos }}{% endif %}">1</a>
+                                </li>
+                                {% if page_obj.number > 4 %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if num == page_obj.number %}
+                                    <li class="page-item active">
+                                        <span class="page-link">{{ num }}</span>
+                                    </li>
+                                {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                                    <li class="page-item">
+                                        <a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.bodega %}&bodega={{ request.GET.bodega }}{% endif %}{% if request.GET.solo_criticos %}&solo_criticos={{ request.GET.solo_criticos }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.number < page_obj.paginator.num_pages|add:"-2" %}
+                                {% if page_obj.number < page_obj.paginator.num_pages|add:"-3" %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.bodega %}&bodega={{ request.GET.bodega }}{% endif %}{% if request.GET.solo_criticos %}&solo_criticos={{ request.GET.solo_criticos }}{% endif %}">{{ page_obj.paginator.num_pages }}</a>
+                                </li>
+                            {% endif %}
+                            
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.bodega %}&bodega={{ request.GET.bodega }}{% endif %}{% if request.GET.solo_criticos %}&solo_criticos={{ request.GET.solo_criticos }}{% endif %}" title="Siguiente">
+                                        <i class="fas fa-angle-right"></i>
+                                    </a>
+                                </li>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.bodega %}&bodega={{ request.GET.bodega }}{% endif %}{% if request.GET.solo_criticos %}&solo_criticos={{ request.GET.solo_criticos }}{% endif %}" title="Última">
+                                        <i class="fas fa-angle-double-right"></i>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <form method="GET" class="d-inline-flex align-items-center">
+                            {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
+                            {% if request.GET.bodega %}<input type="hidden" name="bodega" value="{{ request.GET.bodega }}">{% endif %}
+                            {% if request.GET.solo_criticos %}<input type="hidden" name="solo_criticos" value="{{ request.GET.solo_criticos }}">{% endif %}
+                            <label for="page-jump" class="me-2 mb-0 text-muted">Ir a:</label>
+                            <input type="number" id="page-jump" name="page" class="form-control form-control-sm" 
+                                   style="width: 80px;" min="1" max="{{ page_obj.paginator.num_pages }}" 
+                                   placeholder="{{ page_obj.number }}">
+                            <button type="submit" class="btn btn-sm btn-primary ms-2">
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </nav>
+        {% endif %}
+    {% else %}
+        <div class="stock-card">
+            <div class="text-center py-5">
+                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                <h5 class="text-muted">Error al cargar el stock</h5>
+                <p class="text-muted">Hubo un problema al cargar la información de stock. Por favor, intente nuevamente.</p>
+                <a href="{% url 'inventario:vista_stock_actual' %}" class="btn btn-primary">
+                    <i class="fas fa-refresh me-2"></i>Recargar
+                </a>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh cada 30 segundos si hay productos sin stock
+    const sinStock = document.querySelectorAll('.stock-sin');
+    if (sinStock.length > 0) {
+        setInterval(function() {
+            const url = new URL(window.location);
+            url.searchParams.set('auto_refresh', '1');
+            window.location.href = url.toString();
+        }, 30000);
+    }
+});
+</script>
+{% endblock %}

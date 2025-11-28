@@ -96,8 +96,9 @@
                                id="sku" 
                                name="sku" 
                                required
-                               maxlength="50">
-                        <div class="help-text">Código único del producto (ej: CHOC001)</div>
+                               maxlength="50"
+                               oninput="this.value = this.value.slice(0, 50)">
+                        <div class="help-text">Código único del producto, máximo 50 caracteres (ej: CHOC001)</div>
                         <div class="invalid-feedback" id="sku-error"></div>
                     </div>
                     
@@ -107,8 +108,10 @@
                                class="form-control" 
                                id="ean_upc" 
                                name="ean_upc"
-                               maxlength="20">
-                        <div class="help-text">Código de barras (8, 12 o 13 dígitos)</div>
+                               maxlength="20"
+                               pattern="[0-9]*"
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 20)">
+                        <div class="help-text">Código de barras (8, 12 o 13 dígitos), máximo 20 caracteres</div>
                         <div class="invalid-feedback" id="ean_upc-error"></div>
                     </div>
                     
@@ -119,8 +122,9 @@
                                id="nombre" 
                                name="nombre" 
                                required
-                               maxlength="255">
-                        <div class="help-text">Nombre comercial del producto</div>
+                               maxlength="200"
+                               oninput="this.value = this.value.slice(0, 200)">
+                        <div class="help-text">Nombre comercial del producto, máximo 200 caracteres</div>
                         <div class="invalid-feedback" id="nombre-error"></div>
                     </div>
                     
@@ -129,8 +133,10 @@
                         <textarea class="form-control" 
                                   id="descripcion" 
                                   name="descripcion" 
-                                  rows="3"></textarea>
-                        <div class="help-text">Descripción detallada del producto</div>
+                                  rows="3"
+                                  maxlength="500"
+                                  oninput="this.value = this.value.slice(0, 500)"></textarea>
+                        <div class="help-text">Descripción detallada del producto, máximo 500 caracteres</div>
                     </div>
                 </div>
             </div>
@@ -166,8 +172,9 @@
                                class="form-control" 
                                id="modelo" 
                                name="modelo"
-                               maxlength="100">
-                        <div class="help-text">Modelo o variante del producto</div>
+                               maxlength="100"
+                               oninput="this.value = this.value.slice(0, 100)">
+                        <div class="help-text">Modelo o variante del producto, máximo 100 caracteres</div>
                     </div>
                     
                     <div class="col-md-6">

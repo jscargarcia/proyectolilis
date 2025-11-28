@@ -43,26 +43,38 @@ class RegistroUsuarioForm(forms.ModelForm):
             'username': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Usuario único (sin espacios)',
-                'required': True
+                'required': True,
+                'maxlength': '8',
+                'oninput': 'this.value = this.value.slice(0, 8).toLowerCase().replace(/[^a-z0-9_-]/g, "")'
             }),
             'email': forms.EmailInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'correo@ejemplo.com',
-                'required': True
+                'required': True,
+                'maxlength': '50',
+                'type': 'email',
+                'oninput': 'this.value = this.value.slice(0, 50)'
             }),
             'nombres': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Tus nombres',
-                'required': True
+                'required': True,
+                'maxlength': '8',
+                'oninput': 'this.value = this.value.slice(0, 8)'
             }),
             'apellidos': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Tus apellidos',
-                'required': True
+                'required': True,
+                'maxlength': '8',
+                'oninput': 'this.value = this.value.slice(0, 8)'
             }),
             'telefono': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Tu número de teléfono (opcional)'
+                'placeholder': 'Tu número de teléfono (opcional)',
+                'maxlength': '15',
+                'pattern': '[0-9+\-\s()]*',
+                'oninput': 'this.value = this.value.slice(0, 15).replace(/[^0-9+\\-\\s()]/g, "")'
             })
         }
         labels = {
@@ -71,6 +83,11 @@ class RegistroUsuarioForm(forms.ModelForm):
             'nombres': 'Nombres',
             'apellidos': 'Apellidos',
             'telefono': 'Teléfono'
+        }
+        help_texts = {
+            'username': 'Entre 3 y 8 caracteres. Solo letras minúsculas, números, guiones y guiones bajos.',
+            'nombres': 'Entre 2 y 8 caracteres. Solo letras.',
+            'apellidos': 'Entre 2 y 8 caracteres. Solo letras.'
         }
     
     def clean_username(self):
@@ -84,8 +101,8 @@ class RegistroUsuarioForm(forms.ModelForm):
             if len(username) < 3:
                 raise ValidationError('El nombre de usuario debe tener al menos 3 caracteres.')
             
-            if len(username) > 30:
-                raise ValidationError('El nombre de usuario no puede tener más de 30 caracteres.')
+            if len(username) > 8:
+                raise ValidationError('El nombre de usuario no puede tener más de 8 caracteres.')
             
             # Validar caracteres permitidos (letras, números, guiones y guiones bajos)
             if not re.match(r'^[a-z0-9_-]+$', username):
@@ -149,6 +166,9 @@ class RegistroUsuarioForm(forms.ModelForm):
             if len(nombres) < 2:
                 raise ValidationError('Los nombres deben tener al menos 2 caracteres.')
             
+            if len(nombres) > 8:
+                raise ValidationError('Los nombres no pueden tener más de 8 caracteres.')
+            
             # Validar que solo contenga letras y espacios
             if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', nombres):
                 raise ValidationError('Los nombres solo pueden contener letras.')
@@ -165,6 +185,9 @@ class RegistroUsuarioForm(forms.ModelForm):
             # Validar longitud
             if len(apellidos) < 2:
                 raise ValidationError('Los apellidos deben tener al menos 2 caracteres.')
+            
+            if len(apellidos) > 8:
+                raise ValidationError('Los apellidos no pueden tener más de 8 caracteres.')
             
             # Validar que solo contenga letras y espacios
             if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', apellidos):
@@ -294,21 +317,30 @@ class EditarPerfilForm(forms.ModelForm):
             'nombres': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Ingresa tus nombres',
-                'required': True
+                'required': True,
+                'maxlength': '8'
             }),
             'apellidos': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Ingresa tus apellidos',
-                'required': True
+                'required': True,
+                'maxlength': '8'
             }),
             'email': forms.EmailInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Ingresa tu email',
-                'required': True
+                'required': True,
+                'maxlength': '50',
+                'type': 'email',
+                'oninput': 'this.value = this.value.slice(0, 50)'
             }),
             'telefono': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Ingresa tu teléfono (opcional)'
+                'placeholder': 'Ingresa tu teléfono (opcional)',
+                'maxlength': '15',
+                'pattern': '[0-9+\-\s()]*',
+                'title': 'Solo números, espacios y símbolos + - ( )',
+                'oninput': 'this.value = this.value.slice(0, 15).replace(/[^0-9+\\-\\s()]/g, "")'
             }),
             'avatar': forms.FileInput(attrs={
                 'class': 'form-control',
@@ -316,10 +348,58 @@ class EditarPerfilForm(forms.ModelForm):
             })
         }
     
+    def clean_nombres(self):
+        """Validar nombres"""
+        nombres = self.cleaned_data.get('nombres')
+        if nombres:
+            # Eliminar espacios extras y capitalizar
+            nombres = ' '.join(nombres.split()).title()
+            
+            # Validar longitud
+            if len(nombres) < 2:
+                raise ValidationError('Los nombres deben tener al menos 2 caracteres.')
+            
+            if len(nombres) > 8:
+                raise ValidationError('Los nombres no pueden tener más de 8 caracteres.')
+            
+            # Validar que solo contenga letras y espacios
+            if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', nombres):
+                raise ValidationError('Los nombres solo pueden contener letras.')
+        
+        return nombres
+    
+    def clean_apellidos(self):
+        """Validar apellidos"""
+        apellidos = self.cleaned_data.get('apellidos')
+        if apellidos:
+            # Eliminar espacios extras y capitalizar
+            apellidos = ' '.join(apellidos.split()).title()
+            
+            # Validar longitud
+            if len(apellidos) < 2:
+                raise ValidationError('Los apellidos deben tener al menos 2 caracteres.')
+            
+            if len(apellidos) > 8:
+                raise ValidationError('Los apellidos no pueden tener más de 8 caracteres.')
+            
+            # Validar que solo contenga letras y espacios
+            if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', apellidos):
+                raise ValidationError('Los apellidos solo pueden contener letras.')
+        
+        return apellidos
+
     def clean_email(self):
         """Validar que el email no esté en uso por otro usuario"""
         email = self.cleaned_data.get('email')
         if email:
+            # Validar longitud máxima (50 caracteres)
+            if len(email) > 50:
+                raise ValidationError('El email no puede tener más de 50 caracteres.')
+            
+            # Validar formato básico de email
+            if not re.match(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$', email):
+                raise ValidationError('Ingresa un email válido.')
+            
             # Verificar si otro usuario ya tiene este email
             usuario_actual = self.instance
             if Usuario.objects.filter(email=email).exclude(pk=usuario_actual.pk).exists():
@@ -333,9 +413,21 @@ class EditarPerfilForm(forms.ModelForm):
             # Remover espacios y caracteres no numéricos excepto + y -
             telefono_limpio = re.sub(r'[^\d+\-]', '', telefono)
             
+            # Validar longitud máxima
+            if len(telefono) > 15:
+                raise ValidationError('El teléfono no puede tener más de 15 caracteres.')
+            
             # Validar que tenga al menos 8 dígitos
-            if len(re.sub(r'[^\d]', '', telefono_limpio)) < 8:
+            digitos = re.sub(r'[^\d]', '', telefono_limpio)
+            if len(digitos) < 8:
                 raise ValidationError('El teléfono debe tener al menos 8 dígitos.')
+            
+            if len(digitos) > 15:
+                raise ValidationError('El teléfono no puede tener más de 15 dígitos.')
+            
+            # Validar que solo contenga números y caracteres permitidos
+            if not re.match(r'^[0-9+\-\s()]+$', telefono):
+                raise ValidationError('El teléfono solo puede contener números y los símbolos + - ( )')
             
             return telefono_limpio
         return telefono

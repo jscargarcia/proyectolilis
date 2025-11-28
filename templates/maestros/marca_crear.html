@@ -150,8 +150,9 @@
                                    value="{{ form_data.nombre|default:'' }}"
                                    required 
                                    maxlength="100"
+                                   oninput="this.value = this.value.slice(0, 100)"
                                    placeholder="Ej: Nestlé, Coca-Cola, Ferrero...">
-                            <div class="form-text">Nombre único para identificar la marca</div>
+                            <div class="form-text">Nombre único para identificar la marca, máximo 100 caracteres</div>
                         </div>
 
                         <!-- Descripción -->
@@ -163,9 +164,10 @@
                                       id="descripcion" 
                                       name="descripcion" 
                                       rows="3"
-                                      maxlength="255"
+                                      maxlength="300"
+                                      oninput="this.value = this.value.slice(0, 300)"
                                       placeholder="Descripción opcional de la marca">{{ form_data.descripcion|default:'' }}</textarea>
-                            <div class="form-text">Descripción opcional de la marca (máximo 255 caracteres)</div>
+                            <div class="form-text">Descripción opcional de la marca (máximo 300 caracteres)</div>
                         </div>
 
                         <!-- Estado -->

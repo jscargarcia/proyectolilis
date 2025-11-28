@@ -38,7 +38,8 @@ class CrearUsuarioAdminForm(forms.ModelForm):
             'username': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Nombre de usuario único',
-                'required': True
+                'required': True,
+                'maxlength': '8'
             }),
             'email': forms.EmailInput(attrs={
                 'class': 'form-control',
@@ -48,12 +49,14 @@ class CrearUsuarioAdminForm(forms.ModelForm):
             'nombres': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Nombres del usuario',
-                'required': True
+                'required': True,
+                'maxlength': '8'
             }),
             'apellidos': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Apellidos del usuario',
-                'required': True
+                'required': True,
+                'maxlength': '8'
             }),
             'telefono': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -78,6 +81,9 @@ class CrearUsuarioAdminForm(forms.ModelForm):
             'estado': 'Estado'
         }
         help_texts = {
+            'username': 'Entre 3 y 8 caracteres. Solo letras minúsculas, números, guiones y guiones bajos.',
+            'nombres': 'Entre 2 y 8 caracteres. Solo letras.',
+            'apellidos': 'Entre 2 y 8 caracteres. Solo letras.',
             'rol': 'Selecciona el rol que tendrá este usuario en el sistema',
             'estado': 'Los usuarios inactivos no podrán acceder al sistema'
         }
@@ -102,6 +108,9 @@ class CrearUsuarioAdminForm(forms.ModelForm):
             if len(username) < 3:
                 raise ValidationError('El nombre de usuario debe tener al menos 3 caracteres.')
             
+            if len(username) > 8:
+                raise ValidationError('El nombre de usuario no puede tener más de 8 caracteres.')
+            
             if not re.match(r'^[a-z0-9_-]+$', username):
                 raise ValidationError(
                     'El nombre de usuario solo puede contener letras minúsculas, '
@@ -113,6 +122,46 @@ class CrearUsuarioAdminForm(forms.ModelForm):
         
         return username
     
+    def clean_nombres(self):
+        """Validar nombres"""
+        nombres = self.cleaned_data.get('nombres')
+        if nombres:
+            # Eliminar espacios extras y capitalizar
+            nombres = ' '.join(nombres.split()).title()
+            
+            # Validar longitud
+            if len(nombres) < 2:
+                raise ValidationError('Los nombres deben tener al menos 2 caracteres.')
+            
+            if len(nombres) > 8:
+                raise ValidationError('Los nombres no pueden tener más de 8 caracteres.')
+            
+            # Validar que solo contenga letras y espacios
+            if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', nombres):
+                raise ValidationError('Los nombres solo pueden contener letras.')
+        
+        return nombres
+    
+    def clean_apellidos(self):
+        """Validar apellidos"""
+        apellidos = self.cleaned_data.get('apellidos')
+        if apellidos:
+            # Eliminar espacios extras y capitalizar
+            apellidos = ' '.join(apellidos.split()).title()
+            
+            # Validar longitud
+            if len(apellidos) < 2:
+                raise ValidationError('Los apellidos deben tener al menos 2 caracteres.')
+            
+            if len(apellidos) > 8:
+                raise ValidationError('Los apellidos no pueden tener más de 8 caracteres.')
+            
+            # Validar que solo contenga letras y espacios
+            if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', apellidos):
+                raise ValidationError('Los apellidos solo pueden contener letras.')
+        
+        return apellidos
+
     def clean_email(self):
         """Validar email"""
         email = self.cleaned_data.get('email')
@@ -172,11 +221,13 @@ class EditarUsuarioAdminForm(forms.ModelForm):
             }),
             'nombres': forms.TextInput(attrs={
                 'class': 'form-control',
-                'required': True
+                'required': True,
+                'maxlength': '8'
             }),
             'apellidos': forms.TextInput(attrs={
                 'class': 'form-control',
-                'required': True
+                'required': True,
+                'maxlength': '8'
             }),
             'telefono': forms.TextInput(attrs={
                 'class': 'form-control'
@@ -211,6 +262,46 @@ class EditarUsuarioAdminForm(forms.ModelForm):
             nombre__in=['Administrador', 'Editor', 'Lector']
         ).order_by('nombre')
     
+    def clean_nombres(self):
+        """Validar nombres"""
+        nombres = self.cleaned_data.get('nombres')
+        if nombres:
+            # Eliminar espacios extras y capitalizar
+            nombres = ' '.join(nombres.split()).title()
+            
+            # Validar longitud
+            if len(nombres) < 2:
+                raise ValidationError('Los nombres deben tener al menos 2 caracteres.')
+            
+            if len(nombres) > 8:
+                raise ValidationError('Los nombres no pueden tener más de 8 caracteres.')
+            
+            # Validar que solo contenga letras y espacios
+            if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', nombres):
+                raise ValidationError('Los nombres solo pueden contener letras.')
+        
+        return nombres
+    
+    def clean_apellidos(self):
+        """Validar apellidos"""
+        apellidos = self.cleaned_data.get('apellidos')
+        if apellidos:
+            # Eliminar espacios extras y capitalizar
+            apellidos = ' '.join(apellidos.split()).title()
+            
+            # Validar longitud
+            if len(apellidos) < 2:
+                raise ValidationError('Los apellidos deben tener al menos 2 caracteres.')
+            
+            if len(apellidos) > 8:
+                raise ValidationError('Los apellidos no pueden tener más de 8 caracteres.')
+            
+            # Validar que solo contenga letras y espacios
+            if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', apellidos):
+                raise ValidationError('Los apellidos solo pueden contener letras.')
+        
+        return apellidos
+
     def clean_email(self):
         """Validar que el email no esté en uso por otro usuario"""
         email = self.cleaned_data.get('email')

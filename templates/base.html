@@ -26,6 +26,136 @@
     {% block extra_css %}{% endblock %}
     
     <style>
+        /* ========================================
+           ESTILOS GLOBALES PARA MODO OSCURO/CLARO
+           ======================================== */
+        
+        /* Tarjetas con fondo blanco y texto oscuro para ambos modos */
+        .card {
+            background-color: white !important;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        /* Títulos de tarjetas siempre oscuros */
+        .card-title,
+        .card .card-title,
+        h1.card-title, h2.card-title, h3.card-title, 
+        h4.card-title, h5.card-title, h6.card-title {
+            color: #1f2937 !important;
+            font-weight: 600;
+        }
+        
+        /* Texto de tarjetas siempre gris medio */
+        .card-text,
+        .card .card-text,
+        .card p {
+            color: #4b5563 !important;
+        }
+        
+        /* Subtítulos en tarjetas */
+        .card-subtitle,
+        .card .card-subtitle {
+            color: #6b7280 !important;
+        }
+        
+        /* Headers de tarjetas mantienen su estilo (rojos) */
+        .card-header {
+            color: white !important;
+        }
+        
+        /* Modo oscuro - las tarjetas mantienen fondo blanco para contraste */
+        [data-bs-theme="dark"] .card {
+            background-color: white !important;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+        
+        [data-bs-theme="dark"] .card-title,
+        [data-bs-theme="dark"] .card .card-title,
+        [data-bs-theme="dark"] h1.card-title, 
+        [data-bs-theme="dark"] h2.card-title, 
+        [data-bs-theme="dark"] h3.card-title,
+        [data-bs-theme="dark"] h4.card-title, 
+        [data-bs-theme="dark"] h5.card-title, 
+        [data-bs-theme="dark"] h6.card-title {
+            color: #1f2937 !important;
+        }
+        
+        [data-bs-theme="dark"] .card-text,
+        [data-bs-theme="dark"] .card .card-text,
+        [data-bs-theme="dark"] .card p {
+            color: #4b5563 !important;
+        }
+        
+        [data-bs-theme="dark"] .card-subtitle,
+        [data-bs-theme="dark"] .card .card-subtitle {
+            color: #6b7280 !important;
+        }
+        
+        /* Tablas dentro de tarjetas en modo oscuro */
+        [data-bs-theme="dark"] .card .table {
+            color: #1f2937;
+        }
+        
+        [data-bs-theme="dark"] .card .table th,
+        [data-bs-theme="dark"] .card .table td {
+            color: #1f2937 !important;
+        }
+        
+        /* Headers de sección visibles en modo oscuro */
+        [data-bs-theme="dark"] h1, 
+        [data-bs-theme="dark"] h2, 
+        [data-bs-theme="dark"] h3, 
+        [data-bs-theme="dark"] h4, 
+        [data-bs-theme="dark"] h5, 
+        [data-bs-theme="dark"] h6 {
+            color: #e5e7eb !important;
+        }
+        
+        /* Texto general visible en modo oscuro */
+        [data-bs-theme="dark"] body {
+            background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+            color: #e5e7eb;
+        }
+        
+        [data-bs-theme="dark"] .text-muted {
+            color: #9ca3af !important;
+        }
+        
+        /* Labels de formularios en tarjetas */
+        [data-bs-theme="dark"] .card label,
+        [data-bs-theme="dark"] .card .form-label {
+            color: #1f2937 !important;
+        }
+        
+        /* Inputs dentro de tarjetas mantienen fondo blanco */
+        [data-bs-theme="dark"] .card .form-control,
+        [data-bs-theme="dark"] .card .form-select {
+            background-color: #f9fafb !important;
+            color: #1f2937 !important;
+            border-color: #d1d5db;
+        }
+        
+        /* Lista groups dentro de tarjetas */
+        [data-bs-theme="dark"] .card .list-group-item {
+            background-color: #f9fafb !important;
+            color: #1f2937 !important;
+        }
+        
+        /* Alerts dentro de tarjetas */
+        [data-bs-theme="dark"] .card .alert {
+            color: inherit;
+        }
+        
+        /* Badges y pills dentro de tarjetas */
+        [data-bs-theme="dark"] .card .badge,
+        [data-bs-theme="dark"] .card .pill {
+            color: white;
+        }
+        
+        /* ========================================
+           FIN ESTILOS MODO OSCURO/CLARO
+           ======================================== */
+        
         /* Tema Profesional Dulcería Lilis */
         :root {
             --primary-pink: #dc2626;       /* Rojo principal */
@@ -165,42 +295,7 @@
             padding: 0.5em 0.75em;
         }
         
-        .floating-crud-btn {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            z-index: 1001;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        .floating-crud-btn a {
-            background: linear-gradient(135deg, var(--primary-pink) 0%, var(--accent-pink) 100%) !important;
-            border: none !important;
-            border-radius: 50% !important;
-            width: 64px !important;
-            height: 64px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            font-size: 1.5rem !important;
-            color: var(--white) !important;
-            text-decoration: none !important;
-            box-shadow: 0 8px 32px rgba(233, 30, 99, 0.4) !important;
-            transition: all 0.4s ease !important;
-            backdrop-filter: blur(10px) !important;
-        }
-        
-        .floating-crud-btn a:hover {
-            transform: scale(1.15) rotate(5deg) !important;
-            box-shadow: 0 12px 48px rgba(233, 30, 99, 0.6) !important;
-            background: linear-gradient(135deg, var(--accent-pink) 0%, var(--primary-pink) 100%) !important;
-            color: var(--white) !important;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-        }
+
         
         .notification-bell {
             position: relative;
@@ -704,6 +799,53 @@
                             </li>
                         {% endif %}
 
+                        <!-- Menú Inventario -->
+                        {% if user.is_authenticated %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-warehouse"></i> Inventario
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><h6 class="dropdown-header">Dashboard</h6></li>
+                                    <li><a class="dropdown-item" href="{% url 'inventario:dashboard' %}">
+                                        <i class="fas fa-tachometer-alt"></i> Dashboard Inventario
+                                    </a></li>
+                                    
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Movimientos</h6></li>
+                                    {% tiene_permiso 'inventario' 'add_movimientoinventario' as puede_crear_movimientos %}
+                                    {% if puede_crear_movimientos %}
+                                    <li><a class="dropdown-item" href="{% url 'inventario:registrar_ingreso' %}">
+                                        <i class="fas fa-plus-circle text-success"></i> Registrar Ingreso
+                                    </a></li>
+                                    <li><a class="dropdown-item" href="{% url 'inventario:registrar_salida' %}">
+                                        <i class="fas fa-minus-circle text-danger"></i> Registrar Salida
+                                    </a></li>
+                                    {% endif %}
+                                    {% tiene_permiso 'inventario' 'view_movimientoinventario' as puede_ver_movimientos %}
+                                    {% if puede_ver_movimientos %}
+                                    <li><a class="dropdown-item" href="{% url 'inventario:historial_movimientos' %}">
+                                        <i class="fas fa-history"></i> Historial de Movimientos
+                                    </a></li>
+                                    {% endif %}
+                                    
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><h6 class="dropdown-header">Stock</h6></li>
+                                    {% tiene_permiso 'inventario' 'view_stockactual' as puede_ver_stock %}
+                                    {% if puede_ver_stock %}
+                                    <li><a class="dropdown-item" href="{% url 'inventario:vista_stock_actual' %}">
+                                        <i class="fas fa-chart-bar"></i> Ver Stock Actual
+                                    </a></li>
+                                    {% endif %}
+                                    {% tiene_permiso 'inventario' 'view_alertastock' as puede_ver_alertas %}
+                                    {% if puede_ver_alertas %}
+                                    <li><a class="dropdown-item" href="{% url 'inventario:alerta_listar' %}">
+                                        <i class="fas fa-bell text-warning"></i> Alertas de Stock
+                                    </a></li>
+                                    {% endif %}
+                                </ul>
+                            </li>
+                        {% endif %}
                         
                         {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' %}
                             <li class="nav-item dropdown">
@@ -716,13 +858,6 @@
                                     </a></li>
                                     <li><a class="dropdown-item" href="{% url 'autenticacion:usuario_crear' %}">
                                         <i class="fas fa-plus"></i> Nuevo Usuario
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{% url 'autenticacion:rol_listar' %}">
-                                        <i class="fas fa-shield-alt"></i> Roles y Permisos
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="{% url 'autenticacion:rol_crear' %}">
-                                        <i class="fas fa-plus"></i> Nuevo Rol
                                     </a></li>
                                 </ul>
                             </li>
@@ -796,14 +931,7 @@
         {% block content %}{% endblock %}
     </div>
 
-    <!-- Botón flotante CRUD Productos -->
-    {% if user.is_superuser or user.rol and user.rol.nombre == 'ADMIN' or user.rol and user.rol.nombre == 'GERENTE' or user.rol and user.rol.nombre == 'BODEGUERO' %}
-    <div class="floating-crud-btn">
-        <a href="{% url 'maestros:producto_listar' %}" title="Gestión de Productos">
-            <i class="fas fa-boxes"></i>
-        </a>
-    </div>
-    {% endif %}
+
 
     <!-- Footer -->
     <footer class="footer">
@@ -828,6 +956,25 @@
     
     <!-- Scripts personalizados -->
     <script>
+        // Forzar color blanco en headers de CRUDs
+        document.addEventListener('DOMContentLoaded', function() {
+            const headers = document.querySelectorAll('.form-card h1, .form-card h2, .form-card h3, .form-card h4, .form-card h5, .form-card h6, .header-card h1, .header-card h2, .header-card h3, .header-card h4, .header-card h5, .header-card h6');
+            const paragraphs = document.querySelectorAll('.form-card p, .header-card p');
+            const icons = document.querySelectorAll('.form-card i, .header-card i');
+            
+            headers.forEach(function(element) {
+                element.style.setProperty('color', 'white', 'important');
+            });
+            
+            paragraphs.forEach(function(element) {
+                element.style.setProperty('color', 'white', 'important');
+            });
+            
+            icons.forEach(function(element) {
+                element.style.setProperty('color', 'white', 'important');
+            });
+        });
+
         // Función para mostrar confirmación de eliminación
         function confirmarEliminacion(mensaje = '¿Estás seguro de que deseas eliminar este elemento?') {
             return Swal.fire({

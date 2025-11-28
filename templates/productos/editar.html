@@ -6,18 +6,18 @@
 {% block extra_css %}
 <style>
     .card-header {
-        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        background: linear-gradient(135deg, #97000f, #bb0202);
         color: white;
         border-radius: 12px 12px 0 0 !important;
     }
     
     .form-control:focus {
-        border-color: #ff9800;
-        box-shadow: 0 0 0 0.2rem rgba(255, 152, 0, 0.25);
+        border-color: #be0114;
+        box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
     }
     
     .btn-candy {
-        background: linear-gradient(135deg, #ff9800, #ffb74d);
+        background: linear-gradient(135deg, #aa0011, #bb1300);
         border: none;
         color: white;
         border-radius: 25px;
@@ -27,9 +27,9 @@
     }
     
     .btn-candy:hover {
-        background: linear-gradient(135deg, #f57c00, #ff9800);
+        background: linear-gradient(135deg, #c20013, #ad0011);
         transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(255, 152, 0, 0.3);
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
         color: white;
     }
     
@@ -48,7 +48,7 @@
     }
     
     .required {
-        color: #ff9800;
+        color: #e60017;
     }
     
     .form-group {
@@ -84,17 +84,17 @@
     }
     
     .alert-error {
-        background: linear-gradient(135deg, #f44336, #ef5350);
+        background: linear-gradient(135deg, #c41104, #b90502);
         color: white;
     }
     
     .form-check-input:checked {
-        background-color: #ff9800;
-        border-color: #ff9800;
+        background-color: #b60012;
+        border-color: #dc3545;
     }
     
     .form-check-input:focus {
-        box-shadow: 0 0 0 0.25rem rgba(255, 152, 0, 0.25);
+        box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
     }
     
     .preview-image {
@@ -114,23 +114,85 @@
         display: inline-block;
         margin-bottom: 10px;
     }
+    
+    /* Forzar colores rojos para elementos warning */
+    .text-warning, .fas.text-warning, i.text-warning {
+        color: #ec0018 !important;
+    }
+    
+    .bg-warning {
+        background-color: #f00018 !important;
+    }
+    
+    .border-warning {
+        border-color: #dc3545 !important;
+    }
+    
+    .alert-warning {
+        background-color: #f8d7da !important;
+        border-color: #f5c6cb !important;
+        color: #721c24 !important;
+    }
+    
+    /* Forzar header principal rojo */
+    .container-fluid .row:first-child,
+    .container-fluid .row:first-child .col-12,
+    .container-fluid .row:first-child .d-flex {
+        background: linear-gradient(135deg, #e70017, #9b0000) !important;
+        color: white !important;
+        padding: 20px !important;
+        border-radius: 10px !important;
+        margin-bottom: 20px !important;
+    }
+    
+    .container-fluid .row:first-child h2,
+    .container-fluid .row:first-child p,
+    .container-fluid .row:first-child .info-badge {
+        color: white !important;
+    }
+    
+    /* Clase específica para header rojo */
+    .header-rojo {
+        background: linear-gradient(135deg, #dc3545, #e01600) !important;
+        color: white !important;
+        padding: 25px !important;
+        border-radius: 12px !important;
+        margin-bottom: 25px !important;
+        box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3) !important;
+    }
+    
+    .header-rojo h2,
+    .header-rojo p,
+    .header-rojo .info-badge,
+    .header-rojo * {
+        color: white !important;
+    }
+    
+    .header-rojo .btn {
+        border-color: white !important;
+        color: white !important;
+    }
+    
+    .header-rojo .btn:hover {
+        background-color: rgba(255, 255, 255, 0.2) !important;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
     <!-- Encabezado -->
-    <div class="row mb-4">
+    <div class="row mb-4 header-rojo" style="background: linear-gradient(135deg, #c00215, #960000) !important; color: white !important; padding: 25px !important; border-radius: 12px !important; margin-bottom: 25px !important; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3) !important;">
         <div class="col-12">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 class="mb-0">
-                        <i class="fas fa-edit text-warning me-2"></i>
+                    <h2 class="mb-0" style="color: white !important;">
+                        <i class="fas fa-edit me-2" style="color: white !important;"></i>
                         Editar Producto
                     </h2>
-                    <p class="text-muted mb-0">Modifica la información del producto: <strong>{{ producto.nombre }}</strong></p>
-                    <span class="info-badge">
-                        <i class="fas fa-barcode me-1"></i>SKU: {{ producto.sku }}
+                    <p class="mb-0" style="color: white !important;">Modifica la información del producto: <strong>{{ producto.nombre }}</strong></p>
+                    <span class="info-badge" style="background: rgba(255,255,255,0.2) !important; color: white !important;">
+                        <i class="fas fa-barcode me-1" style="color: white !important;"></i>SKU: {{ producto.sku }}
                     </span>
                 </div>
                 <div class="d-flex gap-2">
@@ -149,9 +211,9 @@
     <div class="row justify-content-center">
         <div class="col-lg-8 col-xl-7">
             <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">
-                        <i class="fas fa-candy-cane me-2"></i>
+                <div class="card-header" style="background: linear-gradient(135deg, #86010f, #e74c3c) !important; color: white !important; border-radius: 12px 12px 0 0 !important;">
+                    <h5 class="mb-0" style="color: white !important;">
+                        <i class="fas fa-candy-cane me-2" style="color: white !important;"></i>
                         Actualizar Información
                     </h5>
                 </div>
@@ -326,7 +388,7 @@
                                            name="perishable"
                                            {% if producto.perishable %}checked{% endif %}>
                                     <label class="form-check-label" for="perishable">
-                                        <i class="fas fa-clock text-warning me-1"></i>
+                                        <i class="fas fa-clock text-danger me-1"></i>
                                         Producto perecedero
                                     </label>
                                 </div>

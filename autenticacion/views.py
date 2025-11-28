@@ -68,7 +68,7 @@ def registro_view(request):
 
 
 def login_view(request):
-    """Vista de inicio de sesión con cycle_key para seguridad"""
+    """Vista de inicio de sesión con cycle_key para seguridad y bloqueo por intentos fallidos"""
     if request.user.is_authenticated:
         return redirect('autenticacion:dashboard')
     
@@ -76,14 +76,50 @@ def login_view(request):
         username = request.POST.get('username')
         password = request.POST.get('password')
         
+        # Intentar obtener el usuario por username
+        usuario = None
+        try:
+            usuario = Usuario.objects.get(username=username)
+        except Usuario.DoesNotExist:
+            # Usuario no existe - mensaje genérico sin revelar que no existe
+            messages.error(request, 'Usuario o contraseña incorrectos.')
+            return render(request, 'autenticacion/login.html', {'username': username})
+        
+        # Si llegamos aquí, el usuario existe
+        # Verificar si la cuenta está bloqueada temporalmente
+        if usuario.esta_bloqueado():
+            minutos_restantes = usuario.tiempo_restante_bloqueo()
+            messages.error(
+                request, 
+                f'Tu cuenta está bloqueada temporalmente por múltiples intentos fallidos. '
+                f'Podrás intentar nuevamente en {minutos_restantes} minuto(s).'
+            )
+            return render(request, 'autenticacion/login.html', {'username': username})
+        
+        # Si el bloqueo expiró, resetear contadores
+        if usuario.bloqueado_hasta and timezone.now() >= usuario.bloqueado_hasta:
+            usuario.intentos_fallidos = 0
+            usuario.bloqueado_hasta = None
+            usuario.save(update_fields=['intentos_fallidos', 'bloqueado_hasta'])
+        
         # Autenticar usuario
         user = authenticate(request, username=username, password=password)
         
         if user is not None:
             # Verificar estado del usuario
+            if user.estado == 'BLOQUEADO':
+                messages.error(request, 'Tu cuenta está bloqueada permanentemente. Contacta al administrador.')
+                return render(request, 'autenticacion/login.html', {'username': username})
+            
             if user.estado != 'ACTIVO':
                 messages.error(request, 'Tu cuenta no está activa. Contacta al administrador.')
-                return render(request, 'autenticacion/login.html')
+                return render(request, 'autenticacion/login.html', {'username': username})
+            
+            # Login exitoso - resetear intentos fallidos
+            if user.intentos_fallidos > 0 or user.bloqueado_hasta:
+                user.intentos_fallidos = 0
+                user.bloqueado_hasta = None
+                user.save(update_fields=['intentos_fallidos', 'bloqueado_hasta'])
             
             # Regenerar la clave de sesión para prevenir session fixation
             request.session.cycle_key()
@@ -117,7 +153,35 @@ def login_view(request):
             next_url = request.GET.get('next', 'autenticacion:dashboard')
             return redirect(next_url)
         else:
-            messages.error(request, 'Usuario o contraseña incorrectos.')
+            # Contraseña incorrecta (usuario existe pero password mal)
+            usuario.intentos_fallidos += 1
+            
+            # Configuración de bloqueo
+            MAX_INTENTOS = 3
+            TIEMPO_BLOQUEO_MINUTOS = 15
+            
+            if usuario.intentos_fallidos >= MAX_INTENTOS:
+                # Bloquear cuenta temporalmente
+                usuario.bloqueado_hasta = timezone.now() + timezone.timedelta(minutes=TIEMPO_BLOQUEO_MINUTOS)
+                usuario.save(update_fields=['intentos_fallidos', 'bloqueado_hasta'])
+                
+                messages.error(
+                    request,
+                    f'Has superado el número máximo de intentos ({MAX_INTENTOS}). '
+                    f'Tu cuenta ha sido bloqueada temporalmente por {TIEMPO_BLOQUEO_MINUTOS} minutos.'
+                )
+            else:
+                # Informar intentos restantes
+                intentos_restantes = MAX_INTENTOS - usuario.intentos_fallidos
+                usuario.save(update_fields=['intentos_fallidos'])
+                
+                messages.error(
+                    request,
+                    f'Contraseña incorrecta. Te quedan {intentos_restantes} intento(s) antes de que tu cuenta sea bloqueada temporalmente.'
+                )
+            
+            # Preservar el username en el formulario
+            return render(request, 'autenticacion/login.html', {'username': username})
     
     return render(request, 'autenticacion/login.html')
 
@@ -699,6 +763,44 @@ def eliminar_avatar(request):
         })
 
 
+@require_http_methods(["POST"])
+def verificar_email_existente(request):
+    """Vista API para verificar si un email existe en el sistema"""
+    import json
+    
+    try:
+        data = json.loads(request.body)
+        email = data.get('email', '').strip()
+        
+        if not email:
+            return JsonResponse({
+                'existe': False,
+                'message': 'Email requerido'
+            })
+        
+        # Verificar si existe un usuario activo con ese email
+        existe = Usuario.objects.filter(
+            email__iexact=email,
+            estado='ACTIVO'
+        ).exists()
+        
+        return JsonResponse({
+            'existe': existe,
+            'message': 'Email registrado' if existe else 'Email no encontrado'
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'existe': False,
+            'message': 'Datos inválidos'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'existe': False,
+            'message': 'Error verificando email'
+        }, status=500)
+
+
 # ==================== GESTIÓN DE USUARIOS (CRUD) ====================
 
 from django.core.paginator import Paginator
@@ -792,16 +894,26 @@ def usuario_crear(request):
             # Validaciones
             if not datos['username']:
                 errores['username'] = 'El nombre de usuario es obligatorio'
-            elif Usuario.objects.filter(username=datos['username']).exists():
-                errores['username'] = 'Ya existe un usuario con este nombre'
             elif len(datos['username']) < 3:
                 errores['username'] = 'El nombre de usuario debe tener al menos 3 caracteres'
+            elif len(datos['username']) > 8:
+                errores['username'] = 'El nombre de usuario no puede tener más de 8 caracteres'
+            elif Usuario.objects.filter(username=datos['username']).exists():
+                errores['username'] = 'Ya existe un usuario con este nombre'
                 
             if not datos['nombres']:
                 errores['nombres'] = 'Los nombres son obligatorios'
+            elif len(datos['nombres']) < 2:
+                errores['nombres'] = 'Los nombres deben tener al menos 2 caracteres'
+            elif len(datos['nombres']) > 8:
+                errores['nombres'] = 'Los nombres no pueden tener más de 8 caracteres'
                 
             if not datos['apellidos']:
                 errores['apellidos'] = 'Los apellidos son obligatorios'
+            elif len(datos['apellidos']) < 2:
+                errores['apellidos'] = 'Los apellidos deben tener al menos 2 caracteres'
+            elif len(datos['apellidos']) > 8:
+                errores['apellidos'] = 'Los apellidos no pueden tener más de 8 caracteres'
                 
             if datos['email']:
                 if not re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', datos['email']):
@@ -946,6 +1058,12 @@ def usuario_editar(request, pk):
             if not datos['username']:
                 errores['username'] = 'El nombre de usuario es obligatorio'
                 print(f"ERROR: Username vacío")
+            elif len(datos['username']) < 3:
+                errores['username'] = 'El nombre de usuario debe tener al menos 3 caracteres'
+                print(f"ERROR: Username muy corto")
+            elif len(datos['username']) > 8:
+                errores['username'] = 'El nombre de usuario no puede tener más de 8 caracteres'
+                print(f"ERROR: Username muy largo")
             elif Usuario.objects.filter(username=datos['username']).exclude(pk=usuario.pk).exists():
                 errores['username'] = 'Ya existe otro usuario con este nombre de usuario'
                 print(f"ERROR: Username duplicado")
@@ -953,10 +1071,22 @@ def usuario_editar(request, pk):
             if not datos['nombres']:
                 errores['nombres'] = 'Los nombres son obligatorios'
                 print(f"ERROR: Nombres vacío")
+            elif len(datos['nombres']) < 2:
+                errores['nombres'] = 'Los nombres deben tener al menos 2 caracteres'
+                print(f"ERROR: Nombres muy cortos")
+            elif len(datos['nombres']) > 8:
+                errores['nombres'] = 'Los nombres no pueden tener más de 8 caracteres'
+                print(f"ERROR: Nombres muy largos")
                 
             if not datos['apellidos']:
                 errores['apellidos'] = 'Los apellidos son obligatorios'
                 print(f"ERROR: Apellidos vacío")
+            elif len(datos['apellidos']) < 2:
+                errores['apellidos'] = 'Los apellidos deben tener al menos 2 caracteres'
+                print(f"ERROR: Apellidos muy cortos")
+            elif len(datos['apellidos']) > 8:
+                errores['apellidos'] = 'Los apellidos no pueden tener más de 8 caracteres'
+                print(f"ERROR: Apellidos muy largos")
                 
             if not datos['email']:
                 errores['email'] = 'El email es obligatorio'

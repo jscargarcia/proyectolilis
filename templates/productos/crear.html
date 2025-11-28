@@ -287,6 +287,56 @@
                             </div>
                         </div>
 
+                        <!-- Stock Inicial -->
+                        <div class="card mb-3" style="background: #f8f9fa; border: 2px dashed #e91e63;">
+                            <div class="card-body">
+                                <h6 class="mb-3">
+                                    <i class="fas fa-warehouse text-primary me-2"></i>
+                                    Stock Inicial (Opcional)
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="bodega_inicial" class="form-label">
+                                                <i class="fas fa-building me-1"></i>
+                                                Bodega
+                                            </label>
+                                            <select class="form-select" id="bodega_inicial" name="bodega_inicial">
+                                                <option value="">-- No asignar stock inicial --</option>
+                                                {% for bodega in bodegas %}
+                                                    <option value="{{ bodega.id }}">
+                                                        {{ bodega.nombre }} ({{ bodega.codigo }})
+                                                    </option>
+                                                {% endfor %}
+                                            </select>
+                                            <small class="text-muted">
+                                                Puedes agregar stock después desde el módulo de inventario
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="cantidad_inicial" class="form-label">
+                                                <i class="fas fa-boxes me-1"></i>
+                                                Cantidad Inicial
+                                            </label>
+                                            <input type="number" 
+                                                   class="form-control" 
+                                                   id="cantidad_inicial" 
+                                                   name="cantidad_inicial" 
+                                                   min="0" 
+                                                   step="0.01"
+                                                   value="0"
+                                                   placeholder="0.00">
+                                            <small class="text-muted">
+                                                Solo se asignará si seleccionas una bodega
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Controles especiales -->
                         <div class="row">
                             <div class="col-md-4">
@@ -427,6 +477,12 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const formData = new FormData(form);
         
+        // Debug: verificar datos del formulario
+        console.log('Datos del formulario:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
+        }
+        
         fetch(form.action || '{% url "productos:crear" %}', {
             method: 'POST',
             body: formData,
@@ -436,6 +492,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
+            console.log('Respuesta del servidor:', data);
             if (data.success) {
                 showAlert(data.message, 'success');
                 

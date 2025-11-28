@@ -2,6 +2,27 @@
 
 Sistema de gestión desarrollado en Django para administración de productos, inventario, compras y ventas.
 
+## 🎯 Estado de Pruebas Funcionales
+
+✅ **94% Completado** - 51 de 54 casos de prueba implementados
+
+### Documentación de Pruebas
+- 📋 **[INDICE_PRUEBAS_FUNCIONALES.md](INDICE_PRUEBAS_FUNCIONALES.md)** - Índice principal con toda la información
+- 📖 **[GUIA_PRUEBAS_FUNCIONALES.md](GUIA_PRUEBAS_FUNCIONALES.md)** - Guía completa con 54 casos de prueba
+- ✅ **[CHECKLIST_PRUEBAS.md](CHECKLIST_PRUEBAS.md)** - Checklist visual de progreso
+- 📊 **[RESUMEN_IMPLEMENTACION_PRUEBAS.md](RESUMEN_IMPLEMENTACION_PRUEBAS.md)** - Resumen técnico detallado
+
+### Características Implementadas
+- ✅ Sistema de bloqueo de cuenta (3 intentos, 15 min)
+- ✅ Passwords temporales robustas (12 caracteres)
+- ✅ Auditoría completa de eventos críticos
+- ✅ Protección XSS y SQL Injection
+- ✅ Control de acceso por roles
+- ✅ Scripts de stress testing
+- ✅ Middleware de seguridad
+
+---
+
 ## Requisitos 
 
 - Python 3.13+ 
@@ -83,11 +104,116 @@ python manage.py migrate
 python seed_simple.py
 ```
 
-### 6. Iniciar el Servidor
+### 6. Sincronizar Stock (Importante)
+
+Si ya tienes productos y bodegas creados, sincroniza el stock:
+
+```bash
+python manage.py sincronizar_stock
+```
+
+Este comando crea registros de stock para todos los productos en todas las bodegas activas.
+
+### 7. Iniciar el Servidor
 
 ```bash
 python manage.py runserver
 ```
+
+## 📦 Sistema de Inventario y Stock
+
+### Características del Sistema de Stock
+
+#### ✅ Asignación de Stock al Crear Productos
+- Al crear un producto, puedes asignar stock inicial a una bodega específica
+- Campo opcional: selecciona bodega y cantidad inicial
+- Si no seleccionas bodega, el producto se crea con stock 0 en todas las bodegas
+
+#### ✅ Sincronización Automática (Signals)
+- **Al crear un producto**: Se crean automáticamente registros de StockActual en todas las bodegas activas
+- **Al crear una bodega**: Se crean registros de stock para todos los productos activos
+- **Sistema reactivo**: Los cambios se propagan automáticamente
+
+#### ✅ Comando de Sincronización Retroactiva
+```bash
+python manage.py sincronizar_stock
+```
+**Cuándo usar:**
+- Después de agregar bodegas cuando ya tienes productos
+- Después de importar productos en lote
+- Para corregir inconsistencias en el stock
+- Al inicializar el sistema por primera vez
+
+**Qué hace:**
+- Crea registros de StockActual faltantes
+- No duplica registros existentes (usa get_or_create)
+- Muestra resumen: productos, bodegas, registros creados
+- Ejecuta en transacción atómica (seguro)
+
+#### ✅ Registro de Movimientos de Inventario
+- **Ingresos**: Registra entrada de productos a bodega
+  - Selecciona producto, bodega, cantidad
+  - Opción de agregar proveedor y costo unitario
+  - Documento de referencia (factura, guía)
+- **Salidas**: Registra salida de productos
+  - Valida stock disponible antes de permitir salida
+  - Muestra stock disponible en tiempo real
+  - Requiere motivo de salida
+
+#### ✅ Vista de Stock Actual
+- Lista completa de stock por producto y bodega
+- Filtros: producto, bodega, búsqueda por SKU/nombre
+- Muestra: cantidad disponible, reservada, en tránsito
+- Indicadores visuales: stock disponible, bajo, sin stock
+- Paginación de 50 registros por página
+- Exportación a Excel (próximamente)
+
+### Estructura de Bodegas
+
+El sistema incluye 3 bodegas por defecto:
+
+| Código | Nombre | Tipo | Descripción |
+|--------|--------|------|-------------|
+| BOD-001 | Bodega Principal | PRINCIPAL | Bodega matriz con mayor capacidad |
+| BOD-002 | Bodega Sucursal | SUCURSAL | Bodega en punto de venta |
+| BOD-003 | Bodega en Tránsito | TRANSITO | Para productos en movimiento |
+
+### Flujo de Trabajo Recomendado
+
+1. **Configuración Inicial**:
+   ```bash
+   python manage.py migrate
+   python seed_simple.py
+   python manage.py sincronizar_stock
+   ```
+
+2. **Crear Nuevos Productos**:
+   - Ir a Maestros → Productos → Crear
+   - Llenar datos básicos (SKU, nombre, precio)
+   - **Sección Stock Inicial**: Seleccionar bodega y cantidad
+   - El sistema crea automáticamente stock en todas las bodegas
+
+3. **Registrar Ingresos**:
+   - Inventario → Registrar Ingreso
+   - Seleccionar producto y bodega
+   - Ingresar cantidad y datos opcionales
+   - El stock se actualiza automáticamente
+
+4. **Consultar Stock**:
+   - Inventario → Stock Actual
+   - Usar filtros para buscar productos específicos
+   - Ver stock disponible por bodega en tiempo real
+
+### Solución de Problemas
+
+**Problema**: No veo stock para un producto
+- **Solución**: Ejecutar `python manage.py sincronizar_stock`
+
+**Problema**: Al crear producto no veo la opción de bodega
+- **Solución**: Verificar que existan bodegas activas en el sistema
+
+**Problema**: Error al registrar ingreso
+- **Solución**: Verificar que el producto y bodega existan y estén activos
 
 ## Usuarios del Sistema
 
@@ -845,6 +971,180 @@ python manage.py shell
 
 **Última actualización**: 9 de noviembre de 2025
 **Estado**: ✅ Sistema simplificado - Movimientos eliminados - Permisos completos - Eliminación de productos corregida
+
+---
+
+## 🔐 **SISTEMA DE VALIDACIÓN DE CARACTERES EN FORMULARIOS (28 Noviembre 2025)**
+
+### ✅ **Validaciones de Límites de Caracteres Implementadas**
+
+#### 📝 **Sistema de Validación Dual**
+- ✅ **Validación HTML**: Atributo `maxlength` en todos los campos de texto
+- ✅ **Validación JavaScript**: Evento `oninput` que trunca automáticamente
+- ✅ **Feedback visual**: Texto de ayuda muestra "máximo N caracteres"
+- ✅ **Prevención de pegado largo**: Copy-paste también se trunca automáticamente
+
+#### 📋 **Formularios Actualizados con Validaciones**
+
+##### 👥 **Usuario (Crear/Editar)**
+| Campo | Límite | Validación Adicional |
+|-------|--------|---------------------|
+| Username | 8 caracteres | Solo minúsculas, números y guiones |
+| Email | 50 caracteres | Formato email válido |
+| Nombres | 8 caracteres | Solo letras y espacios |
+| Apellidos | 8 caracteres | Solo letras y espacios |
+| Teléfono | 15 caracteres | Solo números, +, -, ( ), espacios |
+| Área/Unidad | 100 caracteres | Texto libre |
+
+##### 🍬 **Producto (Crear/Editar)**
+| Campo | Límite | Validación Adicional |
+|-------|--------|---------------------|
+| SKU | 50 caracteres | Alfanumérico y guiones |
+| Nombre | 200 caracteres | Texto libre |
+| Descripción | 500 caracteres | Texto libre |
+| EAN/UPC | 20 caracteres | Solo dígitos |
+| Modelo | 100 caracteres | Alfanumérico |
+
+##### 🏢 **Proveedor (Crear/Editar)**
+| Campo | Límite | Validación Adicional |
+|-------|--------|---------------------|
+| RUT/NIF | 12 caracteres | Formato RUT chileno |
+| Razón Social | 200 caracteres | Texto libre |
+| Nombre Fantasía | 200 caracteres | Texto libre |
+| Email Principal | 50 caracteres | Formato email válido |
+| Email Alternativo | 50 caracteres | Formato email válido |
+| Teléfono Principal | 15 caracteres | Números y caracteres tel. |
+| Teléfono Alternativo | 15 caracteres | Números y caracteres tel. |
+| Dirección | 200 caracteres | Texto libre |
+| Ciudad | 100 caracteres | Texto libre |
+| País | 100 caracteres | Texto libre |
+| Contacto Nombre | 120 caracteres | Texto libre |
+| Contacto Email | 50 caracteres | Formato email válido |
+| Contacto Teléfono | 15 caracteres | Números y caracteres tel. |
+| Condiciones Pago | 200 caracteres | Texto libre |
+
+##### 📦 **Categoría (Crear/Editar)**
+| Campo | Límite | Validación Adicional |
+|-------|--------|---------------------|
+| Nombre | 100 caracteres | Texto libre |
+| Descripción | 300 caracteres | Texto libre |
+
+##### 🏷️ **Marca (Crear/Editar)**
+| Campo | Límite | Validación Adicional |
+|-------|--------|---------------------|
+| Nombre | 100 caracteres | Texto libre |
+| Descripción | 300 caracteres | Texto libre |
+
+##### 👤 **Cliente (Crear/Editar)**
+| Campo | Límite | Validación Adicional |
+|-------|--------|---------------------|
+| RUT | 12 caracteres | Formato RUT chileno |
+| Nombre | 100 caracteres | Texto libre |
+| Email | 50 caracteres | Formato email válido |
+| Teléfono | 15 caracteres | Números y caracteres tel. |
+| Dirección | 200 caracteres | Texto libre |
+| Ciudad | 100 caracteres | Texto libre |
+
+#### 🛡️ **Características de Seguridad**
+- ✅ **No bypasseable**: Validación en cliente Y servidor
+- ✅ **UX mejorada**: Usuario ve límite antes de escribir
+- ✅ **Sin errores molestos**: Truncado automático sin alertas
+- ✅ **Consistente**: Mismas reglas en crear y editar
+- ✅ **Documentado**: Help text muestra límite exacto
+
+#### 💻 **Implementación Técnica**
+```html
+<!-- Ejemplo de campo con validación dual -->
+<input 
+    type="text" 
+    name="username" 
+    maxlength="8"
+    oninput="this.value = this.value.slice(0, 8)"
+    class="form-control"
+>
+<small class="form-text text-muted">
+    Máximo 8 caracteres
+</small>
+```
+
+#### 📁 **Templates Actualizados**
+- ✅ `templates/autenticacion/usuario_crear.html`
+- ✅ `templates/maestros/producto_crear.html`
+- ✅ `templates/maestros/proveedor_crear.html`
+- ✅ `templates/maestros/categoria_crear.html`
+- ✅ `templates/maestros/marca_crear.html`
+- ✅ `templates/ventas/cliente_crear.html`
+
+---
+
+## 🎨 **REDISEÑO DEL FORMULARIO DE REGISTRO (28 Noviembre 2025)**
+
+### ✅ **Registro con Diseño Unificado**
+
+#### 🎯 **Características del Nuevo Diseño**
+- ✅ **Consistencia visual**: Idéntico al formulario de login
+- ✅ **Fondo degradado rojo**: Mismo estilo profesional (#dc2626)
+- ✅ **Tarjeta blanca centrada**: Layout limpio y moderno
+- ✅ **Logo visible**: Dulcería Lilis 80x80px
+- ✅ **Organización por secciones**: 3 secciones claramente definidas
+
+#### 📋 **Secciones del Formulario**
+
+##### 🔑 **1. Información de Acceso**
+- Username (8 caracteres, solo minúsculas/números/guiones)
+- Email (50 caracteres)
+
+##### 👤 **2. Información Personal**
+- Nombres (8 caracteres)
+- Apellidos (8 caracteres)
+- Teléfono (15 caracteres)
+
+##### 🔒 **3. Contraseña y Seguridad**
+- Contraseña (con validación de fortaleza)
+- Confirmar contraseña
+- **Indicador de fortaleza**: Barra de progreso 3 niveles
+- **Requisitos visuales**: 4 checkboxes en tiempo real
+  - ✅ Al menos 8 caracteres
+  - ✅ Una letra mayúscula
+  - ✅ Una letra minúscula
+  - ✅ Un número
+- Checkbox de términos y condiciones
+- Modal de términos con SweetAlert2
+
+#### ✨ **Funcionalidades Interactivas**
+- ✅ **Toggle de visibilidad**: Botones de ojo para mostrar/ocultar contraseñas
+- ✅ **Validación en tiempo real**: Checkmarks verdes al cumplir requisitos
+- ✅ **Barra de fortaleza**: Débil (rojo) → Media (amarillo) → Fuerte (verde)
+- ✅ **Modal de términos**: Popup elegante con scroll interno
+- ✅ **Validación de checkbox**: Alerta si no acepta términos
+- ✅ **Mensajes con SweetAlert2**: Feedback visual consistente
+
+#### 🎨 **Diseño Responsive**
+- ✅ **Móviles**: Diseño adaptado para pantallas pequeñas
+- ✅ **Tablets**: Optimización de espacios
+- ✅ **Escritorio**: Tarjeta centrada con max-height 90vh
+- ✅ **Scroll interno**: Si el formulario es muy largo
+
+#### 🔒 **Seguridad y Validación**
+- ✅ **Validación HTML5**: Campos required y pattern
+- ✅ **Validación JavaScript**: Requisitos de contraseña en tiempo real
+- ✅ **Validación servidor**: Django forms en backend
+- ✅ **Aceptación de términos**: Obligatorio antes de enviar
+
+#### 📁 **Archivos Actualizados**
+- ✅ `templates/autenticacion/registro.html` (280 líneas limpias)
+- ✅ Usa `static/css/login.css` (reutilización de estilos)
+- ✅ Sin duplicación de código
+- ✅ JavaScript organizado y comentado
+
+#### 🔗 **Navegación**
+- **URL**: `/auth/registro/`
+- **Enlace desde login**: "¿No tienes cuenta? Regístrate aquí"
+- **Enlace a login**: "¿Ya tienes cuenta? Inicia sesión aquí"
+
+---
+
+**🎨 Sistema completamente modernizado con validaciones robustas y diseño unificado** ✨
 
 ---
 
