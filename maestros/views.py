@@ -45,7 +45,7 @@ def producto_listar(request):
     # Validar items por página con nuevas opciones
     try:
         items_per_page = int(items_per_page)
-        if items_per_page not in [5, 15, 30, 50]:
+        if items_per_page not in [5, 10, 15, 20, 25, 30, 50, 100, 500, 1000, 10000]:
             items_per_page = 15
     except (ValueError, TypeError):
         items_per_page = 15
@@ -139,7 +139,7 @@ def producto_listar(request):
         'categorias': categorias,
         'marcas': marcas,
         'total_productos': total_productos,
-        'items_per_page_options': [5, 15, 30, 50],
+        'items_per_page_options': [5, 10, 15, 20, 25, 30, 50, 100, 500, 1000, 10000],
         'orden_options': [
             ('nombre', 'Nombre A-Z'),
             ('nombre_desc', 'Nombre Z-A'),
@@ -837,6 +837,18 @@ def proveedor_listar(request):
     query = request.GET.get('query', '')
     estado = request.GET.get('estado', '')
     
+    # Items por página
+    items_per_page = request.GET.get('items_per_page')
+    if not items_per_page:
+        items_per_page = request.session.get('proveedores_items_per_page', '15')
+    try:
+        items_per_page = int(items_per_page)
+        if items_per_page not in [5, 10, 15, 20, 25, 30, 50, 100, 500, 1000, 10000]:
+            items_per_page = 15
+    except (ValueError, TypeError):
+        items_per_page = 15
+    request.session['proveedores_items_per_page'] = str(items_per_page)
+    
     proveedores = Proveedor.objects.all().order_by('razon_social')
     
     if query:
@@ -849,7 +861,7 @@ def proveedor_listar(request):
     if estado:
         proveedores = proveedores.filter(estado=estado)
     
-    paginator = Paginator(proveedores, 15)
+    paginator = Paginator(proveedores, items_per_page)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -857,6 +869,8 @@ def proveedor_listar(request):
         'page_obj': page_obj,
         'query': query,
         'estado': estado,
+        'items_per_page': items_per_page,
+        'items_per_page_options': [5, 10, 15, 20, 25, 30, 50, 100, 500, 1000, 10000],
     }
     return render(request, 'maestros/proveedor_listar.html', context)
 
@@ -1027,8 +1041,16 @@ def categoria_listar(request):
     """Lista de categorías"""
     categorias = Categoria.objects.all().order_by('nombre')
     
+    # Calcular estadísticas
+    categorias_activas = categorias.filter(activo=True).count()
+    categorias_inactivas = categorias.filter(activo=False).count()
+    subcategorias = categorias.filter(categoria_padre__isnull=False).count()
+    
     context = {
         'categorias': categorias,
+        'categorias_activas': categorias_activas,
+        'categorias_inactivas': categorias_inactivas,
+        'subcategorias': subcategorias,
         'request': request,  # Asegurar que el request esté en el contexto
     }
     return render(request, 'maestros/categoria_listar.html', context)
@@ -1210,8 +1232,14 @@ def marca_listar(request):
     """Lista de marcas"""
     marcas = Marca.objects.all().order_by('nombre')
     
+    # Calcular estadísticas
+    marcas_activas = marcas.filter(activo=True).count()
+    marcas_inactivas = marcas.filter(activo=False).count()
+    
     context = {
         'marcas': marcas,
+        'marcas_activas': marcas_activas,
+        'marcas_inactivas': marcas_inactivas,
         'request': request,  # Asegurar que el request esté en el contexto
     }
     return render(request, 'maestros/marca_listar.html', context)

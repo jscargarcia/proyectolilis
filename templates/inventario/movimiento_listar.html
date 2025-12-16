@@ -206,41 +206,9 @@
                     </div>
 
                     <!-- Paginación -->
-                    {% if page_obj.has_other_pages %}
-                    <nav aria-label="Paginación de movimientos">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=1{% if buscar %}&q={{ buscar }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_producto %}&producto={{ filtro_producto }}{% endif %}{% if filtro_bodega %}&bodega={{ filtro_bodega }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Primera</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if buscar %}&q={{ buscar }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_producto %}&producto={{ filtro_producto }}{% endif %}{% if filtro_bodega %}&bodega={{ filtro_bodega }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Anterior</a>
-                                </li>
-                            {% endif %}
-                            
-                            {% for num in page_obj.paginator.page_range %}
-                                {% if page_obj.number == num %}
-                                    <li class="page-item active">
-                                        <span class="page-link">{{ num }}</span>
-                                    </li>
-                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                                    <li class="page-item">
-                                        <a class="page-link" href="?page={{ num }}{% if buscar %}&q={{ buscar }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_producto %}&producto={{ filtro_producto }}{% endif %}{% if filtro_bodega %}&bodega={{ filtro_bodega }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">{{ num }}</a>
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
-                            
-                            {% if page_obj.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if buscar %}&q={{ buscar }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_producto %}&producto={{ filtro_producto }}{% endif %}{% if filtro_bodega %}&bodega={{ filtro_bodega }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Siguiente</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if buscar %}&q={{ buscar }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_producto %}&producto={{ filtro_producto }}{% endif %}{% if filtro_bodega %}&bodega={{ filtro_bodega }}{% endif %}{% if filtro_estado %}&estado={{ filtro_estado }}{% endif %}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}">Última</a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                    {% endif %}
+                    <div class="mt-3">
+                        {% include 'components/paginator.html' with page_obj=page_obj item_name='movimientos' query_params='&q='|add:buscar|add:'&tipo='|add:filtro_tipo|add:'&producto='|add:filtro_producto|add:'&bodega='|add:filtro_bodega|add:'&estado='|add:filtro_estado|add:'&fecha_desde='|add:fecha_desde|add:'&fecha_hasta='|add:fecha_hasta button_color='#7c3aed' %}
+                    </div>
                     {% else %}
                     <div class="text-center py-4">
                         <i class="fas fa-exchange-alt fa-3x text-muted mb-3"></i>

@@ -152,7 +152,6 @@ def registrar_ingreso(request):
         productos = Producto.objects.filter(estado='ACTIVO').order_by('nombre')
         bodegas = Bodega.objects.filter(activo=True).order_by('nombre')
         proveedores = Proveedor.objects.filter(estado='ACTIVO').order_by('razon_social')
-
         
         context = {
             'productos': productos,
@@ -288,6 +287,18 @@ def registrar_salida(request):
 def vista_stock_actual(request):
     """Vista de stock actual con filtros"""
     try:
+        # Items por página
+        items_per_page = request.GET.get('items_per_page')
+        if not items_per_page:
+            items_per_page = request.session.get('stock_items_per_page', '50')
+        try:
+            items_per_page = int(items_per_page)
+            if items_per_page not in [5, 10, 15, 20, 25, 30, 50, 100, 500, 1000, 10000]:
+                items_per_page = 50
+        except (ValueError, TypeError):
+            items_per_page = 50
+        request.session['stock_items_per_page'] = str(items_per_page)
+        
         # Filtros
         filtro_producto = request.GET.get('producto', '')
         filtro_bodega = request.GET.get('bodega', '')
@@ -323,7 +334,7 @@ def vista_stock_actual(request):
         stocks = stocks.order_by('producto__nombre', 'bodega__nombre')
         
         # Paginación
-        paginator = Paginator(stocks, 50)
+        paginator = Paginator(stocks, items_per_page)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
         
@@ -338,6 +349,11 @@ def vista_stock_actual(request):
             'is_paginated': page_obj.has_other_pages(),
             'page_obj': page_obj,
             'tiene_datos': page_obj.paginator.count > 0,
+            'buscar': buscar,
+            'filtro_bodega': filtro_bodega,
+            'solo_criticos': solo_criticos,
+            'items_per_page': items_per_page,
+            'items_per_page_options': [5, 10, 15, 20, 25, 30, 50, 100, 500, 1000, 10000],
         }
         
         return render(request, 'inventario/stock_actual.html', context)
@@ -370,6 +386,9 @@ def vista_stock_actual(request):
             'page_obj': page_obj,
             'tiene_datos': False,
             'error_message': str(e),
+            'buscar': '',
+            'filtro_bodega': '',
+            'solo_criticos': '',
         }
         return render(request, 'inventario/stock_actual.html', context)
 

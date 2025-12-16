@@ -7,6 +7,7 @@ from django.utils import timezone
 from django.db.models import Count
 from maestros.models import Producto, Categoria, Marca
 from autenticacion.models import Usuario
+from decimal import Decimal
 import json
 
 
@@ -228,29 +229,28 @@ def carrito_actualizar_cantidad(request, item_id):
             
             if 'carrito' in request.session:
                 carrito = request.session['carrito']
-                # Convertir item_id a string para comparación consistente
-                item_id_str = str(item_id)
-                
                 for item in carrito:
-                    if str(item['id']) == item_id_str:
+                    if item['id'] == item_id:
                         item['cantidad'] = nueva_cantidad
                         break
                 
                 request.session['carrito'] = carrito
                 request.session.modified = True
                 
-                # Calcular nuevos totales
+                # Recalcular totales - convertir a Decimal para evitar errores de tipo
                 subtotal = Decimal(str(sum(item['precio'] * item['cantidad'] for item in carrito)))
                 iva = subtotal * Decimal('0.19')
                 total = subtotal + iva
                 
                 return JsonResponse({
                     'success': True,
+                    'message': 'Cantidad actualizada',
                     'subtotal': float(subtotal),
                     'iva': float(iva),
                     'total': float(total),
-                    'count': len(carrito)
                 })
+            
+            return JsonResponse({'error': 'Carrito vacío'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
     

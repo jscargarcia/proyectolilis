@@ -20,13 +20,13 @@
     <!-- Filtros de búsqueda -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-4">
+            <form method="get" class="row g-3" id="filter-form">
+                <div class="col-md-3">
                     <label class="form-label">Buscar</label>
                     <input type="text" name="query" class="form-control" 
                            placeholder="Nombre, RUT, Email..." value="{{ query }}">
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label">Tipo</label>
                     <select name="tipo" class="form-select">
                         <option value="">Todos</option>
@@ -34,7 +34,7 @@
                         <option value="EMPRESA" {% if tipo == 'EMPRESA' %}selected{% endif %}>Empresa</option>
                     </select>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <label class="form-label">Estado</label>
                     <select name="activo" class="form-select">
                         <option value="">Todos</option>
@@ -42,7 +42,17 @@
                         <option value="false" {% if activo == 'false' %}selected{% endif %}>Inactivos</option>
                     </select>
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label"><i class="fas fa-list me-1"></i>Mostrar</label>
+                    <select class="form-select" name="items_per_page" id="items-select">
+                        {% for option in items_per_page_options %}
+                        <option value="{{ option }}" {% if items_per_page == option %}selected{% endif %}>
+                            {{ option }} items
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="fas fa-search"></i> Buscar
                     </button>
@@ -122,33 +132,7 @@
             </div>
 
             <!-- Paginación -->
-            {% if page_obj.has_other_pages %}
-            <nav>
-                <ul class="pagination justify-content-center">
-                    {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page=1&query={{ query }}&tipo={{ tipo }}&activo={{ activo }}">Primera</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&query={{ query }}&tipo={{ tipo }}&activo={{ activo }}">Anterior</a>
-                    </li>
-                    {% endif %}
-
-                    <li class="page-item active">
-                        <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-                    </li>
-
-                    {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&query={{ query }}&tipo={{ tipo }}&activo={{ activo }}">Siguiente</a>
-                    </li>
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&query={{ query }}&tipo={{ tipo }}&activo={{ activo }}">Última</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
-            {% endif %}
+            {% include 'components/paginator.html' with page_obj=page_obj item_name='clientes' query_params='&query='|add:query|add:'&tipo='|add:tipo|add:'&activo='|add:activo button_color='#dc2626' %}
         </div>
     </div>
 </div>
@@ -260,6 +244,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+    
+    // Auto-submit al cambiar items por página
+    const itemsSelect = document.getElementById('items-select');
+    if (itemsSelect) {
+        itemsSelect.addEventListener('change', function() {
+            document.getElementById('filter-form').submit();
+        });
+    }
 });
 </script>
 {% endblock %}

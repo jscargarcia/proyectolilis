@@ -139,9 +139,7 @@
         <div class="col-md-4">
             <div class="stats-card">
                 <div class="stats-number text-success">
-                    {% for marca in marcas %}
-                        {% if marca.activo %}{{ forloop.counter0|add:1 }}{% endif %}
-                    {% empty %}0{% endfor %}
+                    {{ marcas_activas|default:0 }}
                 </div>
                 <div>Activas</div>
             </div>
@@ -149,9 +147,7 @@
         <div class="col-md-4">
             <div class="stats-card">
                 <div class="stats-number text-warning">
-                    {% for marca in marcas %}
-                        {% if not marca.activo %}{{ forloop.counter0|add:1 }}{% endif %}
-                    {% empty %}0{% endfor %}
+                    {{ marcas_inactivas|default:0 }}
                 </div>
                 <div>Inactivas</div>
             </div>
@@ -251,6 +247,9 @@
                 </tbody>
             </table>
         </div>
+        
+        <!-- Paginación -->
+        {% include 'components/paginator.html' with page_obj=marcas item_name='marcas' query_params='' button_color='#2563eb' %}
     </div>
 </div>
 {% endblock %}

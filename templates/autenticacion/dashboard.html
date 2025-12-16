@@ -493,8 +493,8 @@
     </div>
     
     <!-- Información del usuario -->
-    <div class="row">
-        <div class="col-md-6 mb-4">
+    <div class="row justify-content-start">
+        <div class="col-md-4 mb-4">
             <div class="card">
                 <div class="card-header text-white" style="background-color: #dc2626;">
                     <h5 class="mb-0"><i class="fas fa-user-circle"></i> Mi Cuenta</h5>
@@ -508,127 +508,6 @@
                         <a href="{% url 'autenticacion:usuario_detalle' usuario.pk %}" class="btn text-white" style="background-color: #dc2626;">
                             <i class="fas fa-eye"></i> Ver Mi Perfil Completo
                         </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-header text-white" style="background-color: #dc2626;">
-                    <h5 class="mb-0"><i class="fas fa-rocket"></i> Acciones Rápidas</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-grid gap-2">
-                        
-                        <!-- Accesos rápidos para Maestros -->
-                        {% if user|can_manage_inventory %}
-                            <hr>
-                            <h6 class="fw-bold">
-                                <i class="fas fa-crown"></i> Gestión de Maestros
-                            </h6>
-                            <a href="{% url 'maestros:producto_listar' %}" class="btn btn-primary mb-2">
-                                <i class="fas fa-boxes"></i> Gestión de Productos
-                            </a>
-                            
-                            {% if user|can_manage_products %}
-                            <a href="{% url 'maestros:producto_crear' %}" class="btn btn-primary mb-2">
-                                <i class="fas fa-plus"></i> Nuevo Producto
-                            </a>
-                            {% endif %}
-                            
-                            <a href="{% url 'maestros:proveedor_listar' %}" class="btn btn-warning mb-2">
-                                <i class="fas fa-truck"></i> Proveedores
-                            </a>
-                            
-                            <!-- Accesos rápidos a Marcas -->
-                            {% if user|can_manage_products %}
-                            <a href="{% url 'maestros:marca_listar' %}" class="btn btn-info mb-2">
-                                <i class="fas fa-tags"></i> Listar Marcas
-                            </a>
-                            <a href="{% url 'maestros:marca_crear' %}" class="btn btn-outline-info mb-2">
-                                <i class="fas fa-plus"></i> Nueva Marca
-                            </a>
-                            {% endif %}
-                            
-                            <!-- Accesos rápidos a Categorías -->
-                            {% if user|can_manage_products %}
-                            <a href="{% url 'maestros:categoria_listar' %}" class="btn btn-success mb-2">
-                                <i class="fas fa-list-ul"></i> Listar Categorías
-                            </a>
-                            <a href="{% url 'maestros:categoria_crear' %}" class="btn btn-outline-success">
-                                <i class="fas fa-plus"></i> Nueva Categoría
-                            </a>
-                            {% endif %}
-                        {% endif %}
-                        
-                        <!-- Accesos rápidos para Administración -->
-                        {% if user|is_admin %}
-                            <hr>
-                            <h6 class="fw-bold">
-                                <i class="fas fa-users-cog"></i> Administración
-                            </h6>
-                            <a href="{% url 'autenticacion:usuario_listar' %}" class="btn btn-primary mb-2">
-                                <i class="fas fa-users"></i> Gestionar Usuarios
-                            </a>
-                        {% endif %}
-                        
-                        <hr>
-                        <h6 class="text-muted">Sistema</h6>
-                        <button onclick="mostrarCarrito()" class="btn btn-info">
-                            <i class="fas fa-shopping-cart"></i> Ver Carrito
-                        </button>
-                        
-                        <button onclick="mostrarNotificaciones()" class="btn btn-warning">
-                            <i class="fas fa-bell"></i> Ver Notificaciones
-                        </button>
-                        
-                        <button onclick="testNotification()" class="btn btn-secondary">
-                            <i class="fas fa-vial"></i> Probar Notificación
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Resumen de actividad -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header text-white" style="background-color: #dc2626;">
-                    <h5 class="mb-0"><i class="fas fa-chart-bar"></i> Resumen de Actividad</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3">
-                            <div class="p-3">
-                                <i class="fas fa-boxes fa-2x mb-2 text-primary"></i>
-                                <h4 class="mb-1 text-primary">{{ stats.productos_total }}</h4>
-                                <p class="text-muted mb-0">Productos Activos</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="p-3">
-                                <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
-                                <h4 class="mb-1 text-warning">{{ stats.productos_bajo_stock }}</h4>
-                                <p class="text-muted mb-0">Stock Bajo</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="p-3">
-                                <i class="fas fa-bell fa-2x mb-2 text-danger"></i>
-                                <h4 class="mb-1 text-danger">{{ stats.alertas_pendientes }}</h4>
-                                <p class="text-muted mb-0">Alertas Pendientes</p>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="p-3">
-                                <i class="fas fa-exchange-alt fa-2x mb-2 text-success"></i>
-                                <h4 class="mb-1 text-success">{{ stats.movimientos_hoy }}</h4>
-                                <p class="text-muted mb-0">Movimientos Hoy</p>
-                            </div>
-                        </div>
                     </div>
                 </div>
             </div>

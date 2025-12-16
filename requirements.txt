@@ -39,6 +39,9 @@ django-ratelimit>=4.1.0
 # Para compresión de archivos estáticos (opcional)
 django-compressor>=4.4.0
 
+# Para pruebas de carga y estrés
+locust>=2.20.0
+
 # Sistema optimizado (9 noviembre 2025)
 # - Eliminada gestión de movimientos de inventario
 # - Sistema de permisos granular para marcas/categorías

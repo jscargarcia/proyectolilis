@@ -33,17 +33,27 @@ Registrar Salida - Inventario
     }
     
     .form-section {
-        background: #f8f9fa;
+        background: #ffffff;
         border-radius: 10px;
         padding: 20px;
-        margin-bottom: 20px;
-        border-left: 4px solid {% if tipo_operacion == 'ingreso' %}#28a745{% else %}#dc3545{% endif %};
+        margin-bottom: 25px;
+        border: 2px solid {% if tipo_operacion == 'ingreso' %}#28a745{% else %}#dc3545{% endif %};
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
     
     .form-section h5 {
-        color: {% if tipo_operacion == 'ingreso' %}#28a745{% else %}#dc3545{% endif %};
-        margin-bottom: 15px;
+        background: {% if tipo_operacion == 'ingreso' %}linear-gradient(135deg, #28a745, #20c997){% else %}linear-gradient(135deg, #dc3545, #e74c3c){% endif %};
+        color: white;
+        padding: 12px 15px;
+        margin: -20px -20px 20px -20px;
+        border-radius: 8px 8px 0 0;
         font-weight: 600;
+        font-size: 1.1rem;
+        box-shadow: 0 2px 8px rgba({% if tipo_operacion == 'ingreso' %}40, 167, 69{% else %}220, 53, 69{% endif %}, 0.3);
+    }
+    
+    .form-section h5 i {
+        color: white;
     }
     
     .btn-primary {
@@ -145,7 +155,9 @@ Registrar Salida - Inventario
                             <div class="col-md-6">
                                 <label for="cantidad" class="form-label required-field">Cantidad</label>
                                 <input type="number" class="form-control" id="cantidad" name="cantidad" 
-                                       min="0.01" step="0.01" required>
+                                       min="0.01" step="0.01" 
+                                       oninput="this.value = this.value.replace(/[+-]/g, '')" 
+                                       required>
                                 <div class="help-text">Cantidad del movimiento</div>
                             </div>
                             
@@ -212,7 +224,7 @@ Registrar Salida - Inventario
                                     <select class="form-select" id="proveedor" name="proveedor">
                                         <option value="">Sin proveedor...</option>
                                         {% for proveedor in proveedores %}
-                                            <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
+                                            <option value="{{ proveedor.id }}">{{ proveedor.razon_social }}</option>
                                         {% endfor %}
                                     </select>
                                     <div class="help-text">Proveedor de la mercancía (opcional)</div>
@@ -221,7 +233,8 @@ Registrar Salida - Inventario
                                 <div class="col-md-6">
                                     <label for="costo_unitario" class="form-label">Costo Unitario</label>
                                     <input type="number" class="form-control" id="costo_unitario" name="costo_unitario" 
-                                           min="0" step="0.01">
+                                           min="0" step="0.01" 
+                                           oninput="this.value = this.value.replace(/[+-]/g, '')">
                                     <div class="help-text">Costo por unidad (opcional)</div>
                                 </div>
                             {% else %}

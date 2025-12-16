@@ -862,38 +862,32 @@
                                 </ul>
                             </li>
                         {% endif %}
-                        
-                        <!-- Tienda - Visible para todos los usuarios -->
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'catalogo:tienda_productos' %}">
-                                <i class="fas fa-store"></i> Tienda
-                            </a>
-                        </li>
-                    {% else %}
-                        <!-- Tienda - Visible para usuarios no autenticados -->
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'catalogo:tienda_productos' %}">
-                                <i class="fas fa-store"></i> Tienda
-                            </a>
-                        </li>
                     {% endif %}
                 </ul>
                 
                 <ul class="navbar-nav">
+                    <!-- Tienda (visible para todos) -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'catalogo:tienda_productos' %}">
+                            <i class="fas fa-store me-1"></i>Tienda
+                        </a>
+                    </li>
+                    
+                    <!-- Carrito (visible para todos) -->
+                    <li class="nav-item">
+                        <a class="nav-link position-relative" href="{% url 'api:carrito_ver' %}">
+                            <i class="fas fa-shopping-cart me-1"></i>Carrito
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                                  id="cartCountBadge" style="display: none; font-size: 0.65rem;">0</span>
+                        </a>
+                    </li>
+                    
                     {% if user.is_authenticated %}
                         <!-- Campana de notificaciones -->
                         <li class="nav-item">
                             <a class="nav-link notification-bell" href="#" onclick="mostrarNotificaciones(); return false;">
                                 <i class="fas fa-bell"></i>
                                 <span class="notification-badge" id="notificationCount">0</span>
-                            </a>
-                        </li>
-                        
-                        <!-- Carrito -->
-                        <li class="nav-item">
-                            <a class="nav-link position-relative" href="{% url 'api:carrito_ver' %}">
-                                <i class="fas fa-shopping-cart"></i>
-                                <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle d-none" id="carritoCount" style="font-size: 0.7rem;">0</span>
                             </a>
                         </li>
                         
@@ -1120,36 +1114,36 @@
         // Actualizar contadores
         function actualizarContadores() {
             // Actualizar contador de carrito
-            fetch('/api/carrito/count/')
+            fetch('/sistema/carrito/count/')
                 .then(response => response.json())
                 .then(data => {
-                    const badge = document.getElementById('carritoCount');
+                    const count = data.count || 0;
+                    const badge = document.getElementById('cartCountBadge');
                     if (badge) {
-                        badge.textContent = data.count || 0;
-                        if (data.count > 0) {
-                            badge.classList.remove('d-none');
-                        } else {
-                            badge.classList.add('d-none');
-                        }
+                        badge.textContent = count;
+                        badge.style.display = count > 0 ? 'inline-block' : 'none';
                     }
                 })
                 .catch(error => console.log('Error al obtener contador de carrito'));
             
             // Actualizar contador de notificaciones
-            fetch('/api/notificaciones/count/')
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('notificationCount').textContent = data.count || 0;
-                })
-                .catch(error => console.log('Error al obtener contador de notificaciones'));
+            const notifCount = document.getElementById('notificationCount');
+            if (notifCount) {
+                fetch('/sistema/notificaciones/count/')
+                    .then(response => response.json())
+                    .then(data => {
+                        notifCount.textContent = data.count || 0;
+                    })
+                    .catch(error => console.log('Error al obtener contador de notificaciones'));
+            }
         }
         
         // Actualizar contadores al cargar la página
-        if (document.querySelector('.notification-bell')) {
+        document.addEventListener('DOMContentLoaded', function() {
             actualizarContadores();
             // Actualizar cada 30 segundos
             setInterval(actualizarContadores, 30000);
-        }
+        });
         
         // Procesar mensajes de Django Flash
         function procesarMensajesDjango() {
@@ -1226,6 +1220,9 @@
     
     <!-- Custom JavaScript -->
     <script src="{% static 'js/main.js' %}"></script>
+    
+    <!-- Validaciones de Formularios -->
+    <script src="{% static 'js/form-validations.js' %}"></script>
     
     {% block extra_js %}{% endblock %}
 </body>

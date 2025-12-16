@@ -843,7 +843,7 @@ def usuario_listar(request):
     # Paginación
     try:
         per_page = int(per_page)
-        if per_page not in [10, 25, 50, 100]:
+        if per_page not in [5, 10, 15, 20, 25, 30, 50, 100, 500, 1000, 10000]:
             per_page = 10
     except:
         per_page = 10
@@ -860,6 +860,7 @@ def usuario_listar(request):
         'estado_filter': estado_filter,
         'rol_filter': int(rol_filter) if rol_filter else '',
         'per_page': per_page,
+        'per_page_options': [5, 10, 15, 20, 25, 30, 50, 100, 500, 1000, 10000],
         'ordenar': ordenar,
         'total_usuarios': usuarios.count(),
     }

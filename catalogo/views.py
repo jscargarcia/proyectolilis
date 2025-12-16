@@ -5,6 +5,71 @@ from django.core.paginator import Paginator
 from .models import Catalogo
 from decimal import Decimal
 from autenticacion.decorators import login_required_custom, permission_required, estado_usuario_activo
+from maestros.models import Producto, Categoria, Marca
+
+
+def tienda_productos(request):
+    """Vista pública de la tienda - Catálogo de productos disponibles para compra"""
+    query = request.GET.get('q', '')
+    categoria_filter = request.GET.get('categoria', '')
+    marca_filter = request.GET.get('marca', '')
+    orden = request.GET.get('orden', 'nombre')
+    
+    # Filtrar solo productos activos con precio de venta
+    productos = Producto.objects.filter(
+        estado='ACTIVO',
+        precio_venta__isnull=False,
+        precio_venta__gt=0
+    )
+    
+    # Aplicar filtros
+    if query:
+        productos = productos.filter(
+            Q(nombre__icontains=query) |
+            Q(descripcion__icontains=query) |
+            Q(sku__icontains=query)
+        )
+    
+    if categoria_filter:
+        productos = productos.filter(categoria_id=categoria_filter)
+    
+    if marca_filter:
+        productos = productos.filter(marca_id=marca_filter)
+    
+    # Ordenamiento
+    orden_map = {
+        'nombre': 'nombre',
+        'nombre_desc': '-nombre',
+        'precio': 'precio_venta',
+        'precio_desc': '-precio_venta',
+        'nuevo': '-created_at',
+    }
+    productos = productos.order_by(orden_map.get(orden, 'nombre'))
+    
+    # Paginación
+    paginator = Paginator(productos, 12)  # 12 productos por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Obtener categorías y marcas activas para filtros
+    categorias = Categoria.objects.filter(activo=True).order_by('nombre')
+    marcas = Marca.objects.filter(activo=True).order_by('nombre')
+    
+    # Contador del carrito
+    carrito_count = len(request.session.get('carrito', []))
+    
+    context = {
+        'page_obj': page_obj,
+        'query': query,
+        'categoria_filter': categoria_filter,
+        'marca_filter': marca_filter,
+        'orden': orden,
+        'categorias': categorias,
+        'marcas': marcas,
+        'carrito_count': carrito_count,
+    }
+    
+    return render(request, 'catalogo/tienda.html', context)
 
 
 @login_required_custom
@@ -222,69 +287,3 @@ def catalogo_publicar(request, pk):
         return redirect('catalogo:catalogo_detalle', pk=catalogo.pk)
     
     return redirect('catalogo:catalogo_listar')
-
-
-def tienda_productos(request):
-    """Vista pública de la tienda de productos"""
-    from maestros.models import Producto, Categoria, Marca
-    
-    # Obtener parámetros de búsqueda y filtros
-    query = request.GET.get('q', '')
-    categoria_filter = request.GET.get('categoria', '')
-    marca_filter = request.GET.get('marca', '')
-    orden = request.GET.get('orden', 'nombre')
-    
-    # Base queryset - solo productos activos con precio de venta
-    productos = Producto.objects.filter(
-        estado='ACTIVO',
-        precio_venta__isnull=False,
-        precio_venta__gt=0
-    )
-    
-    # Aplicar búsqueda
-    if query:
-        productos = productos.filter(
-            Q(nombre__icontains=query) | 
-            Q(descripcion__icontains=query) |
-            Q(sku__icontains=query)
-        )
-    
-    # Aplicar filtro de categoría
-    if categoria_filter:
-        productos = productos.filter(categoria_id=categoria_filter)
-    
-    # Aplicar filtro de marca
-    if marca_filter:
-        productos = productos.filter(marca_id=marca_filter)
-    
-    # Ordenamiento
-    orden_map = {
-        'nombre': 'nombre',
-        'precio_asc': 'precio_venta',
-        'precio_desc': '-precio_venta',
-        'recientes': '-created_at'
-    }
-    productos = productos.order_by(orden_map.get(orden, 'nombre'))
-    
-    # Paginación - 12 productos por página
-    paginator = Paginator(productos, 12)
-    page_number = request.GET.get('page', 1)
-    page_obj = paginator.get_page(page_number)
-    
-    # Obtener categorías y marcas activas para filtros
-    categorias = Categoria.objects.filter(estado='ACTIVO')
-    marcas = Marca.objects.filter(estado='ACTIVO')
-    
-    context = {
-        'page_obj': page_obj,
-        'productos': page_obj.object_list,
-        'query': query,
-        'categoria_filter': categoria_filter,
-        'marca_filter': marca_filter,
-        'orden': orden,
-        'categorias': categorias,
-        'marcas': marcas,
-        'total_productos': paginator.count,
-    }
-    
-    return render(request, 'catalogo/tienda.html', context)

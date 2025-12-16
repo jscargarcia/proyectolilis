@@ -1,251 +1,372 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Carrito de Compras - {{ block.super }}{% endblock %}
+{% block title %}Carrito de Compras - Dulcería Lilis{% endblock %}
+
+{% block extra_css %}
+<style>
+    .carrito-header {
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        color: white;
+        padding: 3rem 0;
+        margin-bottom: 2rem;
+        border-radius: 0 0 20px 20px;
+        box-shadow: 0 4px 15px rgba(233, 30, 99, 0.3);
+    }
+    
+    .carrito-contenedor {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .carrito-vacio {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #7f8c8d;
+    }
+    
+    .carrito-vacio i {
+        font-size: 5rem;
+        color: #dc2626;
+        margin-bottom: 1rem;
+    }
+    
+    .producto-item {
+        border-bottom: 1px solid #ecf0f1;
+        padding: 1.5rem 0;
+        transition: background 0.3s ease;
+    }
+    
+    .producto-item:hover {
+        background: #f8f9fa;
+        padding-left: 1rem;
+        padding-right: 1rem;
+        border-radius: 10px;
+    }
+    
+    .producto-item:last-child {
+        border-bottom: none;
+    }
+    
+    .producto-imagen-carrito {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: #dc2626;
+    }
+    
+    .producto-nombre-carrito {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 0.25rem;
+    }
+    
+    .producto-precio-unit {
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
+    
+    .cantidad-control {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .cantidad-input {
+        width: 70px;
+        text-align: center;
+        border: 2px solid #dc2626;
+        border-radius: 8px;
+        padding: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .btn-cantidad {
+        background: #dc2626;
+        border: none;
+        color: white;
+        width: 35px;
+        height: 35px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-cantidad:hover {
+        background: #b91c1c;
+        transform: scale(1.1);
+    }
+    
+    .btn-eliminar {
+        background: #dc3545;
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-eliminar:hover {
+        background: #c82333;
+        transform: scale(1.05);
+    }
+    
+    .resumen-compra {
+        background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        position: sticky;
+        top: 20px;
+    }
+    
+    .resumen-titulo {
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 3px solid #dc2626;
+    }
+    
+    .resumen-linea {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        color: #2c3e50;
+    }
+    
+    .resumen-total {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #dc2626;
+        padding-top: 1rem;
+        border-top: 3px solid #dc2626;
+        margin-top: 1rem;
+    }
+    
+    .btn-checkout {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+        padding: 1rem;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 1.1rem;
+        width: 100%;
+        margin-top: 1.5rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-checkout:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+    }
+    
+    .btn-seguir-comprando {
+        background: white;
+        border: 2px solid #dc2626;
+        color: #dc2626;
+        padding: 1rem;
+        border-radius: 12px;
+        font-weight: 600;
+        width: 100%;
+        margin-top: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-seguir-comprando:hover {
+        background: #dc2626;
+        color: white;
+    }
+    
+    .btn-vaciar-carrito {
+        background: transparent;
+        border: 2px solid #dc3545;
+        color: #dc3545;
+        padding: 0.5rem 1.5rem;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-vaciar-carrito:hover {
+        background: #dc3545;
+        color: white;
+    }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="row">
-        <div class="col-12">
-            <!-- Header -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>
-                    <i class="fas fa-shopping-cart text-red-600 me-2"></i>Carrito de Compras
-                </h2>
-                <a href="{% url 'catalogo:tienda_productos' %}" class="btn btn-outline-red-600">
-                    <i class="fas fa-store me-1"></i>Seguir Comprando
+<!-- Header del carrito -->
+<div class="carrito-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="mb-0">
+                    <i class="fas fa-shopping-cart me-2"></i>
+                    Mi Carrito de Compras
+                </h1>
+                <p class="mb-0 mt-2">{{ count }} producto{% if count != 1 %}s{% endif %} en tu carrito</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <a href="{% url 'catalogo:tienda_productos' %}" class="btn btn-light btn-lg">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Seguir comprando
                 </a>
-            </div>
-        </div>
-    </div>
-
-    <div class="row">
-        <!-- Lista de Productos en el Carrito -->
-        <div class="col-lg-8">
-            <div class="card shadow-sm border-0 mb-4">
-                <div class="card-header bg-red-600 text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-list me-2"></i>Productos (<span id="totalItems">{{ carrito|length }}</span>)
-                    </h5>
-                </div>
-                <div class="card-body" id="carritoItems">
-                    {% if carrito %}
-                        {% for item in carrito %}
-                        <div class="cart-item border-bottom pb-3 mb-3" data-item-id="{{ item.id }}">
-                            <div class="row align-items-center">
-                                <!-- Código/Nombre del Producto -->
-                                <div class="col-md-5">
-                                    <div class="d-flex align-items-center">
-                                        <div class="cart-item-icon me-3">
-                                            <i class="fas fa-box fa-2x text-red-600"></i>
-                                        </div>
-                                        <div>
-                                            <h6 class="mb-1">{{ item.nombre }}</h6>
-                                            <small class="text-muted">
-                                                <i class="fas fa-barcode me-1"></i>{{ item.codigo }}
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Precio Unitario -->
-                                <div class="col-md-2 text-center">
-                                    <small class="text-muted d-block">Precio</small>
-                                    <strong class="text-red-600">${{ item.precio|floatformat:0 }}</strong>
-                                </div>
-
-                                <!-- Cantidad -->
-                                <div class="col-md-3 text-center">
-                                    <small class="text-muted d-block mb-1">Cantidad</small>
-                                    <div class="input-group input-group-sm" style="max-width: 130px; margin: 0 auto;">
-                                        <button class="btn btn-outline-secondary" type="button" 
-                                                onclick="cambiarCantidad({{ item.id }}, -1)">
-                                            <i class="fas fa-minus"></i>
-                                        </button>
-                                        <input type="number" class="form-control text-center cantidad-input" 
-                                               value="{{ item.cantidad }}" 
-                                               min="1" 
-                                               data-item-id="{{ item.id }}"
-                                               onchange="actualizarCantidad({{ item.id }}, this.value)">
-                                        <button class="btn btn-outline-secondary" type="button" 
-                                                onclick="cambiarCantidad({{ item.id }}, 1)">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <!-- Subtotal -->
-                                <div class="col-md-2 text-end">
-                                    <small class="text-muted d-block">Subtotal</small>
-                                    <strong class="item-subtotal">${{ item.subtotal|floatformat:0 }}</strong>
-                                    <button class="btn btn-sm btn-outline-danger mt-2" 
-                                            onclick="eliminarItem({{ item.id }}, '{{ item.nombre }}')">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-
-                        <!-- Botón Vaciar Carrito -->
-                        <div class="text-end mt-3">
-                            <button class="btn btn-outline-danger" onclick="vaciarCarrito()">
-                                <i class="fas fa-trash-alt me-1"></i>Vaciar Carrito
-                            </button>
-                        </div>
-                    {% else %}
-                        <div class="empty-cart text-center py-5">
-                            <i class="fas fa-shopping-cart fa-5x text-muted mb-3"></i>
-                            <h4 class="text-muted">Tu carrito está vacío</h4>
-                            <p class="text-muted">Agrega productos desde la tienda</p>
-                            <a href="{% url 'catalogo:tienda_productos' %}" class="btn btn-red-600 text-white mt-3">
-                                <i class="fas fa-store me-1"></i>Ir a la Tienda
-                            </a>
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-
-        <!-- Resumen del Carrito -->
-        <div class="col-lg-4">
-            <div class="card shadow-sm border-0 mb-4 sticky-top" style="top: 20px;">
-                <div class="card-header bg-red-600 text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-calculator me-2"></i>Resumen del Pedido
-                    </h5>
-                </div>
-                <div class="card-body">
-                    {% if carrito %}
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>Subtotal:</span>
-                        <strong id="subtotalAmount">${{ subtotal|floatformat:0 }}</strong>
-                    </div>
-                    <div class="d-flex justify-content-between mb-2">
-                        <span>IVA (19%):</span>
-                        <strong id="ivaAmount">${{ iva|floatformat:0 }}</strong>
-                    </div>
-                    <hr>
-                    <div class="d-flex justify-content-between mb-3">
-                        <h5>Total:</h5>
-                        <h5 class="text-red-600" id="totalAmount">${{ total|floatformat:0 }}</h5>
-                    </div>
-
-                    <div class="d-grid gap-2">
-                        <button class="btn btn-red-600 text-white btn-lg" onclick="procesarCompra()">
-                            <i class="fas fa-credit-card me-1"></i>Procesar Compra
-                        </button>
-                        <a href="{% url 'catalogo:tienda_productos' %}" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left me-1"></i>Seguir Comprando
-                        </a>
-                    </div>
-                    {% else %}
-                    <p class="text-muted text-center mb-0">No hay productos en el carrito</p>
-                    {% endif %}
-                </div>
-            </div>
-
-            <!-- Información Adicional -->
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <h6 class="card-title">
-                        <i class="fas fa-info-circle text-red-600 me-1"></i>Información
-                    </h6>
-                    <ul class="list-unstyled mb-0 small text-muted">
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-1"></i>
-                            Envío gratis en compras superiores a $100.000
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-1"></i>
-                            Garantía de satisfacción
-                        </li>
-                        <li class="mb-2">
-                            <i class="fas fa-check text-success me-1"></i>
-                            Pago seguro
-                        </li>
-                        <li>
-                            <i class="fas fa-check text-success me-1"></i>
-                            Devolución en 30 días
-                        </li>
-                    </ul>
-                </div>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-.btn-red-600 {
-    background-color: #dc2626;
-    border-color: #dc2626;
-}
+<div class="container">
+    {% if carrito %}
+    <div class="row">
+        <!-- Lista de productos -->
+        <div class="col-lg-8">
+            <div class="carrito-contenedor">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0">Productos ({{ count }})</h4>
+                    <button class="btn btn-vaciar-carrito" onclick="vaciarCarrito()">
+                        <i class="fas fa-trash-alt me-2"></i>Vaciar carrito
+                    </button>
+                </div>
+                
+                {% for item in carrito %}
+                <div class="producto-item" id="item-{{ item.id }}">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            <div class="producto-imagen-carrito">
+                                <i class="fas fa-candy-cane"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="producto-nombre-carrito">{{ item.nombre }}</div>
+                            <div class="producto-precio-unit">
+                                Precio unitario: ${{ item.precio|floatformat:0 }}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <div class="cantidad-control">
+                                <button class="btn-cantidad" onclick="cambiarCantidad('{{ item.id }}', -1)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" 
+                                       class="cantidad-input" 
+                                       id="cantidad-{{ item.id }}"
+                                       value="{{ item.cantidad }}" 
+                                       min="1"
+                                       onchange="actualizarCantidad('{{ item.id }}', this.value)">
+                                <button class="btn-cantidad" onclick="cambiarCantidad('{{ item.id }}', 1)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-2">
+                            <div class="fw-bold" style="color: #dc2626; font-size: 1.2rem;">
+                                $<span id="subtotal-{{ item.id }}">{{ item.subtotal|floatformat:0 }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-1">
+                            <button class="btn btn-eliminar" onclick="eliminarItem('{{ item.id }}', '{{ item.nombre }}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Resumen de compra -->
+        <div class="col-lg-4">
+            <div class="resumen-compra">
+                <h4 class="resumen-titulo">
+                    <i class="fas fa-receipt me-2"></i>Resumen de compra
+                </h4>
+                
+                <div class="resumen-linea">
+                    <span>Subtotal:</span>
+                    <span class="fw-bold" id="resumen-subtotal">${{ subtotal|floatformat:0 }}</span>
+                </div>
+                
+                <div class="resumen-linea">
+                    <span>IVA (19%):</span>
+                    <span class="fw-bold" id="resumen-iva">${{ iva|floatformat:0 }}</span>
+                </div>
+                
+                <div class="resumen-linea">
+                    <span>Envío:</span>
+                    <span class="text-success fw-bold">GRATIS</span>
+                </div>
+                
+                <div class="resumen-linea resumen-total">
+                    <span>Total:</span>
+                    <span id="resumen-total">${{ total|floatformat:0 }}</span>
+                </div>
+                
+                <button class="btn btn-checkout" onclick="realizarCompra()">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Finalizar Compra
+                </button>
+                
+                <a href="{% url 'catalogo:tienda_productos' %}" class="btn btn-seguir-comprando">
+                    <i class="fas fa-store me-2"></i>
+                    Seguir comprando
+                </a>
+                
+                <div class="mt-3 text-center">
+                    <small class="text-muted">
+                        <i class="fas fa-lock me-1"></i>
+                        Compra 100% segura
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Carrito vacío -->
+    <div class="carrito-contenedor">
+        <div class="carrito-vacio">
+            <i class="fas fa-shopping-cart"></i>
+            <h2>Tu carrito está vacío</h2>
+            <p class="mb-4">¡Agrega productos para comenzar tu compra!</p>
+            <a href="{% url 'catalogo:tienda_productos' %}" class="btn btn-lg" 
+               style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; padding: 1rem 3rem; border-radius: 25px; font-weight: 600;">
+                <i class="fas fa-store me-2"></i>
+                Ir a la tienda
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
 
-.btn-red-600:hover {
-    background-color: #b91c1c;
-    border-color: #b91c1c;
-}
-
-.btn-outline-red-600 {
-    color: #dc2626;
-    border-color: #dc2626;
-}
-
-.btn-outline-red-600:hover {
-    background-color: #dc2626;
-    border-color: #dc2626;
-    color: white;
-}
-
-.bg-red-600 {
-    background-color: #dc2626 !important;
-}
-
-.text-red-600 {
-    color: #dc2626 !important;
-}
-
-.cart-item {
-    transition: background-color 0.3s ease;
-}
-
-.cart-item:hover {
-    background-color: #f9fafb;
-}
-
-.cantidad-input {
-    max-width: 60px;
-}
-
-.cart-item-icon {
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-color: #fee2e2;
-    border-radius: 8px;
-}
-
-.empty-cart {
-    min-height: 400px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-}
-</style>
-
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-function cambiarCantidad(itemId, delta) {
-    const input = document.querySelector(`input[data-item-id="${itemId}"]`);
-    const nuevaCantidad = parseInt(input.value) + delta;
+function cambiarCantidad(itemId, cambio) {
+    const input = document.getElementById(`cantidad-${itemId}`);
+    let nuevaCantidad = parseInt(input.value) + cambio;
     
     if (nuevaCantidad < 1) {
-        eliminarItem(itemId);
-        return;
+        nuevaCantidad = 1;
     }
     
+    input.value = nuevaCantidad;
     actualizarCantidad(itemId, nuevaCantidad);
 }
 
@@ -253,56 +374,51 @@ function actualizarCantidad(itemId, cantidad) {
     cantidad = parseInt(cantidad);
     
     if (cantidad < 1) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Cantidad inválida',
-            text: 'La cantidad debe ser mayor a 0'
-        });
-        return;
+        cantidad = 1;
+        document.getElementById(`cantidad-${itemId}`).value = cantidad;
     }
-
+    
     fetch(`/api/carrito/actualizar/${itemId}/`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': '{{ csrf_token }}'
         },
-        body: JSON.stringify({
-            cantidad: cantidad
-        })
+        body: JSON.stringify({ cantidad: cantidad })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Actualizar la vista
-            location.reload();
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: data.message || 'No se pudo actualizar la cantidad'
-            });
+            // Actualizar subtotal del item
+            const precioUnit = parseFloat(document.getElementById(`cantidad-${itemId}`)
+                .closest('.row')
+                .querySelector('.producto-precio-unit')
+                .textContent.match(/\$([0-9,.]+)/)[1].replace(/,/g, ''));
+            
+            document.getElementById(`subtotal-${itemId}`).textContent = 
+                (precioUnit * cantidad).toLocaleString('es-CL', {maximumFractionDigits: 0});
+            
+            // Actualizar resumen
+            document.getElementById('resumen-subtotal').textContent = 
+                `$${data.subtotal.toLocaleString('es-CL', {maximumFractionDigits: 0})}`;
+            document.getElementById('resumen-iva').textContent = 
+                `$${data.iva.toLocaleString('es-CL', {maximumFractionDigits: 0})}`;
+            document.getElementById('resumen-total').textContent = 
+                `$${data.total.toLocaleString('es-CL', {maximumFractionDigits: 0})}`;
         }
     })
-    .catch(error => {
-        console.error('Error:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Ocurrió un error al actualizar la cantidad'
-        });
-    });
+    .catch(error => console.error('Error:', error));
 }
 
-function eliminarItem(itemId, nombreProducto = '') {
+function eliminarItem(itemId, nombre) {
     Swal.fire({
         title: '¿Eliminar producto?',
-        html: nombreProducto ? `¿Deseas eliminar <strong>${nombreProducto}</strong> del carrito?` : '¿Deseas eliminar este producto del carrito?',
-        icon: 'question',
+        text: `¿Deseas eliminar "${nombre}" del carrito?`,
+        icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#dc2626',
+        confirmButtonColor: '#dc3545',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: '<i class="fas fa-trash me-1"></i>Sí, eliminar',
+        confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
@@ -315,32 +431,19 @@ function eliminarItem(itemId, nombreProducto = '') {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Producto eliminado',
-                        showConfirmButton: false,
-                        timer: 1500,
-                        toast: true,
-                        position: 'top-end'
-                    }).then(() => {
+                    // Remover el elemento del DOM
+                    document.getElementById(`item-${itemId}`).remove();
+                    
+                    // Si el carrito queda vacío, recargar la página
+                    if (data.count === 0) {
+                        window.location.reload();
+                    } else {
+                        // Actualizar contador
                         location.reload();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message || 'No se pudo eliminar el producto'
-                    });
+                    }
                 }
             })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Ocurrió un error al eliminar el producto'
-                });
-            });
+            .catch(error => console.error('Error:', error));
         }
     });
 }
@@ -348,12 +451,12 @@ function eliminarItem(itemId, nombreProducto = '') {
 function vaciarCarrito() {
     Swal.fire({
         title: '¿Vaciar carrito?',
-        text: 'Se eliminarán todos los productos del carrito',
+        text: '¿Deseas eliminar todos los productos del carrito?',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#dc2626',
+        confirmButtonColor: '#dc3545',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: '<i class="fas fa-trash-alt me-1"></i>Sí, vaciar',
+        confirmButtonText: 'Sí, vaciar',
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
@@ -366,42 +469,37 @@ function vaciarCarrito() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Carrito vaciado',
-                        showConfirmButton: false,
-                        timer: 1500
-                    }).then(() => {
-                        location.reload();
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: data.message || 'No se pudo vaciar el carrito'
-                    });
+                    window.location.reload();
                 }
             })
-            .catch(error => {
-                console.error('Error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'Ocurrió un error al vaciar el carrito'
-                });
-            });
+            .catch(error => console.error('Error:', error));
         }
     });
 }
 
-function procesarCompra() {
+function realizarCompra() {
     Swal.fire({
-        title: 'Función en desarrollo',
-        html: 'La funcionalidad de procesar compra estará disponible próximamente.<br><br>Por ahora, el carrito permite:<br>• Agregar productos<br>• Modificar cantidades<br>• Eliminar productos',
+        title: '¡Próximamente!',
+        text: 'La funcionalidad de checkout estará disponible pronto',
         icon: 'info',
-        confirmButtonColor: '#dc2626',
-        confirmButtonText: 'Entendido'
+        confirmButtonText: 'Entendido',
+        confirmButtonColor: '#dc2626'
     });
 }
 </script>
+
+<script>
+// Filtro personalizado para multiplicar
+document.addEventListener('DOMContentLoaded', function() {
+    // Calcular subtotales iniciales
+    {% for item in carrito %}
+    const subtotal{{ forloop.counter }} = {{ item.precio }} * {{ item.cantidad }};
+    const elem{{ forloop.counter }} = document.getElementById('subtotal-{{ item.id }}');
+    if (elem{{ forloop.counter }}) {
+        elem{{ forloop.counter }}.textContent = subtotal{{ forloop.counter }}.toLocaleString('es-CL', {maximumFractionDigits: 0});
+    }
+    {% endfor %}
+});
+</script>
 {% endblock %}
+

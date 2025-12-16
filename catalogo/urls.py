@@ -4,9 +4,12 @@ from . import views
 app_name = 'catalogo'
 
 urlpatterns = [
+    # Tienda pública
+    path('tienda/', views.tienda_productos, name='tienda_productos'),
+    
+    # Gestión de catálogos (requiere login)
     path('', views.catalogo_listar, name='catalogo_listar'),
     path('crear/', views.catalogo_crear, name='catalogo_crear'),
-    path('tienda/', views.tienda_productos, name='tienda_productos'),
     path('<int:pk>/', views.catalogo_detalle, name='catalogo_detalle'),
     path('<int:pk>/editar/', views.catalogo_editar, name='catalogo_editar'),
     path('<int:pk>/eliminar/', views.catalogo_eliminar, name='catalogo_eliminar'),

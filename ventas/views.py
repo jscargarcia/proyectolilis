@@ -21,6 +21,18 @@ def cliente_listar(request):
     tipo = request.GET.get('tipo', '')
     activo = request.GET.get('activo', '')
     
+    # Items por página
+    items_per_page = request.GET.get('items_per_page')
+    if not items_per_page:
+        items_per_page = request.session.get('clientes_items_per_page', '15')
+    try:
+        items_per_page = int(items_per_page)
+        if items_per_page not in [5, 10, 15, 20, 25, 30, 50, 100, 500, 1000, 10000]:
+            items_per_page = 15
+    except (ValueError, TypeError):
+        items_per_page = 15
+    request.session['clientes_items_per_page'] = str(items_per_page)
+    
     clientes = Cliente.objects.all().order_by('-created_at')
     
     if query:
@@ -36,7 +48,7 @@ def cliente_listar(request):
     if activo:
         clientes = clientes.filter(activo=(activo == 'true'))
     
-    paginator = Paginator(clientes, 15)
+    paginator = Paginator(clientes, items_per_page)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -45,6 +57,8 @@ def cliente_listar(request):
         'query': query,
         'tipo': tipo,
         'activo': activo,
+        'items_per_page': items_per_page,
+        'items_per_page_options': [5, 10, 15, 20, 25, 30, 50, 100, 500, 1000, 10000],
     }
     return render(request, 'ventas/cliente_listar.html', context)
 

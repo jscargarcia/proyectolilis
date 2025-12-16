@@ -1,0 +1,222 @@
+{% comment %}
+Componente de Paginador Reutilizable
+Sistema de Gestión - Dulcería Lilis
+
+Uso:
+{% include 'components/paginator.html' with page_obj=page_obj item_name='productos' query_params='' %}
+
+Parámetros:
+- page_obj: Objeto Page de Django (requerido)
+- item_name: Nombre plural de los items (ej: 'productos', 'usuarios', 'alertas')
+- query_params: String con parámetros de query adicionales (ej: '&q=buscar&categoria=1')
+- button_color: Color del botón principal (default: '#dc2626' - rojo)
+{% endcomment %}
+
+{% if page_obj.has_other_pages %}
+<div class="pagination-wrapper mt-4">
+    <!-- Información de registros -->
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+        <div class="text-muted">
+            <span>Mostrando <strong>{{ page_obj.start_index }}</strong> - <strong>{{ page_obj.end_index }}</strong> de <strong>{{ page_obj.paginator.count }}</strong> {{ item_name|default:"registros" }}</span>
+        </div>
+        <div class="text-muted">
+            <span>Página <strong>{{ page_obj.number }}</strong> de <strong>{{ page_obj.paginator.num_pages }}</strong></span>
+        </div>
+    </div>
+
+    <!-- Controles de paginación -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <!-- Navegación con botones -->
+        <nav aria-label="Navegación de páginas" class="flex-grow-1">
+            <ul class="pagination justify-content-center mb-0">
+                <!-- Primera página -->
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{{ query_params }}" title="Primera página" aria-label="Primera página">
+                        <i class="fas fa-angle-double-left"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-label="Primera página">
+                        <i class="fas fa-angle-double-left"></i>
+                    </span>
+                </li>
+                {% endif %}
+
+                <!-- Página anterior -->
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{{ query_params }}" title="Anterior" aria-label="Página anterior">
+                        <i class="fas fa-angle-left"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-label="Página anterior">
+                        <i class="fas fa-angle-left"></i>
+                    </span>
+                </li>
+                {% endif %}
+
+                <!-- Páginas numeradas -->
+                {% if page_obj.number > 3 %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{{ query_params }}">1</a>
+                    </li>
+                    {% if page_obj.number > 4 %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <li class="page-item active" aria-current="page">
+                            <span class="page-link" style="background-color: {{ button_color|default:'#c026d3' }}; border-color: {{ button_color|default:'#c026d3' }};">
+                                {{ num }}
+                            </span>
+                        </li>
+                    {% elif num >= page_obj.number|add:"-2" and num <= page_obj.number|add:"2" %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{{ query_params }}">{{ num }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.number < page_obj.paginator.num_pages|add:"-2" %}
+                    {% if page_obj.number < page_obj.paginator.num_pages|add:"-3" %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                    {% endif %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{{ query_params }}">{{ page_obj.paginator.num_pages }}</a>
+                    </li>
+                {% endif %}
+
+                <!-- Página siguiente -->
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{{ query_params }}" title="Siguiente" aria-label="Página siguiente">
+                        <i class="fas fa-angle-right"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-label="Página siguiente">
+                        <i class="fas fa-angle-right"></i>
+                    </span>
+                </li>
+                {% endif %}
+
+                <!-- Última página -->
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{{ query_params }}" title="Última página" aria-label="Última página">
+                        <i class="fas fa-angle-double-right"></i>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link" aria-label="Última página">
+                        <i class="fas fa-angle-double-right"></i>
+                    </span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+
+        <!-- Ir a página específica -->
+        <div class="d-flex align-items-center gap-2">
+            <label for="page-jump" class="text-muted mb-0 text-nowrap">Ir a:</label>
+            <input type="number" 
+                   id="page-jump" 
+                   class="form-control form-control-sm" 
+                   style="width: 70px;" 
+                   min="1" 
+                   max="{{ page_obj.paginator.num_pages }}" 
+                   value="{{ page_obj.number }}"
+                   oninput="this.value = this.value.replace(/[+-]/g, '')"
+                   aria-label="Número de página">
+            <button type="button" 
+                    class="btn btn-sm text-white" 
+                    style="background-color: {{ button_color|default:'#dc2626' }}; border-color: {{ button_color|default:'#dc2626' }};"
+                    onclick="goToPage{{ item_name|default:'Item' }}()"
+                    aria-label="Ir a página">
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function goToPage{{ item_name|default:'Item' }}() {
+    const pageInput = document.getElementById('page-jump');
+    const pageNumber = parseInt(pageInput.value);
+    const maxPages = {{ page_obj.paginator.num_pages }};
+    
+    if (pageNumber >= 1 && pageNumber <= maxPages) {
+        const currentUrl = new URL(window.location.href);
+        currentUrl.searchParams.set('page', pageNumber);
+        window.location.href = currentUrl.toString();
+    } else {
+        alert('Por favor ingrese un número de página válido (1-' + maxPages + ')');
+    }
+}
+
+// Permitir Enter para ir a la página
+document.getElementById('page-jump').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        goToPage{{ item_name|default:'Item' }}();
+    }
+});
+</script>
+
+<style>
+.pagination-wrapper .pagination {
+    flex-wrap: wrap;
+    gap: 2px;
+}
+
+.pagination-wrapper .page-link {
+    border-radius: 0.25rem;
+    margin: 0 2px;
+    min-width: 38px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.pagination-wrapper .page-link:hover:not(.disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.pagination-wrapper .page-item.active .page-link {
+    font-weight: 600;
+}
+
+.pagination-wrapper .page-item.disabled .page-link {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+@media (max-width: 768px) {
+    .pagination-wrapper .d-flex {
+        flex-direction: column;
+        align-items: center !important;
+    }
+    
+    .pagination-wrapper nav {
+        width: 100%;
+    }
+    
+    .pagination-wrapper .page-link {
+        font-size: 0.875rem;
+        min-width: 32px;
+        padding: 0.25rem 0.5rem;
+    }
+}
+</style>
+{% endif %}

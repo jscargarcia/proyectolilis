@@ -184,10 +184,11 @@
             <div class="col-md-2">
                 <label for="per_page" class="form-label">Por página</label>
                 <select class="form-select" id="per_page" name="per_page">
-                    <option value="10"{% if per_page == 10 %} selected{% endif %}>10</option>
-                    <option value="25"{% if per_page == 25 %} selected{% endif %}>25</option>
-                    <option value="50"{% if per_page == 50 %} selected{% endif %}>50</option>
-                    <option value="100"{% if per_page == 100 %} selected{% endif %}>100</option>
+                    {% for option in per_page_options %}
+                    <option value="{{ option }}" {% if per_page == option %}selected{% endif %}>
+                        {{ option }} items
+                    </option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="col-md-2 d-flex align-items-end">
@@ -293,37 +294,9 @@
         </div>
 
         <!-- Paginación -->
-        {% if usuarios.has_other_pages %}
         <div class="p-3 border-top">
-            <nav aria-label="Paginación de usuarios">
-                <ul class="pagination justify-content-center mb-0">
-                    {% if usuarios.has_previous %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page=1&q={{ query }}&estado={{ estado_filter }}&rol={{ rol_filter }}&per_page={{ per_page }}">Primera</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ usuarios.previous_page_number }}&q={{ query }}&estado={{ estado_filter }}&rol={{ rol_filter }}&per_page={{ per_page }}">Anterior</a>
-                        </li>
-                    {% endif %}
-
-                    <li class="page-item active">
-                        <span class="page-link">
-                            Página {{ usuarios.number }} de {{ usuarios.paginator.num_pages }}
-                        </span>
-                    </li>
-
-                    {% if usuarios.has_next %}
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ usuarios.next_page_number }}&q={{ query }}&estado={{ estado_filter }}&rol={{ rol_filter }}&per_page={{ per_page }}">Siguiente</a>
-                        </li>
-                        <li class="page-item">
-                            <a class="page-link" href="?page={{ usuarios.paginator.num_pages }}&q={{ query }}&estado={{ estado_filter }}&rol={{ rol_filter }}&per_page={{ per_page }}">Última</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </nav>
+            {% include 'components/paginator.html' with page_obj=usuarios item_name='usuarios' query_params='&q='|add:query|add:'&estado='|add:estado_filter|add:'&rol='|add:rol_filter|add:'&per_page='|add:per_page button_color='#7c3aed' %}
         </div>
-        {% endif %}
     </div>
 </div>
 {% endblock %}

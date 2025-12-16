@@ -111,27 +111,7 @@
             </div>
 
             <!-- Paginación -->
-            {% if page_obj.has_other_pages %}
-            <nav>
-                <ul class="pagination justify-content-center">
-                    {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&query={{ query }}&estado={{ estado }}&forma_pago={{ forma_pago }}">Anterior</a>
-                    </li>
-                    {% endif %}
-
-                    <li class="page-item active">
-                        <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-                    </li>
-
-                    {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&query={{ query }}&estado={{ estado }}&forma_pago={{ forma_pago }}">Siguiente</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
-            {% endif %}
+            {% include 'components/paginator.html' with page_obj=page_obj item_name='ventas' query_params='&query='|add:query|add:'&estado='|add:estado|add:'&forma_pago='|add:forma_pago button_color='#059669' %}
         </div>
     </div>
 </div>

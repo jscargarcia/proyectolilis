@@ -156,9 +156,7 @@
         <div class="col-md-3">
             <div class="stats-card">
                 <div class="stats-number text-success">
-                    {% for categoria in categorias %}
-                        {% if categoria.activo %}{{ forloop.counter0|add:1 }}{% endif %}
-                    {% empty %}0{% endfor %}
+                    {{ categorias_activas|default:0 }}
                 </div>
                 <div>Activas</div>
             </div>
@@ -166,9 +164,7 @@
         <div class="col-md-3">
             <div class="stats-card">
                 <div class="stats-number text-info">
-                    {% for categoria in categorias %}
-                        {% if categoria.categoria_padre %}{{ forloop.counter0|add:1 }}{% endif %}
-                    {% empty %}0{% endfor %}
+                    {{ subcategorias|default:0 }}
                 </div>
                 <div>Subcategorías</div>
             </div>
@@ -176,9 +172,7 @@
         <div class="col-md-3">
             <div class="stats-card">
                 <div class="stats-number text-warning">
-                    {% for categoria in categorias %}
-                        {% if not categoria.activo %}{{ forloop.counter0|add:1 }}{% endif %}
-                    {% empty %}0{% endfor %}
+                    {{ categorias_inactivas|default:0 }}
                 </div>
                 <div>Inactivas</div>
             </div>
@@ -295,6 +289,9 @@
                 </tbody>
             </table>
         </div>
+        
+        <!-- Paginación -->
+        {% include 'components/paginator.html' with page_obj=categorias item_name='categorías' query_params='' button_color='#059669' %}
     </div>
 </div>
 {% endblock %}

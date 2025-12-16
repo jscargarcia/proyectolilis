@@ -27,18 +27,28 @@
     <!-- Filtros -->
     <div class="card mb-4">
         <div class="card-body">
-            <form method="get" class="row g-3">
-                <div class="col-md-6">
+            <form method="get" class="row g-3" id="filter-form">
+                <div class="col-md-5">
                     <label class="form-label">Buscar</label>
                     <input type="text" name="query" class="form-control" 
                            placeholder="RUT, Razón Social, Nombre Fantasía..." value="{{ query }}">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <label class="form-label">Estado</label>
                     <select name="estado" class="form-select">
                         <option value="">Todos</option>
                         <option value="ACTIVO" {% if estado == 'ACTIVO' %}selected{% endif %}>Activo</option>
                         <option value="BLOQUEADO" {% if estado == 'BLOQUEADO' %}selected{% endif %}>Bloqueado</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label"><i class="fas fa-list me-1"></i>Mostrar</label>
+                    <select class="form-select" name="items_per_page" id="items-select">
+                        {% for option in items_per_page_options %}
+                        <option value="{{ option }}" {% if items_per_page == option %}selected{% endif %}>
+                            {{ option }} items
+                        </option>
+                        {% endfor %}
                     </select>
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
@@ -113,27 +123,7 @@
             </div>
 
             <!-- Paginación -->
-            {% if page_obj.has_other_pages %}
-            <nav>
-                <ul class="pagination justify-content-center">
-                    {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}&query={{ query }}&estado={{ estado }}">Anterior</a>
-                    </li>
-                    {% endif %}
-
-                    <li class="page-item active">
-                        <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-                    </li>
-
-                    {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a class="page-link" href="?page={{ page_obj.next_page_number }}&query={{ query }}&estado={{ estado }}">Siguiente</a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
-            {% endif %}
+            {% include 'components/paginator.html' with page_obj=page_obj item_name='proveedores' query_params='&query='|add:query|add:'&estado='|add:estado button_color='#059669' %}
         </div>
     </div>
 </div>
@@ -245,6 +235,14 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+    
+    // Auto-submit al cambiar items por página
+    const itemsSelect = document.getElementById('items-select');
+    if (itemsSelect) {
+        itemsSelect.addEventListener('change', function() {
+            document.getElementById('filter-form').submit();
+        });
+    }
 });
 </script>
 {% endblock %}

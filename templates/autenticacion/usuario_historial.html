@@ -255,33 +255,9 @@
                 </div>
 
                 <!-- Paginación -->
-                {% if page_obj.has_other_pages %}
-                    <nav aria-label="Paginación del historial">
-                        <ul class="pagination justify-content-center">
-                            {% if page_obj.has_previous %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page=1{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_fecha_desde %}&fecha_desde={{ filtro_fecha_desde }}{% endif %}{% if filtro_fecha_hasta %}&fecha_hasta={{ filtro_fecha_hasta }}{% endif %}">Primera</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_fecha_desde %}&fecha_desde={{ filtro_fecha_desde }}{% endif %}{% if filtro_fecha_hasta %}&fecha_hasta={{ filtro_fecha_hasta }}{% endif %}">Anterior</a>
-                                </li>
-                            {% endif %}
-
-                            <li class="page-item active">
-                                <span class="page-link">{{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
-                            </li>
-
-                            {% if page_obj.has_next %}
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_fecha_desde %}&fecha_desde={{ filtro_fecha_desde }}{% endif %}{% if filtro_fecha_hasta %}&fecha_hasta={{ filtro_fecha_hasta }}{% endif %}">Siguiente</a>
-                                </li>
-                                <li class="page-item">
-                                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_fecha_desde %}&fecha_desde={{ filtro_fecha_desde }}{% endif %}{% if filtro_fecha_hasta %}&fecha_hasta={{ filtro_fecha_hasta }}{% endif %}">Última</a>
-                                </li>
-                            {% endif %}
-                        </ul>
-                    </nav>
-                {% endif %}
+                <div class="mt-3">
+                    {% include 'components/paginator.html' with page_obj=page_obj item_name='actividades' query_params='&tipo='|add:filtro_tipo|add:'&fecha_desde='|add:filtro_fecha_desde|add:'&fecha_hasta='|add:filtro_fecha_hasta button_color='#6366f1' %}
+                </div>
                 
             {% else %}
                 <div class="text-center py-5">

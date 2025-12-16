@@ -298,6 +298,8 @@
                                id="factor_conversion" 
                                name="factor_conversion" 
                                step="0.0001"
+                               min="0"
+                               oninput="this.value = this.value.replace(/[+-]/g, '')"
                                value="{{ producto.factor_conversion|default:'1.0000' }}">
                         <div class="help-text">Factor conversión entre unidades (ej: 1 caja = 12 unidades)</div>
                     </div>
@@ -318,6 +320,7 @@
                                    name="costo_estandar" 
                                    step="0.01"
                                    min="0"
+                                   oninput="this.value = this.value.replace(/[+-]/g, '')"
                                    value="{{ producto.costo_estandar|default:'' }}">
                         </div>
                         <div class="help-text">Costo de adquisición del producto</div>
@@ -334,6 +337,7 @@
                                    name="precio_venta" 
                                    step="0.01"
                                    min="0"
+                                   oninput="this.value = this.value.replace(/[+-]/g, '')"
                                    value="{{ producto.precio_venta|default:0 }}"
                                    required>
                         </div>
@@ -351,6 +355,7 @@
                                    step="0.01"
                                    min="0"
                                    max="100"
+                                   oninput="this.value = this.value.replace(/[+-]/g, '')"
                                    value="{{ producto.impuesto_iva|default:'19.00' }}">
                             <span class="input-group-text">%</span>
                         </div>
@@ -372,6 +377,7 @@
                                name="stock_minimo" 
                                step="1"
                                min="0"
+                               oninput="this.value = this.value.replace(/[+-]/g, '')"
                                value="{{ producto.stock_minimo }}">
                         <div class="help-text">Cantidad mínima en inventario</div>
                         <div class="invalid-feedback" id="stock_minimo-error"></div>
@@ -385,6 +391,7 @@
                                name="stock_maximo" 
                                step="1"
                                min="0"
+                               oninput="this.value = this.value.replace(/[+-]/g, '')"
                                value="{{ producto.stock_maximo|default:100 }}">
                         <div class="help-text">Cantidad máxima recomendada</div>
                     </div>
@@ -397,6 +404,7 @@
                                name="punto_reorden" 
                                step="1"
                                min="0"
+                               oninput="this.value = this.value.replace(/[+-]/g, '')"
                                value="{{ producto.punto_reorden|default:'' }}">
                         <div class="help-text">Punto para generar orden de compra</div>
                     </div>

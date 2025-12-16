@@ -43,15 +43,15 @@ Este sistema implementa un conjunto completo de pruebas funcionales, de segurida
 
 ### 1. **Bloqueo de Cuentas** 
 ```bash
-python probar_bloqueo_cuenta.py --ver usuario
-python probar_bloqueo_cuenta.py --resetear usuario
-python probar_bloqueo_cuenta.py --bloquear usuario
+.\env\Scripts\python.exe probar_bloqueo_cuenta.py --ver usuario
+.\env\Scripts\python.exe probar_bloqueo_cuenta.py --resetear usuario
+.\env\Scripts\python.exe probar_bloqueo_cuenta.py --bloquear usuario
 ```
 **Propósito**: Gestionar y probar el sistema de bloqueo de cuentas (caso S-AUT-01)
 
 ### 2. **Errores 403 - Permisos**
 ```bash
-python probar_errores_403.py
+.\env\Scripts\python.exe probar_errores_403.py
 ```
 **Propósito**: Probar el sistema de permisos y control de acceso (casos S-ROL-01, S-ROL-02)
 
@@ -80,7 +80,7 @@ python generate_stress_test_data.py --productos 10000
 
 ### 4. **Passwords Temporales**
 ```bash
-python probar_passwords_temporales.py
+.\env\Scripts\python.exe probar_passwords_temporales.py
 ```
 **Propósito**: Verificar generación robusta de passwords temporales (casos F-PASS-TEMP-01/02)
 
@@ -180,33 +180,33 @@ Requieren integración en UI de administración:
 #### Bloqueo de Cuenta
 ```bash
 # Ver estado de un usuario
-python probar_bloqueo_cuenta.py --ver admin
+.\env\Scripts\python.exe probar_bloqueo_cuenta.py --ver admin
 
 # Intentar 3 veces con password incorrecta para activar bloqueo
 # Luego resetear:
-python probar_bloqueo_cuenta.py --resetear admin
+.\env\Scripts\python.exe probar_bloqueo_cuenta.py --resetear admin
 ```
 
 #### Passwords Temporales
 ```bash
-python probar_passwords_temporales.py
+.\env\Scripts\python.exe probar_passwords_temporales.py
 ```
 
 #### Control de Acceso
 ```bash
-python probar_errores_403.py
+.\env\Scripts\python.exe probar_errores_403.py
 ```
 
 ### Paso 3: Pruebas de Stress (Opcional)
 ```bash
 # Generar 10K productos
-python generate_stress_test_data.py --productos 10000
+.\env\Scripts\python.exe generate_stress_test_data.py --productos 10000
 
 # Probar búsqueda y paginación en el navegador
 # http://localhost:8000/maestros/productos/
 
 # Limpiar datos
-python generate_stress_test_data.py --clean
+.\env\Scripts\python.exe generate_stress_test_data.py --clean
 ```
 
 ### Paso 4: Auditoría
