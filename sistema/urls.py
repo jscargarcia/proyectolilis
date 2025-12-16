@@ -8,8 +8,10 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     
     # Carrito
-    path('carrito/', views.carrito_listar, name='carrito_listar'),
+    path('carrito/', views.carrito_ver, name='carrito_ver'),
+    path('carrito/listar/', views.carrito_listar, name='carrito_listar'),
     path('carrito/agregar/', views.carrito_agregar, name='carrito_agregar'),
+    path('carrito/actualizar/<str:item_id>/', views.carrito_actualizar_cantidad, name='carrito_actualizar_cantidad'),
     path('carrito/eliminar/<str:item_id>/', views.carrito_eliminar, name='carrito_eliminar'),
     path('carrito/vaciar/', views.carrito_vaciar, name='carrito_vaciar'),
     path('carrito/count/', views.carrito_count, name='carrito_count'),

@@ -1,0 +1,407 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Carrito de Compras - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-shopping-cart text-red-600 me-2"></i>Carrito de Compras
+                </h2>
+                <a href="{% url 'catalogo:tienda_productos' %}" class="btn btn-outline-red-600">
+                    <i class="fas fa-store me-1"></i>Seguir Comprando
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Lista de Productos en el Carrito -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-red-600 text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Productos (<span id="totalItems">{{ carrito|length }}</span>)
+                    </h5>
+                </div>
+                <div class="card-body" id="carritoItems">
+                    {% if carrito %}
+                        {% for item in carrito %}
+                        <div class="cart-item border-bottom pb-3 mb-3" data-item-id="{{ item.id }}">
+                            <div class="row align-items-center">
+                                <!-- Código/Nombre del Producto -->
+                                <div class="col-md-5">
+                                    <div class="d-flex align-items-center">
+                                        <div class="cart-item-icon me-3">
+                                            <i class="fas fa-box fa-2x text-red-600"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="mb-1">{{ item.nombre }}</h6>
+                                            <small class="text-muted">
+                                                <i class="fas fa-barcode me-1"></i>{{ item.codigo }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Precio Unitario -->
+                                <div class="col-md-2 text-center">
+                                    <small class="text-muted d-block">Precio</small>
+                                    <strong class="text-red-600">${{ item.precio|floatformat:0 }}</strong>
+                                </div>
+
+                                <!-- Cantidad -->
+                                <div class="col-md-3 text-center">
+                                    <small class="text-muted d-block mb-1">Cantidad</small>
+                                    <div class="input-group input-group-sm" style="max-width: 130px; margin: 0 auto;">
+                                        <button class="btn btn-outline-secondary" type="button" 
+                                                onclick="cambiarCantidad({{ item.id }}, -1)">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" class="form-control text-center cantidad-input" 
+                                               value="{{ item.cantidad }}" 
+                                               min="1" 
+                                               data-item-id="{{ item.id }}"
+                                               onchange="actualizarCantidad({{ item.id }}, this.value)">
+                                        <button class="btn btn-outline-secondary" type="button" 
+                                                onclick="cambiarCantidad({{ item.id }}, 1)">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- Subtotal -->
+                                <div class="col-md-2 text-end">
+                                    <small class="text-muted d-block">Subtotal</small>
+                                    <strong class="item-subtotal">${{ item.subtotal|floatformat:0 }}</strong>
+                                    <button class="btn btn-sm btn-outline-danger mt-2" 
+                                            onclick="eliminarItem({{ item.id }}, '{{ item.nombre }}')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+
+                        <!-- Botón Vaciar Carrito -->
+                        <div class="text-end mt-3">
+                            <button class="btn btn-outline-danger" onclick="vaciarCarrito()">
+                                <i class="fas fa-trash-alt me-1"></i>Vaciar Carrito
+                            </button>
+                        </div>
+                    {% else %}
+                        <div class="empty-cart text-center py-5">
+                            <i class="fas fa-shopping-cart fa-5x text-muted mb-3"></i>
+                            <h4 class="text-muted">Tu carrito está vacío</h4>
+                            <p class="text-muted">Agrega productos desde la tienda</p>
+                            <a href="{% url 'catalogo:tienda_productos' %}" class="btn btn-red-600 text-white mt-3">
+                                <i class="fas fa-store me-1"></i>Ir a la Tienda
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Resumen del Carrito -->
+        <div class="col-lg-4">
+            <div class="card shadow-sm border-0 mb-4 sticky-top" style="top: 20px;">
+                <div class="card-header bg-red-600 text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-calculator me-2"></i>Resumen del Pedido
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if carrito %}
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <strong id="subtotalAmount">${{ subtotal|floatformat:0 }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>IVA (19%):</span>
+                        <strong id="ivaAmount">${{ iva|floatformat:0 }}</strong>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between mb-3">
+                        <h5>Total:</h5>
+                        <h5 class="text-red-600" id="totalAmount">${{ total|floatformat:0 }}</h5>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-red-600 text-white btn-lg" onclick="procesarCompra()">
+                            <i class="fas fa-credit-card me-1"></i>Procesar Compra
+                        </button>
+                        <a href="{% url 'catalogo:tienda_productos' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left me-1"></i>Seguir Comprando
+                        </a>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center mb-0">No hay productos en el carrito</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-info-circle text-red-600 me-1"></i>Información
+                    </h6>
+                    <ul class="list-unstyled mb-0 small text-muted">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-1"></i>
+                            Envío gratis en compras superiores a $100.000
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-1"></i>
+                            Garantía de satisfacción
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-1"></i>
+                            Pago seguro
+                        </li>
+                        <li>
+                            <i class="fas fa-check text-success me-1"></i>
+                            Devolución en 30 días
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-red-600 {
+    background-color: #dc2626;
+    border-color: #dc2626;
+}
+
+.btn-red-600:hover {
+    background-color: #b91c1c;
+    border-color: #b91c1c;
+}
+
+.btn-outline-red-600 {
+    color: #dc2626;
+    border-color: #dc2626;
+}
+
+.btn-outline-red-600:hover {
+    background-color: #dc2626;
+    border-color: #dc2626;
+    color: white;
+}
+
+.bg-red-600 {
+    background-color: #dc2626 !important;
+}
+
+.text-red-600 {
+    color: #dc2626 !important;
+}
+
+.cart-item {
+    transition: background-color 0.3s ease;
+}
+
+.cart-item:hover {
+    background-color: #f9fafb;
+}
+
+.cantidad-input {
+    max-width: 60px;
+}
+
+.cart-item-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fee2e2;
+    border-radius: 8px;
+}
+
+.empty-cart {
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+</style>
+
+<script>
+function cambiarCantidad(itemId, delta) {
+    const input = document.querySelector(`input[data-item-id="${itemId}"]`);
+    const nuevaCantidad = parseInt(input.value) + delta;
+    
+    if (nuevaCantidad < 1) {
+        eliminarItem(itemId);
+        return;
+    }
+    
+    actualizarCantidad(itemId, nuevaCantidad);
+}
+
+function actualizarCantidad(itemId, cantidad) {
+    cantidad = parseInt(cantidad);
+    
+    if (cantidad < 1) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Cantidad inválida',
+            text: 'La cantidad debe ser mayor a 0'
+        });
+        return;
+    }
+
+    fetch(`/api/carrito/actualizar/${itemId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            cantidad: cantidad
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Actualizar la vista
+            location.reload();
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message || 'No se pudo actualizar la cantidad'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Ocurrió un error al actualizar la cantidad'
+        });
+    });
+}
+
+function eliminarItem(itemId, nombreProducto = '') {
+    Swal.fire({
+        title: '¿Eliminar producto?',
+        html: nombreProducto ? `¿Deseas eliminar <strong>${nombreProducto}</strong> del carrito?` : '¿Deseas eliminar este producto del carrito?',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="fas fa-trash me-1"></i>Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(`/api/carrito/eliminar/${itemId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Producto eliminado',
+                        showConfirmButton: false,
+                        timer: 1500,
+                        toast: true,
+                        position: 'top-end'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'No se pudo eliminar el producto'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Ocurrió un error al eliminar el producto'
+                });
+            });
+        }
+    });
+}
+
+function vaciarCarrito() {
+    Swal.fire({
+        title: '¿Vaciar carrito?',
+        text: 'Se eliminarán todos los productos del carrito',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc2626',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: '<i class="fas fa-trash-alt me-1"></i>Sí, vaciar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch('/api/carrito/vaciar/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Carrito vaciado',
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message || 'No se pudo vaciar el carrito'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Ocurrió un error al vaciar el carrito'
+                });
+            });
+        }
+    });
+}
+
+function procesarCompra() {
+    Swal.fire({
+        title: 'Función en desarrollo',
+        html: 'La funcionalidad de procesar compra estará disponible próximamente.<br><br>Por ahora, el carrito permite:<br>• Agregar productos<br>• Modificar cantidades<br>• Eliminar productos',
+        icon: 'info',
+        confirmButtonColor: '#dc2626',
+        confirmButtonText: 'Entendido'
+    });
+}
+</script>
+{% endblock %}

@@ -862,6 +862,20 @@
                                 </ul>
                             </li>
                         {% endif %}
+                        
+                        <!-- Tienda - Visible para todos los usuarios -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'catalogo:tienda_productos' %}">
+                                <i class="fas fa-store"></i> Tienda
+                            </a>
+                        </li>
+                    {% else %}
+                        <!-- Tienda - Visible para usuarios no autenticados -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'catalogo:tienda_productos' %}">
+                                <i class="fas fa-store"></i> Tienda
+                            </a>
+                        </li>
                     {% endif %}
                 </ul>
                 
@@ -877,9 +891,9 @@
                         
                         <!-- Carrito -->
                         <li class="nav-item">
-                            <a class="nav-link" href="#" onclick="mostrarCarrito(); return false;">
+                            <a class="nav-link position-relative" href="{% url 'api:carrito_ver' %}">
                                 <i class="fas fa-shopping-cart"></i>
-                                <span class="badge bg-danger" id="cartCount">0</span>
+                                <span class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle d-none" id="carritoCount" style="font-size: 0.7rem;">0</span>
                             </a>
                         </li>
                         
@@ -1109,7 +1123,15 @@
             fetch('/api/carrito/count/')
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('cartCount').textContent = data.count || 0;
+                    const badge = document.getElementById('carritoCount');
+                    if (badge) {
+                        badge.textContent = data.count || 0;
+                        if (data.count > 0) {
+                            badge.classList.remove('d-none');
+                        } else {
+                            badge.classList.add('d-none');
+                        }
+                    }
                 })
                 .catch(error => console.log('Error al obtener contador de carrito'));
             

@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tienda - {{ block.super }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Sidebar de Filtros -->
+        <div class="col-lg-3 col-md-4 mb-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-red-600 text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>Filtros
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" id="filtrosForm">
+                        <!-- Búsqueda -->
+                        <div class="mb-4">
+                            <label for="query" class="form-label fw-bold">
+                                <i class="fas fa-search me-1"></i>Buscar
+                            </label>
+                            <input type="text" class="form-control" id="query" name="query" 
+                                   value="{{ request.GET.query }}" 
+                                   placeholder="Nombre o código...">
+                        </div>
+
+                        <!-- Categoría -->
+                        <div class="mb-4">
+                            <label for="categoria" class="form-label fw-bold">
+                                <i class="fas fa-tags me-1"></i>Categoría
+                            </label>
+                            <select class="form-select" id="categoria" name="categoria">
+                                <option value="">Todas las categorías</option>
+                                {% for cat in categorias %}
+                                <option value="{{ cat.id }}" {% if request.GET.categoria|stringformat:"s" == cat.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ cat.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Marca -->
+                        <div class="mb-4">
+                            <label for="marca" class="form-label fw-bold">
+                                <i class="fas fa-copyright me-1"></i>Marca
+                            </label>
+                            <select class="form-select" id="marca" name="marca">
+                                <option value="">Todas las marcas</option>
+                                {% for m in marcas %}
+                                <option value="{{ m.id }}" {% if request.GET.marca|stringformat:"s" == m.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ m.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Ordenar -->
+                        <div class="mb-4">
+                            <label for="orden" class="form-label fw-bold">
+                                <i class="fas fa-sort me-1"></i>Ordenar por
+                            </label>
+                            <select class="form-select" id="orden" name="orden">
+                                <option value="nombre" {% if request.GET.orden == 'nombre' or not request.GET.orden %}selected{% endif %}>
+                                    Nombre A-Z
+                                </option>
+                                <option value="-nombre" {% if request.GET.orden == '-nombre' %}selected{% endif %}>
+                                    Nombre Z-A
+                                </option>
+                                <option value="precio_venta" {% if request.GET.orden == 'precio_venta' %}selected{% endif %}>
+                                    Precio: Menor a Mayor
+                                </option>
+                                <option value="-precio_venta" {% if request.GET.orden == '-precio_venta' %}selected{% endif %}>
+                                    Precio: Mayor a Menor
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-red-600 text-white">
+                                <i class="fas fa-filter me-1"></i>Aplicar Filtros
+                            </button>
+                            <a href="{% url 'catalogo:tienda_productos' %}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times me-1"></i>Limpiar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lista de Productos -->
+        <div class="col-lg-9 col-md-8">
+            <!-- Header -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-store text-red-600 me-2"></i>Tienda de Productos
+                </h2>
+                <span class="badge bg-red-600 fs-6">
+                    {{ paginator.count }} producto{{ paginator.count|pluralize }}
+                </span>
+            </div>
+
+            {% if productos %}
+            <!-- Grid de Productos -->
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4 mb-4">
+                {% for producto in productos %}
+                <div class="col">
+                    <div class="card h-100 shadow-sm hover-shadow transition">
+                        <!-- Imagen del Producto -->
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                             style="height: 200px; overflow: hidden;">
+                            {% if producto.imagen %}
+                            <img src="{{ producto.imagen.url }}" 
+                                 alt="{{ producto.nombre }}" 
+                                 class="img-fluid"
+                                 style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                            {% else %}
+                            <i class="fas fa-box-open fa-4x text-muted"></i>
+                            {% endif %}
+                        </div>
+
+                        <div class="card-body d-flex flex-column">
+                            <!-- Código -->
+                            <small class="text-muted">
+                                <i class="fas fa-barcode me-1"></i>{{ producto.codigo }}
+                            </small>
+
+                            <!-- Nombre -->
+                            <h6 class="card-title mt-2 mb-2">{{ producto.nombre }}</h6>
+
+                            <!-- Categoría y Marca -->
+                            <div class="mb-2">
+                                {% if producto.categoria %}
+                                <span class="badge bg-secondary badge-sm">
+                                    <i class="fas fa-tag me-1"></i>{{ producto.categoria.nombre }}
+                                </span>
+                                {% endif %}
+                                {% if producto.marca %}
+                                <span class="badge bg-info badge-sm">
+                                    <i class="fas fa-copyright me-1"></i>{{ producto.marca.nombre }}
+                                </span>
+                                {% endif %}
+                            </div>
+
+                            <!-- Precio -->
+                            <div class="mb-3 mt-auto">
+                                <h5 class="text-red-600 mb-0">
+                                    ${{ producto.precio_venta|floatformat:0 }}
+                                </h5>
+                            </div>
+
+                            <!-- Botón Agregar -->
+                            <button class="btn btn-red-600 text-white btn-sm w-100" 
+                                    onclick="agregarAlCarrito({{ producto.id }}, '{{ producto.nombre }}', {{ producto.precio_venta }}, '{{ producto.codigo }}')">
+                                <i class="fas fa-cart-plus me-1"></i>Agregar al Carrito
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Paginación -->
+            {% if paginator.num_pages > 1 %}
+            <nav aria-label="Paginación de productos">
+                <ul class="pagination justify-content-center">
+                    <!-- Primera Página -->
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.categoria %}categoria={{ request.GET.categoria }}&{% endif %}{% if request.GET.marca %}marca={{ request.GET.marca }}&{% endif %}{% if request.GET.orden %}orden={{ request.GET.orden }}&{% endif %}page=1" aria-label="Primera">
+                            <span aria-hidden="true"><i class="fas fa-angle-double-left"></i></span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.categoria %}categoria={{ request.GET.categoria }}&{% endif %}{% if request.GET.marca %}marca={{ request.GET.marca }}&{% endif %}{% if request.GET.orden %}orden={{ request.GET.orden }}&{% endif %}page={{ page_obj.previous_page_number }}" aria-label="Anterior">
+                            <span aria-hidden="true"><i class="fas fa-angle-left"></i></span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="fas fa-angle-double-left"></i></span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="fas fa-angle-left"></i></span>
+                    </li>
+                    {% endif %}
+
+                    <!-- Números de Página -->
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link bg-red-600 border-red-600">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.categoria %}categoria={{ request.GET.categoria }}&{% endif %}{% if request.GET.marca %}marca={{ request.GET.marca }}&{% endif %}{% if request.GET.orden %}orden={{ request.GET.orden }}&{% endif %}page={{ num }}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    <!-- Última Página -->
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.categoria %}categoria={{ request.GET.categoria }}&{% endif %}{% if request.GET.marca %}marca={{ request.GET.marca }}&{% endif %}{% if request.GET.orden %}orden={{ request.GET.orden }}&{% endif %}page={{ page_obj.next_page_number }}" aria-label="Siguiente">
+                            <span aria-hidden="true"><i class="fas fa-angle-right"></i></span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?{% if request.GET.query %}query={{ request.GET.query }}&{% endif %}{% if request.GET.categoria %}categoria={{ request.GET.categoria }}&{% endif %}{% if request.GET.marca %}marca={{ request.GET.marca }}&{% endif %}{% if request.GET.orden %}orden={{ request.GET.orden }}&{% endif %}page={{ paginator.num_pages }}" aria-label="Última">
+                            <span aria-hidden="true"><i class="fas fa-angle-double-right"></i></span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="fas fa-angle-right"></i></span>
+                    </li>
+                    <li class="page-item disabled">
+                        <span class="page-link"><i class="fas fa-angle-double-right"></i></span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+
+            <!-- Info de Paginación -->
+            <div class="text-center text-muted mb-4">
+                Mostrando {{ page_obj.start_index }} - {{ page_obj.end_index }} de {{ paginator.count }} productos
+            </div>
+            {% endif %}
+
+            {% else %}
+            <!-- Sin Productos -->
+            <div class="alert alert-info d-flex align-items-center" role="alert">
+                <i class="fas fa-info-circle fa-2x me-3"></i>
+                <div>
+                    <h5 class="alert-heading">No se encontraron productos</h5>
+                    <p class="mb-0">Intenta ajustar los filtros o buscar con otros términos.</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-red-600 {
+    background-color: #dc2626;
+    border-color: #dc2626;
+}
+
+.btn-red-600:hover {
+    background-color: #b91c1c;
+    border-color: #b91c1c;
+}
+
+.bg-red-600 {
+    background-color: #dc2626 !important;
+}
+
+.text-red-600 {
+    color: #dc2626 !important;
+}
+
+.border-red-600 {
+    border-color: #dc2626 !important;
+}
+
+.hover-shadow {
+    transition: all 0.3s ease;
+}
+
+.hover-shadow:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.badge-sm {
+    font-size: 0.7rem;
+}
+
+.page-link {
+    color: #dc2626;
+}
+
+.page-link:hover {
+    color: #b91c1c;
+    background-color: #fee2e2;
+}
+
+.page-item.active .page-link {
+    background-color: #dc2626;
+    border-color: #dc2626;
+}
+</style>
+
+<script>
+function agregarAlCarrito(productoId, nombre, precio, codigo) {
+    fetch('/api/carrito/agregar/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            producto_id: productoId,
+            cantidad: 1
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Actualizar contador del carrito
+            actualizarContadorCarrito();
+            
+            // Mostrar mensaje de éxito
+            Swal.fire({
+                icon: 'success',
+                title: '¡Producto agregado!',
+                html: `<strong>${nombre}</strong> se agregó al carrito`,
+                showConfirmButton: false,
+                timer: 1500,
+                toast: true,
+                position: 'top-end'
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: data.message || 'No se pudo agregar el producto'
+            });
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Ocurrió un error al agregar el producto'
+        });
+    });
+}
+
+function actualizarContadorCarrito() {
+    fetch('/api/carrito/count/')
+        .then(response => response.json())
+        .then(data => {
+            const badge = document.getElementById('carritoCount');
+            if (badge) {
+                badge.textContent = data.count;
+                if (data.count > 0) {
+                    badge.classList.remove('d-none');
+                } else {
+                    badge.classList.add('d-none');
+                }
+            }
+        })
+        .catch(error => console.error('Error:', error));
+}
+
+// Actualizar contador al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    actualizarContadorCarrito();
+});
+</script>
+{% endblock %}

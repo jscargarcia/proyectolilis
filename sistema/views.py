@@ -91,7 +91,6 @@ def _check_user_permission(user, permission_name):
     return False
 
 
-@login_required_custom
 def carrito_agregar(request):
     """Agregar item al carrito en la sesión"""
     if request.method == 'POST':
@@ -145,7 +144,6 @@ def carrito_agregar(request):
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
 
-@login_required_custom
 def carrito_listar(request):
     """Listar items del carrito"""
     carrito = request.session.get('carrito', [])
@@ -158,12 +156,13 @@ def carrito_listar(request):
     })
 
 
-@login_required_custom
 def carrito_eliminar(request, item_id):
     """Eliminar item del carrito"""
     if 'carrito' in request.session:
         carrito = request.session['carrito']
-        carrito = [item for item in carrito if item['id'] != item_id]
+        # Convertir item_id a string para comparación consistente
+        item_id_str = str(item_id)
+        carrito = [item for item in carrito if str(item['id']) != item_id_str]
         request.session['carrito'] = carrito
         request.session.modified = True
         
@@ -176,7 +175,6 @@ def carrito_eliminar(request, item_id):
     return JsonResponse({'error': 'Carrito vacío'}, status=404)
 
 
-@login_required_custom
 def carrito_vaciar(request):
     """Vaciar el carrito completo"""
     request.session['carrito'] = []
@@ -188,11 +186,75 @@ def carrito_vaciar(request):
     })
 
 
-@login_required_custom
 def carrito_count(request):
     """Obtener cantidad de items en el carrito"""
     count = len(request.session.get('carrito', []))
     return JsonResponse({'count': count})
+
+
+def carrito_ver(request):
+    """Vista HTML del carrito de compras"""
+    carrito = request.session.get('carrito', [])
+    
+    # Calcular subtotal por item y agregarlo a cada producto
+    for item in carrito:
+        item['subtotal'] = item['precio'] * item['cantidad']
+    
+    # Calcular totales - convertir a Decimal para evitar errores de tipo
+    subtotal = Decimal(str(sum(item['subtotal'] for item in carrito)))
+    iva = subtotal * Decimal('0.19')
+    total = subtotal + iva
+    
+    context = {
+        'carrito': carrito,
+        'subtotal': subtotal,
+        'iva': iva,
+        'total': total,
+        'count': len(carrito),
+    }
+    
+    return render(request, 'sistema/carrito.html', context)
+
+
+def carrito_actualizar_cantidad(request, item_id):
+    """Actualizar cantidad de un item en el carrito"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nueva_cantidad = int(data.get('cantidad', 1))
+            
+            if nueva_cantidad < 1:
+                return JsonResponse({'error': 'Cantidad debe ser al menos 1'}, status=400)
+            
+            if 'carrito' in request.session:
+                carrito = request.session['carrito']
+                # Convertir item_id a string para comparación consistente
+                item_id_str = str(item_id)
+                
+                for item in carrito:
+                    if str(item['id']) == item_id_str:
+                        item['cantidad'] = nueva_cantidad
+                        break
+                
+                request.session['carrito'] = carrito
+                request.session.modified = True
+                
+                # Calcular nuevos totales
+                subtotal = Decimal(str(sum(item['precio'] * item['cantidad'] for item in carrito)))
+                iva = subtotal * Decimal('0.19')
+                total = subtotal + iva
+                
+                return JsonResponse({
+                    'success': True,
+                    'subtotal': float(subtotal),
+                    'iva': float(iva),
+                    'total': float(total),
+                    'count': len(carrito)
+                })
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
 
 
 # ============= NOTIFICACIONES =============
