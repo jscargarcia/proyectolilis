@@ -1,0 +1,1354 @@
+# Sistema de Gestión - Dulcería Lilis
+
+Sistema de gestión desarrollado en Django para administración de productos, inventario, compras y ventas.
+
+## 🎯 Estado de Pruebas Funcionales
+
+✅ **94% Completado** - 51 de 54 casos de prueba implementados
+
+### Documentación de Pruebas
+- 📋 **[INDICE_PRUEBAS_FUNCIONALES.md](INDICE_PRUEBAS_FUNCIONALES.md)** - Índice principal con toda la información
+- 📖 **[GUIA_PRUEBAS_FUNCIONALES.md](GUIA_PRUEBAS_FUNCIONALES.md)** - Guía completa con 54 casos de prueba
+- ✅ **[CHECKLIST_PRUEBAS.md](CHECKLIST_PRUEBAS.md)** - Checklist visual de progreso
+- 📊 **[RESUMEN_IMPLEMENTACION_PRUEBAS.md](RESUMEN_IMPLEMENTACION_PRUEBAS.md)** - Resumen técnico detallado
+
+### Características Implementadas
+- ✅ Sistema de bloqueo de cuenta (3 intentos, 15 min)
+- ✅ Passwords temporales robustas (12 caracteres)
+- ✅ Auditoría completa de eventos críticos
+- ✅ Protección XSS y SQL Injection
+- ✅ Control de acceso por roles
+- ✅ Scripts de stress testing
+- ✅ Middleware de seguridad
+
+---
+
+## Requisitos 
+
+- Python 3.13+ 
+- MySQL 8.0+
+- Git 
+
+## Levantar el proyecto (desarrollo)
+1. Clonar el repo: 
+   - git clone https://github.com/jscargarcia/proyectolilis.git
+   - cd proyectolilis
+   
+2. Crear y activar entorno virtual:
+   - Windows (PowerShell)
+   -  python -m venv env
+   - .\env\Scripts\Activate.ps1
+   
+3. Instalar dependencias:
+   - pip install -r requirements.txt
+
+4. Congigurar Base de datos MYSQL:
+
+   - Crear la Base de Datos
+   - Abrir MySQL desde terminal o MySQL Workbench
+   - Conectarse a MySQL
+   - mysql -u root -p
+
+CREATE DATABASE empresa_lilis CHARACTER SET utf8 COLLATE utf8_general_ci;
+CREATE USER 'lily_user'@'localhost' IDENTIFIED BY 'lily_password123';
+GRANT ALL PRIVILEGES ON empresa_lilis.* TO 'lily_user'@'localhost';
+FLUSH PRIVILEGES;
+```
+
+### 2. Configurar Variables de Entorno
+
+Crear archivo `.env` en la raíz del proyecto basado en `.env.example`:
+
+```bash
+cp .env.example .env
+```
+
+Editar el archivo `.env` con tus configuraciones:
+
+```properties
+# Django
+SECRET_KEY=tu-clave-secreta-muy-larga-y-segura-para-produccion
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+
+# Base de Datos MySQL
+DB_ENGINE=django.db.backends.mysql
+DB_NAME=empresa_lilis
+DB_USER=lily_user
+DB_PASSWORD=lily_password123
+DB_HOST=localhost
+DB_PORT=3306
+
+# Configuración de negocio
+COMPANY_NAME=Dulcería Lilis
+DEFAULT_CURRENCY=CLP
+TIME_ZONE=America/Santiago
+LANGUAGE_CODE=es-cl
+```
+
+### 3. Instalar Dependencias
+
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Migrar Base de Datos
+
+```bash
+python manage.py migrate
+```
+
+### 5. Cargar Datos Iniciales
+
+```bash
+python seed_simple.py
+```
+
+### 6. Sincronizar Stock (Importante)
+
+Si ya tienes productos y bodegas creados, sincroniza el stock:
+
+```bash
+python manage.py sincronizar_stock
+```
+
+Este comando crea registros de stock para todos los productos en todas las bodegas activas.
+
+### 7. Iniciar el Servidor
+
+```bash
+python manage.py runserver
+```
+
+## � **SISTEMA DE TIENDA Y CARRITO DE COMPRAS (16 Diciembre 2025)**
+
+### ✅ **Tienda Online Completa Implementada**
+
+#### 🏪 **Características de la Tienda**
+- ✅ **Catálogo público de productos**: Vista moderna con tarjetas de productos
+- ✅ **Filtros avanzados**: Por categoría, marca y búsqueda de texto
+- ✅ **Ordenamiento flexible**: Por nombre, precio y fecha de publicación
+- ✅ **Paginación**: 12 productos por página para mejor navegación
+- ✅ **Diseño responsivo**: Compatible con móviles, tablets y escritorio
+- ✅ **Imágenes de productos**: Soporte para imágenes con fallback elegante
+- ✅ **Precios destacados**: Visualización clara con formato chileno
+
+#### 🛒 **Sistema de Carrito de Compras**
+- ✅ **Carrito en sesión**: No requiere cuenta para agregar productos
+- ✅ **Gestión completa**: Agregar, actualizar cantidad y eliminar productos
+- ✅ **Cálculo automático**: Subtotal, IVA (19%) y total
+- ✅ **Actualización en tiempo real**: AJAX para mejor experiencia
+- ✅ **Contador en navbar**: Muestra cantidad de productos en el carrito
+- ✅ **Botones intuitivos**: +/- para ajustar cantidades
+- ✅ **Confirmaciones elegantes**: SweetAlert2 para acciones importantes
+- ✅ **Vista detallada**: Resumen de compra con todos los totales
+
+#### 🎨 **Interfaz y Experiencia de Usuario**
+- ✅ **Diseño profesional**: Colores corporativos rosa (#e91e63)
+- ✅ **Animaciones suaves**: Hover effects y transiciones
+- ✅ **Mensajes informativos**: Alertas de éxito, error y confirmación
+- ✅ **Carrito vacío elegante**: Mensaje con llamado a acción
+- ✅ **Botones destacados**: Finalizar compra, seguir comprando, vaciar carrito
+
+#### 🔗 **URLs del Sistema de Tienda**
+```python
+# Tienda
+/catalogo/tienda/                    # Catálogo público de productos
+
+# Carrito
+/sistema/carrito/                    # Vista del carrito de compras
+/sistema/carrito/agregar/            # API para agregar productos (POST)
+/sistema/carrito/actualizar/<id>/    # API para actualizar cantidad (POST)
+/sistema/carrito/eliminar/<id>/      # API para eliminar producto (DELETE)
+/sistema/carrito/vaciar/             # API para vaciar carrito (POST)
+/sistema/carrito/count/              # API para obtener contador (GET)
+```
+
+#### 📊 **Funcionalidades API del Carrito**
+```javascript
+// Agregar producto al carrito
+fetch('/sistema/carrito/agregar/', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+    },
+    body: JSON.stringify({
+        item_id: productoId,
+        nombre: nombre,
+        precio: precio,
+        cantidad: 1
+    })
+});
+
+// Actualizar cantidad
+fetch(`/sistema/carrito/actualizar/${itemId}/`, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': csrfToken
+    },
+    body: JSON.stringify({ cantidad: nuevaCantidad })
+});
+
+// Eliminar producto
+fetch(`/sistema/carrito/eliminar/${itemId}/`, {
+    method: 'DELETE',
+    headers: { 'X-CSRFToken': csrfToken }
+});
+```
+
+#### 🎯 **Flujo de Compra del Usuario**
+1. **Navegar a la tienda**: Clic en "Tienda" en el menú principal
+2. **Explorar productos**: Usar filtros por categoría, marca o búsqueda
+3. **Agregar al carrito**: Clic en "Agregar al carrito" en producto deseado
+4. **Ver carrito**: Clic en "Ver Carrito" o en icono de carrito en navbar
+5. **Ajustar cantidades**: Usar botones +/- o input directo
+6. **Revisar totales**: Ver subtotal, IVA y total calculados automáticamente
+7. **Finalizar compra**: Botón "Finalizar Compra" (checkout próximamente)
+
+#### 🔧 **Características Técnicas**
+- **Backend**: Django 4.2.25 con vistas basadas en funciones
+- **Frontend**: Bootstrap 5 + SweetAlert2 + Fetch API
+- **Almacenamiento**: Sesiones de Django (no requiere DB para carrito)
+- **Validaciones**: Cliente y servidor para máxima seguridad
+- **Performance**: Carrito en memoria, sin consultas DB adicionales
+- **Escalabilidad**: Preparado para checkout y pasarelas de pago
+
+#### 💡 **Próximas Funcionalidades**
+- 🔄 **Checkout completo**: Formulario de datos de envío
+- 🔄 **Integración de pago**: Pasarela de pago (Transbank, PayPal)
+- 🔄 **Historial de compras**: Para usuarios registrados
+- 🔄 **Wishlist**: Lista de deseos de productos
+- 🔄 **Comparador**: Comparar productos lado a lado
+- 🔄 **Reseñas**: Sistema de valoraciones y comentarios
+
+#### 📁 **Archivos Creados/Modificados**
+- ✅ `catalogo/views.py` - Vista tienda_productos
+- ✅ `sistema/views.py` - Vistas carrito_ver y carrito_actualizar_cantidad
+- ✅ `catalogo/urls.py` - Ruta de tienda
+- ✅ `sistema/urls.py` - Rutas del carrito actualizadas
+- ✅ `templates/catalogo/tienda.html` - Template completo de tienda
+- ✅ `templates/sistema/carrito.html` - Template completo de carrito
+- ✅ `templates/base.html` - Navbar actualizado con enlaces de tienda y carrito
+
+---
+
+## �📦 Sistema de Inventario y Stock
+
+### Características del Sistema de Stock
+
+#### ✅ Asignación de Stock al Crear Productos
+- Al crear un producto, puedes asignar stock inicial a una bodega específica
+- Campo opcional: selecciona bodega y cantidad inicial
+- Si no seleccionas bodega, el producto se crea con stock 0 en todas las bodegas
+
+#### ✅ Sincronización Automática (Signals)
+- **Al crear un producto**: Se crean automáticamente registros de StockActual en todas las bodegas activas
+- **Al crear una bodega**: Se crean registros de stock para todos los productos activos
+- **Sistema reactivo**: Los cambios se propagan automáticamente
+
+#### ✅ Comando de Sincronización Retroactiva
+```bash
+python manage.py sincronizar_stock
+```
+**Cuándo usar:**
+- Después de agregar bodegas cuando ya tienes productos
+- Después de importar productos en lote
+- Para corregir inconsistencias en el stock
+- Al inicializar el sistema por primera vez
+
+**Qué hace:**
+- Crea registros de StockActual faltantes
+- No duplica registros existentes (usa get_or_create)
+- Muestra resumen: productos, bodegas, registros creados
+- Ejecuta en transacción atómica (seguro)
+
+#### ✅ Registro de Movimientos de Inventario
+- **Ingresos**: Registra entrada de productos a bodega
+  - Selecciona producto, bodega, cantidad
+  - Opción de agregar proveedor y costo unitario
+  - Documento de referencia (factura, guía)
+- **Salidas**: Registra salida de productos
+  - Valida stock disponible antes de permitir salida
+  - Muestra stock disponible en tiempo real
+  - Requiere motivo de salida
+
+#### ✅ Vista de Stock Actual
+- Lista completa de stock por producto y bodega
+- Filtros: producto, bodega, búsqueda por SKU/nombre
+- Muestra: cantidad disponible, reservada, en tránsito
+- Indicadores visuales: stock disponible, bajo, sin stock
+- Paginación de 50 registros por página
+- Exportación a Excel (próximamente)
+
+### Estructura de Bodegas
+
+El sistema incluye 3 bodegas por defecto:
+
+| Código | Nombre | Tipo | Descripción |
+|--------|--------|------|-------------|
+| BOD-001 | Bodega Principal | PRINCIPAL | Bodega matriz con mayor capacidad |
+| BOD-002 | Bodega Sucursal | SUCURSAL | Bodega en punto de venta |
+| BOD-003 | Bodega en Tránsito | TRANSITO | Para productos en movimiento |
+
+### Flujo de Trabajo Recomendado
+
+1. **Configuración Inicial**:
+   ```bash
+   python manage.py migrate
+   python seed_simple.py
+   python manage.py sincronizar_stock
+   ```
+
+2. **Crear Nuevos Productos**:
+   - Ir a Maestros → Productos → Crear
+   - Llenar datos básicos (SKU, nombre, precio)
+   - **Sección Stock Inicial**: Seleccionar bodega y cantidad
+   - El sistema crea automáticamente stock en todas las bodegas
+
+3. **Registrar Ingresos**:
+   - Inventario → Registrar Ingreso
+   - Seleccionar producto y bodega
+   - Ingresar cantidad y datos opcionales
+   - El stock se actualiza automáticamente
+
+4. **Consultar Stock**:
+   - Inventario → Stock Actual
+   - Usar filtros para buscar productos específicos
+   - Ver stock disponible por bodega en tiempo real
+
+### Solución de Problemas
+
+**Problema**: No veo stock para un producto
+- **Solución**: Ejecutar `python manage.py sincronizar_stock`
+
+**Problema**: Al crear producto no veo la opción de bodega
+- **Solución**: Verificar que existan bodegas activas en el sistema
+
+**Problema**: Error al registrar ingreso
+- **Solución**: Verificar que el producto y bodega existan y estén activos
+
+## Usuarios del Sistema
+
+El script de semillas crea automáticamente los siguientes usuarios:
+
+### 🔑 Usuarios del Sistema
+
+| Usuario | Contraseña | Rol | Permisos |
+|---------|------------|-----|----------|
+| **admin** | admin123 | Administrador | ✅ Acceso completo (CRUD total + gestión usuarios) |
+| **editor** | editor123 | Editor | ✅ Crear y editar ❌ No eliminar |
+| **lector** | lector123 | Lector | ✅ Solo visualización ❌ No crear/editar/eliminar |
+
+### 🏷️ Roles del Sistema
+- **Administrador**: Acceso completo al sistema (CRUD completo y gestión de usuarios)
+- **Editor**: Solo puede crear y editar elementos (no puede eliminar)
+- **Lector**: Solo puede visualizar datos (no puede crear, editar ni eliminar)
+
+## 🎨 SISTEMA DE ANIMACIONES Y DISEÑO PROFESIONAL
+
+### ✨ Nuevas Características Visuales (Noviembre 2025)
+
+#### 🎭 Sistema Completo de Animaciones
+- ✅ **CSS Animations**: 50+ animaciones profesionales personalizadas
+- ✅ **JavaScript Dinámico**: Clase `LilisAnimations` con efectos interactivos
+- ✅ **Animaciones de Entrada**: fade-in, slide-up, scale-in, bounce-in
+- ✅ **Efectos Hover**: lift, grow, glow, shake para mejor UX
+- ✅ **Animaciones Especiales**: sweet-bounce, candy-wiggle, sugar-sparkle
+- ✅ **Stagger Animation**: Efectos escalonados para elementos múltiples
+
+#### 🎨 Diseño Profesional Dulcería
+- ✅ **Paleta Rosa Profesional**: Colores consistentes para marca dulcería
+- ✅ **Efectos Glassmorphism**: Transparencias y blur modernos  
+- ✅ **Gradientes Elegantes**: Transiciones suaves en botones y cards
+- ✅ **Tipografía Optimizada**: Segoe UI con pesos y espaciados profesionales
+- ✅ **Componentes Mejorados**: Botones, cards, tablas, formularios renovados
+
+#### 🚀 Templates Actualizados con Animaciones
+- ✅ **Login**: Card animada con efectos profesionales
+- ✅ **Dashboard**: Estadísticas con stagger y hover effects
+- ✅ **Lista Productos**: Tabla animada y filtros glassmorphism
+- ✅ **Base Template**: Sistema integrado de animaciones
+
+#### 📁 Archivos de Animaciones Creados
+```
+static/css/
+├── animations.css              # 500+ líneas de animaciones CSS
+├── professional-components.css # Estilos profesionales mejorados
+static/js/
+└── animations.js              # Sistema JavaScript de animaciones
+
+SISTEMA_ANIMACIONES_COMPLETO.md # Documentación completa
+```
+
+#### 🎯 Características Técnicas
+- **Performance Optimizado**: GPU acceleration con transform/opacity
+- **Accessibility**: Respeta `prefers-reduced-motion`
+- **Responsive**: Animaciones adaptativas por dispositivo
+- **Modular**: Sistema de variables CSS reutilizable
+- **Cross-browser**: Compatible con navegadores modernos
+
+#### 🍭 Efectos Especiales Dulcería
+```css
+.sweet-bounce     /* Rebote dulce para logos */
+.candy-wiggle     /* Movimiento ondulante */
+.sugar-sparkle    /* Efecto brillante deslizante */
+.glass-effect     /* Transparencia profesional */
+.hover-lift       /* Elevación suave en hover */
+```
+
+### 🎨 Paleta de Colores Profesional
+```css
+--primary-pink: #e91e63       /* Rosa principal marca */
+--secondary-pink: #ad1457     /* Rosa oscuro contraste */
+--accent-pink: #ec407a        /* Rosa acento highlights */
+--soft-pink: #fce4ec          /* Rosa suave backgrounds */
+--cream: #fff8e1              /* Crema base */
+--gold: #ffc107               /* Dorado acentos */
+```
+
+### 🚀 Próximas Actualizaciones Visuales
+- 🔄 Formularios de productos con animaciones
+- 🔄 Sistema de ventas con efectos interactivos  
+- 🔄 Catálogo con transiciones suaves
+- 🔄 Reportes con gráficos animados
+
+**Sistema completamente modernizado con animaciones profesionales** ✨*Vendedor**: Gestión de ventas y atención a clientes  
+- **Bodeguero**: Gestión de inventario y almacén
+
+## Acceso al Sistema
+
+- **Servidor**: http://127.0.0.1:8000/
+- **Panel Admin**: http://127.0.0.1:8000/admin/
+
+---
+
+## � SISTEMA DE PERFIL PERSONAL (8 de Noviembre 2025)
+
+### ✅ Gestión de Perfil para Todos los Usuarios
+- ✅ **Editor y Lector pueden editar su propio perfil**: Nombres, apellidos, email, teléfono y foto
+- ✅ **Campos protegidos**: Username, rol, estado y permisos no pueden ser modificados
+- ✅ **Validaciones completas**: Email único, formato de teléfono, tamaño de imagen
+- ✅ **Interfaz moderna**: Template responsivo con preview de avatar y validaciones en tiempo real
+
+### 🔑 Sistema de Cambio de Contraseña Seguro
+- ✅ **Verificación por identidad**: Usuario debe ingresar contraseña actual
+- ✅ **Código por email**: Envío de código de 6 dígitos válido por 10 minutos
+- ✅ **Proceso en dos pasos**: Solicitar código → Verificar código + nueva contraseña
+- ✅ **Mantener sesión**: Usuario sigue autenticado después del cambio
+- ✅ **Validación robusta**: Contraseña segura con mayúsculas, minúsculas, números
+
+### 🎯 Campos Editables en Perfil
+```
+✅ Nombres (obligatorio)
+✅ Apellidos (obligatorio) 
+✅ Email (obligatorio, único)
+✅ Teléfono (opcional)
+✅ Foto de perfil (JPG, PNG, WEBP, máximo 2MB)
+
+🔒 Campos protegidos (solo lectura):
+- Nombre de usuario
+- Rol asignado
+- Estado de la cuenta
+- Fecha de registro
+```
+
+### 🔗 URLs del Sistema de Perfil
+- **Ver perfil**: `/auth/perfil/`
+- **Editar perfil**: `/auth/perfil/editar/`
+- **Cambiar contraseña**: `/auth/solicitar-codigo-cambio/`
+- **Verificar código**: `/auth/verificar-codigo-cambio/`
+
+### 🛡️ Seguridad y Permisos
+- ✅ **Solo perfil propio**: Usuarios no pueden ver/editar perfiles de otros
+- ✅ **Administradores**: Mantienen acceso a gestión completa de usuarios
+- ✅ **Roles preservados**: No se pueden auto-asignar permisos o cambiar roles
+- ✅ **Sesiones seguras**: Validación de identidad antes de cambios críticos
+
+---
+
+## �🔧 CORRECCIONES Y MEJORAS RECIENTES (Noviembre 2025)
+
+### ✅ Corrección de CRUDs - Sistema Simplificado
+- ✅ **Eliminación de JavaScript complejo**: Removido AJAX problemático
+- ✅ **Envío tradicional de formularios**: Mayor confiabilidad y compatibilidad
+- ✅ **Pantallas de carga eliminadas**: No más loading infinito
+- ✅ **Templates corregidos**:
+  - `templates/maestros/producto_crear.html` - Simplificado y funcional
+  - `templates/maestros/producto_editar.html` - Corregidos errores de sintaxis
+  - `templates/maestros/proveedor_crear.html` - JavaScript optimizado
+  - `templates/maestros/proveedor_editar.html` - AJAX eliminado, envío tradicional
+  - `templates/ventas/cliente_crear.html` - Validaciones simplificadas
+
+### ✅ Corrección de Interfaz - Dashboard Z-Index
+- ✅ **Problema de dropdown resuelto**: Menú de usuario visible correctamente
+- ✅ **Z-index optimizado**: Jerarquía de capas corregida
+- ✅ **Navbar funcional**: Dropdowns siempre visibles
+- ✅ **Overlay de fondo mejorado**: Sin interferencias con elementos interactivos
+- ✅ **Estilos CSS agresivos**: Garantizan funcionamiento en todos los casos
+
+### ✅ Validaciones y UX Mejoradas
+- ✅ **SweetAlert2 consistente**: Alertas uniformes en todos los formularios
+- ✅ **Validaciones cliente/servidor**: Doble capa de validación
+- ✅ **Preservación de datos**: Formularios mantienen datos en caso de error
+- ✅ **Mensajes de error claros**: Feedback específico por campo
+- ✅ **Experiencia de usuario fluida**: Sin interrupciones técnicas
+
+### 🚀 Arquitectura JavaScript Simplificada
+```javascript
+// ANTES: Complejo sistema AJAX (problemático)
+$.ajax({
+    url: '/endpoint/',
+    success: function(response) { /* código complejo */ },
+    error: function() { /* problemas de manejo */ }
+});
+
+// AHORA: Validaciones simples + envío tradicional (confiable)
+form.addEventListener('submit', function(e) {
+    if (!validarCampos()) {
+        e.preventDefault();
+        mostrarAlerta('Datos incompletos');
+    }
+    // Envío tradicional del formulario
+});
+```
+
+### 🎨 Mejoras de CSS y Estilos
+```css
+/* Solución definitiva de z-index */
+.navbar, .dropdown-menu { z-index: 9999 !important; }
+.dashboard-container::before { z-index: -999; pointer-events: none; }
+
+/* Elementos interactivos protegidos */
+.btn, .card, .alert { position: relative; z-index: 10; }
+```
+
+---
+
+## 🎉 NUEVAS FUNCIONALIDADES IMPLEMENTADAS
+
+### ✨ Sistema Completo de Gestión
+
+#### 🔐 Autenticación y Permisos Avanzados
+- ✅ Login con cycle_key (prevención session fixation)
+- ✅ Sistema de permisos basado en JSON por rol
+- ✅ 7 decoradores personalizados de permisos
+- ✅ Middleware de seguridad de sesiones
+- ✅ Cookies HttpOnly y SameSite
+- ✅ **Gestión de Perfil Personal**: Editor y Lector pueden editar su propio perfil
+- ✅ **Cambio de Contraseña Seguro**: Verificación por código enviado por email
+
+#### 📦 Módulo de Catálogo Completo
+- ✅ CRUD completo con validaciones
+- ✅ Búsqueda, filtros y paginación
+- ✅ Sistema de descuentos
+- ✅ Control de stock automático
+- ✅ Productos destacados
+- ✅ Estados: Borrador, Publicado, Archivado
+
+#### 🏪 Gestión de Productos (Maestros)
+- ✅ CRUD completo para productos con validaciones avanzadas
+- ✅ Búsqueda inteligente por SKU, nombre, descripción, categoría, marca
+- ✅ Paginador personalizable (10, 20, 50, 100 items por página)
+- ✅ Ordenamiento dinámico por múltiples criterios
+- ✅ Filtros en tiempo real con auto-submit
+- ✅ SweetAlert2 para confirmaciones y notificaciones
+- ✅ Formularios por secciones con validación cliente/servidor
+- ✅ Gestión de categorías, marcas y unidades de medida
+- ✅ Control de precios, costos e inventario
+- ✅ Soporte para imágenes y códigos de barras
+
+#### 🚚 Gestión de Proveedores
+- ✅ CRUD completo para proveedores con validaciones avanzadas
+- ✅ Formulario completo con validaciones cliente/servidor
+- ✅ Gestión de información comercial y contactos
+- ✅ Validación de RUT chileno automática con formateo
+- ✅ Condiciones de pago y términos comerciales
+- ✅ Información de contacto principal
+- ✅ SweetAlert2 para confirmaciones y notificaciones
+- ✅ Vista detallada con información completa
+- ✅ Validaciones de unicidad (RUT/NIF y email)
+- ✅ Manejo de errores y preservación de datos
+
+#### 🏷️ Gestión de Categorías y Marcas - CRUD COMPLETO (Noviembre 2025)
+- ✅ **CRUD Completo Implementado**: Crear, leer, actualizar, eliminar para categorías y marcas
+- ✅ **Templates Profesionales**: Vista profesional con estadísticas y jerarquía
+- ✅ **Sistema de Permisos Integrado**: Respeta roles de administrador, editor y lector
+- ✅ **Diseño Responsivo**: Compatible con dispositivos móviles
+- ✅ **Estadísticas en Tiempo Real**: Contadores de activas/inactivas
+- ✅ **Jerarquía de Categorías**: Soporte para categorías padre e hijos
+- ✅ **Validación de Dependencias**: No eliminar si tienen productos asociados
+- ✅ **SweetAlert2 Integrado**: Confirmaciones elegantes y feedback visual
+- ✅ **Animaciones CSS**: Efectos de entrada y hover profesionales
+- ✅ **URLs Funcionales**: Todas las rutas CRUD configuradas y operativas
+- ✅ **Validaciones Completas**: Formularios con validación cliente/servidor
+- ✅ **Diseño Diferenciado**: Verde para categorías, azul para marcas, rojo para eliminar
+
+#### 🛒 Carrito de Compras
+- ✅ Carrito en sesión
+- ✅ API REST completa
+- ✅ Agregar/quitar/listar items
+- ✅ Contador en navbar
+
+#### 🔔 Sistema de Notificaciones
+- ✅ Campana de notificaciones
+- ✅ Marcar como leída
+- ✅ Contador en tiempo real
+- ✅ Tipos: info, success, warning, error
+
+#### 📊 Dashboard Mejorado
+- ✅ Estadísticas en tiempo real
+- ✅ Widgets informativos
+- ✅ Acciones rápidas según rol
+
+#### 🎨 Interfaz Modernizada
+- ✅ Bootstrap 5 + Font Awesome 6
+- ✅ SweetAlert2 para mensajes
+- ✅ Menú dinámico según rol
+- ✅ Diseño responsive
+
+### 🚀 Configuración Rápida de Nuevas Funcionalidades
+
+#### 1. Configurar archivo de entorno:
+```bash
+# Copiar archivo de configuración
+cp .env.example .env
+
+# Editar .env con tus credenciales de base de datos y email
+```
+
+#### 2. Ejecutar migraciones:
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+#### 3. Poblar base de datos con datos de prueba:
+```bash
+python seed_simple.py
+```
+
+Este script crea:
+- 3 roles con permisos: Administrador, Editor, Lector
+- Usuarios de prueba con permisos correctos
+- Categorías y marcas de ejemplo
+- Productos completos para dulcería
+- Proveedores con relaciones
+
+#### 4. Acceder a las funcionalidades:
+- **Login**: http://127.0.0.1:8000/auth/login/
+- **Dashboard**: http://127.0.0.1:8000/auth/dashboard/
+- **Categorías**: http://127.0.0.1:8000/maestros/categorias/
+- **Marcas**: http://127.0.0.1:8000/maestros/marcas/
+- **Productos**: http://127.0.0.1:8000/maestros/productos/
+
+### 👤 Nuevos Usuarios de Prueba (Sistema Ampliado)
+
+| Usuario    | Contraseña | Rol Nuevo    | Permisos                    |
+|------------|-----------|--------------|----------------------------|
+| admin      | admin123  | ADMIN        | ✅ Control total           |
+| supervisor | super123  | SUPERVISOR   | ✅ Crear/Editar catálogo   |
+| vendedor   | vend123   | VENDEDOR     | 👁️ Solo visualización      |
+
+### 📚 Documentación Adicional
+
+- **[INICIO_RAPIDO.md](INICIO_RAPIDO.md)** - Guía de inicio en 5 minutos
+- **[IMPLEMENTACION.md](IMPLEMENTACION.md)** - Documentación detallada
+- **[PERMISOS.md](PERMISOS.md)** - Sistema de permisos
+- **[CHECKLIST.md](CHECKLIST.md)** - Verificación funcional
+- **[RESUMEN.md](RESUMEN.md)** - Resumen completo
+
+### 🎯 Características Clave Implementadas
+
+#### ✅ Parte 1: Core (6/6)
+1. ✅ Modelo con validaciones personalizadas
+2. ✅ CRUD completo
+3. ✅ Sistema de permisos
+4. ✅ SweetAlert2
+5. ✅ Menú dinámico
+6. ✅ Decoradores personalizados
+
+#### ✅ Parte 2: Sesiones (4/4)
+7. ✅ Carrito de compras
+8. ✅ Notificaciones
+9. ✅ Mensajes flash
+10. ✅ Seguridad de sesiones
+11. ✅ cycle_key en login
+
+#### ✅ Parte 3: Templates (1/1)
+13. ✅ Templates completos con Bootstrap 5
+
+### 🔧 Configuración de Sesiones
+
+Ya configurado en `config/settings.py`:
+```python
+SESSION_COOKIE_AGE = 3600  # 1 hora
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = not DEBUG
+SESSION_COOKIE_SAMESITE = 'Lax'
+```
+
+### 📁 Nueva Estructura de Archivos
+
+```
+templates/
+├── base.html                    # Template base con SweetAlert2
+├── autenticacion/
+│   ├── login.html              # Login estilizado
+│   └── dashboard.html          # Dashboard mejorado
+├── catalogo/
+│   ├── listar.html             # Lista con filtros
+│   ├── crear.html              # Crear producto
+│   ├── editar.html             # Editar producto
+│   ├── detalle.html            # Vista detallada
+│   └── eliminar.html           # Confirmación
+└── maestros/
+    ├── producto_*.html         # Templates de productos
+    ├── proveedor_*.html        # Templates de proveedores
+    ├── categoria_listar.html   # Lista de categorías con jerarquía ✅
+    ├── categoria_crear.html    # Crear categoría ✅
+    ├── categoria_editar.html   # Editar categoría ✅
+    ├── categoria_detalle.html  # Ver detalle categoría ✅
+    ├── marca_listar.html       # Lista de marcas con estadísticas ✅
+    ├── marca_crear.html        # Crear marca ✅
+    ├── marca_editar.html       # Editar marca ✅
+    ├── marca_detalle.html      # Ver detalle marca ✅
+    └── marca_eliminar.html     # Eliminar marca ✅
+
+maestros/
+├── views.py                    # Vistas CRUD completas con permisos
+├── urls.py                     # URLs configuradas para CRUD
+└── models.py                   # Modelos de Categoria y Marca
+
+autenticacion/
+├── decorators.py               # 7 decoradores de permisos
+├── middleware.py               # 3 middlewares personalizados
+└── templatetags/               # Template tags para permisos
+
+static/
+├── css/
+│   ├── animations.css          # Animaciones profesionales
+│   └── professional-components.css # Componentes mejorados
+└── js/
+    └── animations.js           # Sistema JavaScript de animaciones
+```
+
+### 🧪 Probar las Nuevas Funcionalidades
+
+#### CRUD de Categorías:
+```bash
+1. Login como admin → Maestros → Categorías
+2. Crear nueva categoría con validaciones
+3. Ver detalle con estadísticas
+4. Editar con preview de cambios
+5. Eliminar con validación de dependencias
+```
+
+#### CRUD de Marcas:
+```bash
+1. Login como editor → Maestros → Marcas
+2. Crear nueva marca
+3. Ver listado con filtros
+4. Editar información
+5. Intentar eliminar (sin permisos)
+```
+
+#### Sistema de Permisos:
+```bash
+1. Login con diferentes usuarios
+2. Verificar botones según rol:
+   - Admin: Ve todos los botones
+   - Editor: Ve crear/editar (no eliminar)
+   - Lector: Solo ve información
+```
+
+#### Carrito y Notificaciones:
+```bash
+1. Login → Catálogo
+2. Agregar productos al carrito
+3. Ver notificaciones en navbar
+4. Gestionar items del carrito
+```
+
+### 🚨 Comandos Útiles
+
+```bash
+# Ver todos los usuarios
+python manage.py shell
+>>> from autenticacion.models import Usuario
+>>> Usuario.objects.all().values('username', 'rol__nombre')
+
+# Crear nuevo rol
+python manage.py shell
+>>> from autenticacion.models import Rol
+>>> Rol.objects.create(nombre="NUEVO_ROL", permisos={...})
+
+# Resetear base de datos
+python manage.py flush
+python setup_inicial.py
+```
+
+### 🚨 Solución de Problemas Comunes
+
+#### Pantalla de carga infinita en formularios:
+✅ **SOLUCIONADO** - Todos los CRUDs usan envío tradicional
+- Sin AJAX complejo que pueda fallar
+- Validaciones JavaScript simples y efectivas
+- SweetAlert2 para feedback al usuario
+
+#### Dropdown del navbar no visible:
+✅ **SOLUCIONADO** - Z-index optimizado
+- Navbar con máxima prioridad visual
+- Overlay de dashboard sin interferencias
+- Elementos interactivos siempre accesibles
+
+#### Template syntax errors:
+✅ **SOLUCIONADO** - Código JavaScript limpio
+- Eliminado código duplicado en templates
+- Estructura de bloques Django corregida
+- Sin errores de sintaxis en ningún template
+
+### 🔧 Arquitectura Técnica Actual
+
+#### Backend Confiable
+- **Django 4.2.25**: Framework estable y seguro
+- **MySQL 9.1.0**: Base de datos robusta
+- **Envío tradicional**: Formularios sin dependencia de JavaScript complejo
+- **Validaciones duales**: Cliente + servidor para máxima confiabilidad
+
+#### Frontend Simplificado
+- **Bootstrap 5**: Framework CSS consistente
+- **SweetAlert2**: Alertas profesionales uniformes
+- **JavaScript mínimo**: Solo validaciones esenciales
+- **CSS optimizado**: Z-index y estilos sin conflictos
+
+---
+
+## 🆕 NUEVAS FUNCIONALIDADES - CRUD CATEGORÍAS Y MARCAS (8 de Noviembre 2025)
+
+### ✅ Sistema CRUD Completo Implementado
+
+#### 🏷️ **Gestión de Categorías**
+- ✅ **CRUD Completo**: Crear, leer, actualizar, eliminar con validaciones
+- ✅ **Jerarquía**: Soporte para categorías padre e hijas
+- ✅ **Validaciones**: No eliminar si tienen productos asociados
+- ✅ **Templates Profesionales**: Diseño verde corporativo con animaciones
+- ✅ **Estadísticas**: Contadores en tiempo real de activas/inactivas
+- ✅ **URLs Configuradas**: 
+  - `/maestros/categorias/` - Listar
+  - `/maestros/categorias/crear/` - Crear nueva
+  - `/maestros/categorias/{id}/` - Ver detalle
+  - `/maestros/categorias/{id}/editar/` - Editar
+  - `/maestros/categorias/{id}/eliminar/` - Eliminar
+
+#### 🏪 **Gestión de Marcas**
+- ✅ **CRUD Completo**: Crear, leer, actualizar, eliminar con validaciones
+- ✅ **Gestión Independiente**: Control total de marcas del sistema
+- ✅ **Validaciones**: No eliminar si tienen productos asociados
+- ✅ **Templates Profesionales**: Diseño azul corporativo con animaciones
+- ✅ **Estadísticas**: Contadores y métricas de uso
+- ✅ **URLs Configuradas**:
+  - `/maestros/marcas/` - Listar
+  - `/maestros/marcas/crear/` - Crear nueva
+  - `/maestros/marcas/{id}/` - Ver detalle
+  - `/maestros/marcas/{id}/editar/` - Editar
+  - `/maestros/marcas/{id}/eliminar/` - Eliminar
+
+#### 🔐 **Sistema de Permisos Integrado**
+- ✅ **Decoradores Aplicados**: `@permiso_requerido('productos', 'crear|actualizar|eliminar')`
+- ✅ **Roles Configurados**: Admin (total), Editor (crear/editar), Lector (solo ver)
+- ✅ **Templates Dinámicos**: Botones aparecen según permisos del usuario
+- ✅ **Seguridad Multinivel**: Vista + Template + URL + Formulario
+
+#### 🎨 **Características Visuales**
+- ✅ **Diseño Diferenciado**: Verde para categorías, azul para marcas
+- ✅ **Animaciones Profesionales**: Efectos de entrada y hover
+- ✅ **SweetAlert2**: Confirmaciones elegantes para eliminar
+- ✅ **Responsive**: Compatible con móviles y tablets
+- ✅ **Bootstrap 5**: Framework moderno y consistente
+
+#### 🔧 **Corrección de Problemas**
+- ✅ **JavaScript "Función en desarrollo"**: Corregido a URLs reales
+- ✅ **Permisos 'maestros'**: Cambiado a 'productos' para consistencia
+- ✅ **Templates Funcionales**: Todos los botones redirigen correctamente
+- ✅ **Validaciones**: Formularios con doble validación cliente/servidor
+
+---
+
+## 🐛 CORRECCIONES DE URLS - SISTEMA DE NAMESPACES (8 de Noviembre 2025)
+
+### ✅ Problemas de URLs Sin Namespace Resueltos
+- ✅ **Corrección `cliente_listar`**: Cambiado de `{% url 'cliente_listar' %}` a `{% url 'ventas:cliente_listar' %}` en template de perfil
+- ✅ **Corrección `verificar_codigo_cambio`**: Todos los redirects de autenticación ahora usan namespace `autenticacion:`
+- ✅ **Sistema de recuperación de contraseña**: URLs corregidas en todas las vistas
+- ✅ **Gestión de usuarios y roles**: Redirects actualizados con namespace correcto
+
+### 🔧 Archivos Corregidos
+- `templates/autenticacion/perfil.html`: URL de clientes con namespace `ventas:`
+- `autenticacion/views.py`: 12 redirects corregidos con namespace `autenticacion:`
+  - `solicitar_codigo_cambio` → `verificar_codigo_cambio`
+  - `verificar_codigo_cambio` → `perfil_usuario`
+  - `recuperar_password` → `verificar_codigo_recuperacion`
+  - `usuario_listar`, `rol_listar` y otros redirects administrativos
+
+### 🎯 Estructura de Namespaces Implementada
+```python
+# URLs principales con namespaces
+autenticacion:*     # Sistema de usuarios y autenticación
+ventas:*           # Gestión de clientes y ventas
+maestros:*         # Productos y proveedores
+catalogo:*         # Catálogo público
+sistema:*          # APIs y funciones del sistema
+```
+
+### 🛡️ Beneficios de la Corrección
+- ✅ **Eliminación de NoReverseMatch**: Sin más errores de URLs no encontradas
+- ✅ **Consistencia**: Todas las URLs usan namespaces apropiados
+- ✅ **Mantenibilidad**: Código más organizado y fácil de mantener
+- ✅ **Escalabilidad**: Preparado para nuevos módulos sin conflictos de nombres
+
+---
+
+## 📧 SISTEMA DE EMAILS MÚLTIPLES - CÓDIGOS DE VERIFICACIÓN (8 de Noviembre 2025)
+
+### ✅ **SISTEMA COMPLETAMENTE FUNCIONAL - EMAILS MÚLTIPLES**
+
+#### 🎯 **Cómo Funciona:**
+- **Remitente único**: `dilannavid@gmail.com` (cuenta Gmail configurada)
+- **Destinatarios múltiples**: Cada usuario recibe códigos en su email personal
+- **Envío automático**: Los códigos se envían al email del usuario logueado
+
+#### 📧 **Configuración Gmail SMTP Activa:**
+```properties
+# ✅ YA CONFIGURADO EN .env
+EMAIL_BACKEND=django.core.mail.backends.smtp.EmailBackend
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER=dilannavid@gmail.com
+EMAIL_HOST_PASSWORD=pvsh iodk ctkp faet
+DEFAULT_FROM_EMAIL=Dulcería Lilis <dilannavid@gmail.com>
+```
+
+#### 👥 **Usuarios Actuales y Sus Emails:**
+| Usuario | Email Destinatario | Recibe Códigos |
+|---------|-------------------|----------------|
+| admin | admin@dulcerialilis.cl | ✅ |
+| dulans | dilannavid@gmail.com | ✅ |
+| editor | editor@dulcerialilis.cl | ✅ |
+| lector | dilan2navid@gmail.com | ✅ |
+| nabhid | dilan1navid@gmail.com | ✅ |
+
+#### 🛠️ **Scripts de Gestión de Usuarios:**
+- ✅ **crear_usuarios_emails.py**: Crear usuarios con emails personalizados
+- ✅ **actualizar_emails_usuarios.py**: Actualizar emails de usuarios existentes
+- ✅ **probar_emails_multiples.py**: Probar envío a múltiples destinatarios
+
+### 🎯 **Cómo Usar el Sistema Multi-Email:**
+
+#### **Para Usuarios Existentes:**
+1. 🌐 Login en http://127.0.0.1:8000/auth/login/
+2. � Usar cualquier usuario (admin, editor, lector, etc.)
+3. �🔄 Ir a "Cambiar Contraseña" 
+4. 📝 Ingresar contraseña actual
+5. 📧 **El código llega al email personal del usuario**
+
+#### **Para Agregar Nuevos Usuarios:**
+```bash
+# Crear usuarios con emails reales
+python crear_usuarios_emails.py
+
+# Actualizar emails de usuarios existentes  
+python actualizar_emails_usuarios.py
+
+# Probar envío a múltiples emails
+python probar_emails_multiples.py
+```
+
+### 🔑 **Usuarios de Prueba Multi-Email:**
+| Usuario | Contraseña | Email Personal | Estado |
+|---------|------------|----------------|--------|
+| **admin** | admin123 | admin@dulcerialilis.cl | ✅ Activo |
+| **editor** | editor123 | editor@dulcerialilis.cl | ✅ Activo |
+| **lector** | lector123 | dilan2navid@gmail.com | ✅ Activo |
+| **dulans** | dulans123 | dilannavid@gmail.com | ✅ Activo |
+| **nabhid** | nabhid123 | dilan1navid@gmail.com | ✅ Activo |
+
+### 📊 **Comandos Útiles Multi-Email:**
+```bash
+# Ver todos los usuarios y sus emails
+python -c "import os,django; os.environ.setdefault('DJANGO_SETTINGS_MODULE','config.settings'); django.setup(); from autenticacion.models import Usuario; [print(f'{u.username}: {u.email}') for u in Usuario.objects.all()]"
+
+# Probar envío de códigos a múltiples usuarios
+python probar_emails_multiples.py
+
+# Ver códigos activos por usuario
+python manage.py shell
+>>> from autenticacion.models import PasswordChangeCode, Usuario
+>>> for u in Usuario.objects.all(): print(f"{u.username}: {PasswordChangeCode.objects.filter(usuario=u, usado=False).count()} códigos activos")
+```
+
+### 🛡️ **Características de Seguridad Multi-Usuario:**
+- ✅ **Códigos personalizados**: Cada usuario recibe su propio código único
+- ✅ **Emails individuales**: Códigos enviados solo al email del usuario solicitante
+- ✅ **Expiración automática**: 10 minutos de validez por código
+- ✅ **Un solo uso**: Se invalidan después de usar
+- ✅ **Invalidación por usuario**: Códigos anteriores del mismo usuario se cancelan
+- ✅ **IP tracking**: Registro de dirección IP para auditoría por usuario
+- ✅ **Aislamiento**: Cada usuario solo puede usar sus propios códigos
+
+### 🎉 **SISTEMA LISTO PARA PRODUCCIÓN:**
+- ✅ **Gmail SMTP**: Configurado y funcionando
+- ✅ **Múltiples destinatarios**: Cada usuario en su email
+- ✅ **Escalable**: Fácil agregar más usuarios con emails únicos
+- ✅ **Seguro**: Códigos individuales y validación por usuario
+
+---
+
+## 🔧 OPTIMIZACIÓN DEL SISTEMA - SIMPLIFICACIÓN Y LIMPIEZA (9 de Noviembre 2025)
+
+### ✅ **ELIMINACIÓN DE GESTIÓN DE MOVIMIENTOS**
+- ✅ **Sistema simplificado**: Removida gestión compleja de movimientos de inventario
+- ✅ **Solo visualización de stock**: Sistema enfocado en mostrar stock actual
+- ✅ **Archivos eliminados**:
+  - `inventario/views_movimientos.py` - Gestión completa de movimientos
+  - `templates/inventario/anular_movimiento.html` - Template de anulación
+  - `templates/inventario/movimientos_por_producto.html` - Historial de movimientos
+- ✅ **URLs limpiadas**: Removidas rutas de movimientos del inventario
+- ✅ **Botones eliminados**: Ya no aparecen opciones de gestión de movimientos
+
+### ✅ **MEJORA EN ELIMINACIÓN DE PRODUCTOS**
+- ✅ **Limpieza automática**: Al eliminar productos se limpian automáticamente sus movimientos
+- ✅ **Comandos de gestión creados**:
+  - `limpiar_movimientos.py` - Limpia movimientos de productos específicos
+  - `reset_inventario.py` - Resetea inventario completo con confirmación
+- ✅ **Eliminación sin restricciones**: Productos se pueden eliminar sin errores de integridad
+- ✅ **Feedback mejorado**: Mensajes claros sobre la limpieza automática
+
+### ✅ **SISTEMA DE PERMISOS PARA MARCAS Y CATEGORÍAS COMPLETADO**
+- ✅ **Decoradores aplicados**: Todos los views de marcas y categorías tienen `@permission_required`
+- ✅ **Permisos granulares**:
+  - **Administrador**: CRUD completo (crear, leer, actualizar, eliminar)
+  - **Editor**: Crear y editar (no eliminar)
+  - **Lector**: Solo visualización
+- ✅ **Templates integrados**: Botones aparecen/desaparecen según permisos del usuario
+- ✅ **UX mejorada**: Mensajes amigables en lugar de errores HTTP 403
+- ✅ **Base de datos actualizada**: Todos los roles tienen permisos para módulos `marcas` y `categorias`
+
+### ✅ **DECORADOR DE PERMISOS MEJORADO**
+- ✅ **Mensajes amigables**: Error personalizado con mensaje claro de permisos insuficientes
+- ✅ **Redirección inteligente**: Usuarios sin permisos van al dashboard con mensaje explicativo
+- ✅ **Mapeo actualizado**: Función `tiene_permiso` incluye mapeo de `marcas` y `categorias`
+- ✅ **Consistencia**: Sistema de permisos unificado en todo el proyecto
+
+### ✅ **ARCHIVOS DE GESTIÓN PARA LIMPIEZA**
+```bash
+# Limpiar movimientos de un producto específico
+python manage.py limpiar_movimientos --producto-id 6 --confirmar
+
+# Resetear inventario completo (cuidado en producción)
+python manage.py reset_inventario --confirmar
+```
+
+### 🎯 **BENEFICIOS DE LA OPTIMIZACIÓN**
+- ⚡ **Sistema más simple**: Sin complejidad innecesaria de movimientos
+- 🔧 **Mantenimiento fácil**: Menos código que mantener y debuggear
+- 🛡️ **Permisos robustos**: Control granular de acceso por módulo y acción
+- 👥 **UX mejorada**: Usuarios ven solo lo que pueden hacer
+- 🗑️ **Limpieza automática**: Sin problemas de integridad al eliminar productos
+
+### 📋 **COMANDOS DE VERIFICACIÓN POST-OPTIMIZACIÓN**
+```bash
+# Verificar que no existen referencias a movimientos
+python -c "import os,django; os.environ.setdefault('DJANGO_SETTINGS_MODULE','config.settings'); django.setup(); from inventario.models import MovimientoInventario; print(f'Movimientos restantes: {MovimientoInventario.objects.count()}')"
+
+# Verificar permisos de roles
+python manage.py shell
+>>> from autenticacion.models import Rol
+>>> for rol in Rol.objects.all(): print(f"{rol.nombre}: {rol.permisos}")
+
+# Probar eliminación de productos
+# (Debe funcionar sin errores de integridad)
+```
+
+### 🎉 **SISTEMA OPTIMIZADO Y SIMPLIFICADO**
+- ✅ **Gestión de movimientos**: Eliminada para simplicidad
+- ✅ **Eliminación de productos**: Funciona correctamente con limpieza automática
+- ✅ **Sistema de permisos**: Completo y funcional en marcas/categorías
+- ✅ **UX mejorada**: Mensajes amigables y botones condicionados
+- ✅ **Base de código**: Más limpia y mantenible
+
+---
+
+**⚡ Sistema completamente optimizado, simplificado y funcional** 🚀
+
+**Última actualización**: 9 de noviembre de 2025
+**Estado**: ✅ Sistema simplificado - Movimientos eliminados - Permisos completos - Eliminación de productos corregida
+
+---
+
+## 🔐 **SISTEMA DE VALIDACIÓN DE CARACTERES EN FORMULARIOS (28 Noviembre 2025)**
+
+### ✅ **Validaciones de Límites de Caracteres Implementadas**
+
+#### 📝 **Sistema de Validación Dual**
+- ✅ **Validación HTML**: Atributo `maxlength` en todos los campos de texto
+- ✅ **Validación JavaScript**: Evento `oninput` que trunca automáticamente
+- ✅ **Feedback visual**: Texto de ayuda muestra "máximo N caracteres"
+- ✅ **Prevención de pegado largo**: Copy-paste también se trunca automáticamente
+
+#### 📋 **Formularios Actualizados con Validaciones**
+
+##### 👥 **Usuario (Crear/Editar)**
+| Campo | Límite | Validación Adicional |
+|-------|--------|---------------------|
+| Username | 8 caracteres | Solo minúsculas, números y guiones |
+| Email | 50 caracteres | Formato email válido |
+| Nombres | 8 caracteres | Solo letras y espacios |
+| Apellidos | 8 caracteres | Solo letras y espacios |
+| Teléfono | 15 caracteres | Solo números, +, -, ( ), espacios |
+| Área/Unidad | 100 caracteres | Texto libre |
+
+##### 🍬 **Producto (Crear/Editar)**
+| Campo | Límite | Validación Adicional |
+|-------|--------|---------------------|
+| SKU | 50 caracteres | Alfanumérico y guiones |
+| Nombre | 200 caracteres | Texto libre |
+| Descripción | 500 caracteres | Texto libre |
+| EAN/UPC | 20 caracteres | Solo dígitos |
+| Modelo | 100 caracteres | Alfanumérico |
+
+##### 🏢 **Proveedor (Crear/Editar)**
+| Campo | Límite | Validación Adicional |
+|-------|--------|---------------------|
+| RUT/NIF | 12 caracteres | Formato RUT chileno |
+| Razón Social | 200 caracteres | Texto libre |
+| Nombre Fantasía | 200 caracteres | Texto libre |
+| Email Principal | 50 caracteres | Formato email válido |
+| Email Alternativo | 50 caracteres | Formato email válido |
+| Teléfono Principal | 15 caracteres | Números y caracteres tel. |
+| Teléfono Alternativo | 15 caracteres | Números y caracteres tel. |
+| Dirección | 200 caracteres | Texto libre |
+| Ciudad | 100 caracteres | Texto libre |
+| País | 100 caracteres | Texto libre |
+| Contacto Nombre | 120 caracteres | Texto libre |
+| Contacto Email | 50 caracteres | Formato email válido |
+| Contacto Teléfono | 15 caracteres | Números y caracteres tel. |
+| Condiciones Pago | 200 caracteres | Texto libre |
+
+##### 📦 **Categoría (Crear/Editar)**
+| Campo | Límite | Validación Adicional |
+|-------|--------|---------------------|
+| Nombre | 100 caracteres | Texto libre |
+| Descripción | 300 caracteres | Texto libre |
+
+##### 🏷️ **Marca (Crear/Editar)**
+| Campo | Límite | Validación Adicional |
+|-------|--------|---------------------|
+| Nombre | 100 caracteres | Texto libre |
+| Descripción | 300 caracteres | Texto libre |
+
+##### 👤 **Cliente (Crear/Editar)**
+| Campo | Límite | Validación Adicional |
+|-------|--------|---------------------|
+| RUT | 12 caracteres | Formato RUT chileno |
+| Nombre | 100 caracteres | Texto libre |
+| Email | 50 caracteres | Formato email válido |
+| Teléfono | 15 caracteres | Números y caracteres tel. |
+| Dirección | 200 caracteres | Texto libre |
+| Ciudad | 100 caracteres | Texto libre |
+
+#### 🛡️ **Características de Seguridad**
+- ✅ **No bypasseable**: Validación en cliente Y servidor
+- ✅ **UX mejorada**: Usuario ve límite antes de escribir
+- ✅ **Sin errores molestos**: Truncado automático sin alertas
+- ✅ **Consistente**: Mismas reglas en crear y editar
+- ✅ **Documentado**: Help text muestra límite exacto
+
+#### 💻 **Implementación Técnica**
+```html
+<!-- Ejemplo de campo con validación dual -->
+<input 
+    type="text" 
+    name="username" 
+    maxlength="8"
+    oninput="this.value = this.value.slice(0, 8)"
+    class="form-control"
+>
+<small class="form-text text-muted">
+    Máximo 8 caracteres
+</small>
+```
+
+#### 📁 **Templates Actualizados**
+- ✅ `templates/autenticacion/usuario_crear.html`
+- ✅ `templates/maestros/producto_crear.html`
+- ✅ `templates/maestros/proveedor_crear.html`
+- ✅ `templates/maestros/categoria_crear.html`
+- ✅ `templates/maestros/marca_crear.html`
+- ✅ `templates/ventas/cliente_crear.html`
+
+---
+
+## 🎨 **REDISEÑO DEL FORMULARIO DE REGISTRO (28 Noviembre 2025)**
+
+### ✅ **Registro con Diseño Unificado**
+
+#### 🎯 **Características del Nuevo Diseño**
+- ✅ **Consistencia visual**: Idéntico al formulario de login
+- ✅ **Fondo degradado rojo**: Mismo estilo profesional (#dc2626)
+- ✅ **Tarjeta blanca centrada**: Layout limpio y moderno
+- ✅ **Logo visible**: Dulcería Lilis 80x80px
+- ✅ **Organización por secciones**: 3 secciones claramente definidas
+
+#### 📋 **Secciones del Formulario**
+
+##### 🔑 **1. Información de Acceso**
+- Username (8 caracteres, solo minúsculas/números/guiones)
+- Email (50 caracteres)
+
+##### 👤 **2. Información Personal**
+- Nombres (8 caracteres)
+- Apellidos (8 caracteres)
+- Teléfono (15 caracteres)
+
+##### 🔒 **3. Contraseña y Seguridad**
+- Contraseña (con validación de fortaleza)
+- Confirmar contraseña
+- **Indicador de fortaleza**: Barra de progreso 3 niveles
+- **Requisitos visuales**: 4 checkboxes en tiempo real
+  - ✅ Al menos 8 caracteres
+  - ✅ Una letra mayúscula
+  - ✅ Una letra minúscula
+  - ✅ Un número
+- Checkbox de términos y condiciones
+- Modal de términos con SweetAlert2
+
+#### ✨ **Funcionalidades Interactivas**
+- ✅ **Toggle de visibilidad**: Botones de ojo para mostrar/ocultar contraseñas
+- ✅ **Validación en tiempo real**: Checkmarks verdes al cumplir requisitos
+- ✅ **Barra de fortaleza**: Débil (rojo) → Media (amarillo) → Fuerte (verde)
+- ✅ **Modal de términos**: Popup elegante con scroll interno
+- ✅ **Validación de checkbox**: Alerta si no acepta términos
+- ✅ **Mensajes con SweetAlert2**: Feedback visual consistente
+
+#### 🎨 **Diseño Responsive**
+- ✅ **Móviles**: Diseño adaptado para pantallas pequeñas
+- ✅ **Tablets**: Optimización de espacios
+- ✅ **Escritorio**: Tarjeta centrada con max-height 90vh
+- ✅ **Scroll interno**: Si el formulario es muy largo
+
+#### 🔒 **Seguridad y Validación**
+- ✅ **Validación HTML5**: Campos required y pattern
+- ✅ **Validación JavaScript**: Requisitos de contraseña en tiempo real
+- ✅ **Validación servidor**: Django forms en backend
+- ✅ **Aceptación de términos**: Obligatorio antes de enviar
+
+#### 📁 **Archivos Actualizados**
+- ✅ `templates/autenticacion/registro.html` (280 líneas limpias)
+- ✅ Usa `static/css/login.css` (reutilización de estilos)
+- ✅ Sin duplicación de código
+- ✅ JavaScript organizado y comentado
+
+#### 🔗 **Navegación**
+- **URL**: `/auth/registro/`
+- **Enlace desde login**: "¿No tienes cuenta? Regístrate aquí"
+- **Enlace a login**: "¿Ya tienes cuenta? Inicia sesión aquí"
+
+---
+
+**🎨 Sistema completamente modernizado con validaciones robustas y diseño unificado** ✨
+
+---
+
+## 🆕 **FUNCIONALIDADES DASHBOARD - MARCAS Y CATEGORÍAS (9 Noviembre 2025)**
+
+### ✅ **Dashboard Actualizado con Nuevos Módulos**
+
+#### 🏠 **Módulos del Sistema - Nuevas Tarjetas**
+- ✅ **Tarjeta de Marcas**: Diseño azul profesional con enlace directo a gestión de marcas
+- ✅ **Tarjeta de Categorías**: Diseño verde profesional con enlace directo a gestión de categorías
+- ✅ **Permisos integrados**: Solo visible para usuarios con `can_manage_products`
+- ✅ **Responsive**: Compatible con dispositivos móviles y tablets
+
+#### ⚡ **Acciones Rápidas Ampliadas**
+- ✅ **Sección Marcas**: Botones para Listar y Crear marcas desde el dashboard
+- ✅ **Sección Categorías**: Botones para Listar y Crear categorías desde el dashboard
+- ✅ **Acceso directo**: Navegación rápida sin necesidad de menús desplegables
+- ✅ **Colores diferenciados**: Azul para marcas, verde para categorías
+
+### ✅ **Sistema de Exportación a Excel Profesional**
+
+#### 📊 **Exportación Completa Implementada**
+- ✅ **4 Módulos exportables**: Marcas, Categorías, Proveedores, Usuarios
+- ✅ **Biblioteca openpyxl 3.1.5**: Archivos Excel con estilos profesionales
+- ✅ **Headers personalizados**: Fondos grises, bordes y auto-width
+- ✅ **Botones verdes**: "Exportar Excel" en todas las listas CRUD
+- ✅ **Permisos por rol**: Solo usuarios autorizados pueden exportar
+
+#### 🔗 **URLs de Exportación Configuradas**
+```
+/maestros/marcas/export-excel/        # Exportar marcas
+/maestros/categorias/export-excel/    # Exportar categorías  
+/maestros/proveedores/export-excel/   # Exportar proveedores
+/auth/usuarios/export-excel/          # Exportar usuarios (solo admins)
+```
+
+#### 📁 **Funciones de Exportación Implementadas**
+- `export_marcas_excel()` - Exporta todas las marcas con información completa
+- `export_categorias_excel()` - Exporta categorías con jerarquía y estadísticas  
+- `export_proveedores_excel()` - Exporta proveedores con datos comerciales
+- `export_usuarios_excel()` - Exporta usuarios con roles (solo administradores)
+
+### ✅ **Mejoras en Datos de Prueba**
+
+#### 🏷️ **Marcas Ampliadas (27 marcas)**
+- Marcas internacionales: Nestlé, Ferrero, Hershey, Cadbury, Lindt
+- Marcas chilenas: Costa, Ambrosoli, Arcor, Calaf, Bresler
+- Marcas de chicles: Trident, Orbit, Halls, Mentos
+- Marcas de bebidas: Coca-Cola, Pepsi, Bilz & Pap
+- **Marca propia**: Dulcería Lilis, Lilis Artesanal
+
+#### 📦 **Categorías Mejoradas (12 categorías)**  
+- Categorías tradicionales: Chocolates, Caramelos, Gomitas, Chicles
+- Categorías especializadas: Repostería, Artesanales Lilis, Sin Azúcar
+- Descripciones detalladas para mejor organización de productos
+
+### 🎨 **Diseño y Experiencia de Usuario**
+
+#### 🌈 **Paleta de Colores Diferenciada**
+- **Marcas**: Azul (`#2563eb`) - Profesional y tecnológico
+- **Categorías**: Verde (`#059669`) - Natural y organizacional  
+- **Exportar**: Verde (`#28a745`) - Acción positiva y confiable
+
+#### 🔒 **Sistema de Permisos Granular**
+- **Administrador**: Ve todas las tarjetas y puede exportar todo
+- **Editor**: Ve tarjetas pero no puede eliminar, puede exportar
+- **Lector**: No ve tarjetas de gestión (sin permisos can_manage_products)
+
+### 🧪 **Instrucciones de Uso**
+
+#### 📋 **Para Probar las Nuevas Funcionalidades**
+1. **Iniciar servidor**: `python manage.py runserver`
+2. **Login**: http://127.0.0.1:8000/auth/login/
+3. **Dashboard**: Ver nuevas tarjetas de Marcas y Categorías
+4. **Acciones rápidas**: Probar botones de listar y crear
+5. **Exportación**: Ir a cualquier lista CRUD y probar "Exportar Excel"
+
+#### 👥 **Usuarios de Prueba**
+| Usuario | Contraseña | Ve Marcas/Categorías | Puede Exportar |
+|---------|------------|---------------------|----------------|
+| admin   | admin123   | ✅ Sí               | ✅ Todo        |
+| editor  | editor123  | ✅ Sí               | ✅ Sus módulos |
+| lector  | lector123  | ❌ No               | ❌ No          |
+
+### 📁 **Archivos de Documentación**
+- **[FUNCIONALIDADES_DASHBOARD_MARCAS_CATEGORIAS.md](FUNCIONALIDADES_DASHBOARD_MARCAS_CATEGORIAS.md)** - Documentación técnica completa
+- **requirements.txt** - Dependencias actualizadas con comentarios
+- **.env.example** - Variables de entorno documentadas
+- **seed_simple.py** - Datos de prueba ampliados
+
+---
+
+**🎉 Dashboard completamente modernizado con acceso rápido a Marcas, Categorías y exportación Excel profesional** ✨
